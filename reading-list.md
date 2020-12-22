@@ -6,10 +6,8 @@ icon: fa-book
 order: 3
 ---
 
-I love books! Here are some I'm reading now:
-
-1. Robert Burton: *The Anatomy of Melancholy*
-2. Robert Musil: *The Man Without Qualities*
+1. 회색인간 - 김동식
+2. 하버드 상위 1퍼센트의 비밀 - 정주영
 3. Kazuo Ishiguro: *The Unconsoled*
 4. Malcolm Lowry: *Under the Volcano*
 5. Virginia Woolf: *The Waves*
