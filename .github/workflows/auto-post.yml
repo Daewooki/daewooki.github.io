@@ -41,8 +41,8 @@ jobs:
       
       - name: Commit and push
         run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
+          git config --local user.email "eodnr9221@gmail.com"
+          git config --local user.name "Daewook Kwon"
           git add _posts/
           
           # 새 파일이 있는 경우에만 커밋
