@@ -125,7 +125,7 @@ def generate_post_content(topic_data: dict) -> str:
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": user_prompt}
         ],
-        max_tokens=4000,
+        max_completion_tokens=4000,  # GPT-5.2는 max_tokens 대신 이 파라미터 사용
         temperature=0.7
     )
     
