@@ -1,7 +1,7 @@
 ---
 title: "GitHub Actions로 CI/CD 파이프라인 구축하기"
 date: 2025-12-12 14:00:00 +0900
-categories: [DevOps, CI/CD]
+categories: [DevOps, CICD]
 tags: [github-actions, cicd, devops, automation]
 ---
 

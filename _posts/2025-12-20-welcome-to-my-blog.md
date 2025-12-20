@@ -2,7 +2,7 @@
 title: "블로그를 새롭게 시작합니다 🚀"
 date: 2025-12-20 10:00:00 +0900
 categories: [Blog, Intro]
-tags: [blog, intro, 2025]
+tags: [blog, intro, year-2025]
 pin: true
 ---
 
