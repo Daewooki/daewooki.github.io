@@ -93,6 +93,9 @@ pwa:
 
 paginate: 10
 
+# 미래 날짜 포스트도 표시 (시간대 이슈 해결)
+future: true
+
 # The base URL of your site
 # Note: The baseurl should start with '/' and NOT end with '/'
 baseurl: ""
