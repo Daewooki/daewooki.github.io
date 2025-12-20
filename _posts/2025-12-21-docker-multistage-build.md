@@ -1,6 +1,6 @@
 ---
 title: "Docker 멀티스테이지 빌드 활용법: 이미지 크기와 보안을 동시에 잡기"
-date: 2025-12-20 15:08:53 +0900
+date: 2025-12-21 09:00:00 +0900
 categories: [Infrastructure, Docker]
 tags: [infrastructure, docker]
 ---

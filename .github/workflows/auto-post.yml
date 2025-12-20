@@ -5,11 +5,11 @@ on:
   schedule:
     - cron: '0 0 * * *'
   
-  # 수동 실행도 가능
+  # 수동 실행 - 특정 주제 지정 가능
   workflow_dispatch:
     inputs:
       topic:
-        description: '특정 주제 (비워두면 랜덤)'
+        description: '특정 주제 입력 (예: 바이브코딩, Cursor 활용법) - 비워두면 랜덤'
         required: false
         default: ''
 
@@ -35,6 +35,7 @@ jobs:
       - name: Generate blog post
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          POST_TOPIC: ${{ github.event.inputs.topic }}
         run: |
           python scripts/generate_post.py
       

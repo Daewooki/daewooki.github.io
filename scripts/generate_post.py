@@ -10,6 +10,16 @@ from openai import OpenAI
 
 # 주제 목록 - 원하는 주제를 추가/수정하세요
 TOPICS = [
+    # Vibe Coding & AI 개발
+    {"category": "AI", "subcategory": "VibeCoding", "topics": [
+        "바이브코딩으로 생산성 10배 올리는 방법",
+        "Cursor IDE 완벽 활용 가이드",
+        "AI와 함께 코딩하는 시대의 개발자 역할",
+        "프롬프트 엔지니어링으로 더 나은 코드 만들기",
+        "AI 코딩 어시스턴트 비교 분석 (Cursor vs Copilot vs Claude)",
+        "바이브코딩 시대의 코드 리뷰 전략",
+        "AI로 레거시 코드 리팩토링하기",
+    ]},
     # Backend
     {"category": "Backend", "subcategory": "Python", "topics": [
         "Python 비동기 프로그래밍 패턴",
@@ -241,6 +251,28 @@ tags: [{', '.join(tags)}]
     return filename
 
 
+def get_topic_by_keyword(keyword: str) -> dict:
+    """키워드로 관련 주제 찾기 또는 직접 주제로 사용"""
+    keyword_lower = keyword.lower()
+    
+    # 키워드가 포함된 주제 찾기
+    for category_data in TOPICS:
+        for topic in category_data["topics"]:
+            if keyword_lower in topic.lower():
+                return {
+                    "category": category_data["category"],
+                    "subcategory": category_data["subcategory"],
+                    "topic": topic
+                }
+    
+    # 못 찾으면 입력값을 직접 주제로 사용 (AI > Custom 카테고리)
+    return {
+        "category": "AI",
+        "subcategory": "Insight",
+        "topic": keyword
+    }
+
+
 def main():
     # API 키 확인
     if not os.environ.get("OPENAI_API_KEY"):
@@ -249,9 +281,18 @@ def main():
     
     print("🚀 블로그 포스트 자동 생성 시작...")
     
-    # 1. 랜덤 주제 선택
-    topic_data = get_random_topic()
-    print(f"📝 선택된 주제: {topic_data['topic']}")
+    # 환경변수에서 특정 주제 확인 (없으면 랜덤)
+    custom_topic = os.environ.get("POST_TOPIC", "").strip()
+    
+    if custom_topic:
+        # 특정 주제로 생성
+        topic_data = get_topic_by_keyword(custom_topic)
+        print(f"📝 지정된 주제: {topic_data['topic']}")
+    else:
+        # 랜덤 주제 선택
+        topic_data = get_random_topic()
+        print(f"📝 랜덤 선택된 주제: {topic_data['topic']}")
+    
     print(f"   카테고리: {topic_data['category']} > {topic_data['subcategory']}")
     
     # 2. LLM으로 내용 생성
