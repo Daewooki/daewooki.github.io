@@ -60,7 +60,7 @@ toc: true
 
 comments:
   # Global switch for the post-comment system. Keeping it empty means disabled.
-  provider: giscus # [disqus | utterances | giscus]
+  provider: # [disqus | utterances | giscus] - 댓글 기능 비활성화 (나중에 giscus 설정 후 활성화)
   # The provider options are as follows:
   disqus:
     shortname: # fill with the Disqus shortname.
@@ -68,12 +68,12 @@ comments:
   utterances:
     repo: # <gh-username>/<repo>
     issue_term: # < url | pathname | title | ...>
-  # Giscus options
+  # Giscus options - 나중에 https://giscus.app 에서 설정값 얻어서 채우기
   giscus:
     repo: daewooki/daewooki.github.io
-    repo_id: # fill in your repo id
+    repo_id: # giscus.app에서 얻은 값
     category: General
-    category_id: # fill in your category id
+    category_id: # giscus.app에서 얻은 값
     mapping: pathname
     strict: 0
     input_position: bottom
