@@ -117,13 +117,10 @@ def generate_post_content(topic_data: dict) -> str:
 글 제목도 함께 제안해주세요. (첫 줄에 # 제목 형식으로)
 """
 
-    # 사용 가능한 최신 모델 (2025년 기준)
-    # - gpt-4o: 가장 강력한 모델 (추천)
-    # - gpt-4o-mini: 비용 효율적
-    # - o1: 추론 특화 모델
-    # - 새 모델 출시 시 여기서 변경하세요
+    # OpenAI 최신 모델 사용 (2025년 12월)
+    # https://platform.openai.com/docs/models/gpt-5.2
     response = client.chat.completions.create(
-        model="gpt-4o",  # 최신 모델 사용
+        model="gpt-5.2",  # 최신 GPT-5.2 모델
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": user_prompt}
