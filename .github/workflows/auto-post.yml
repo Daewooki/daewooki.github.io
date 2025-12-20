@@ -1,20 +1,26 @@
-name: Auto Generate Blog Post
+name: Auto Generate Blog Posts
 
 on:
   # 매일 오전 9시 (KST) = UTC 00:00에 실행
   schedule:
     - cron: '0 0 * * *'
   
-  # 수동 실행 - 특정 주제 지정 가능
+  # 수동 실행
   workflow_dispatch:
     inputs:
-      topic:
-        description: '특정 주제 입력 (예: 바이브코딩, Cursor 활용법) - 비워두면 랜덤'
+      num_posts:
+        description: '생성할 포스트 개수 (1-4)'
         required: false
-        default: ''
+        default: '2'
+        type: choice
+        options:
+          - '1'
+          - '2'
+          - '3'
+          - '4'
 
 jobs:
-  generate-post:
+  generate-posts:
     runs-on: ubuntu-latest
     
     steps:
@@ -32,10 +38,10 @@ jobs:
         run: |
           pip install openai
       
-      - name: Generate blog post
+      - name: Generate blog posts with web search
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          POST_TOPIC: ${{ github.event.inputs.topic }}
+          NUM_POSTS: ${{ github.event.inputs.num_posts || '2' }}
         run: |
           python scripts/generate_post.py
       
@@ -49,7 +55,7 @@ jobs:
           if git diff --staged --quiet; then
             echo "No new posts to commit"
           else
-            git commit -m "📝 Auto-generated blog post - $(date +'%Y-%m-%d')"
+            POST_COUNT=$(git diff --staged --name-only | wc -l)
+            git commit -m "📝 Auto-generated ${POST_COUNT} trend post(s) - $(date +'%Y-%m-%d')"
             git push
           fi
-
