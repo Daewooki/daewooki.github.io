@@ -19,22 +19,31 @@ on:
           - '3'
           - '4'
 
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
 jobs:
-  generate-posts:
+  generate-and-deploy:
     runs-on: ubuntu-latest
     
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
       
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       
-      - name: Install dependencies
+      - name: Install Python dependencies
         run: |
           pip install openai
       
@@ -45,17 +54,48 @@ jobs:
         run: |
           python scripts/generate_post.py
       
-      - name: Commit and push
+      - name: Commit new posts
         run: |
           git config --local user.email "eodnr9221@gmail.com"
           git config --local user.name "Daewook Kwon"
           git add _posts/
           
-          # 새 파일이 있는 경우에만 커밋
           if git diff --staged --quiet; then
             echo "No new posts to commit"
+            echo "HAS_NEW_POSTS=false" >> $GITHUB_ENV
           else
             POST_COUNT=$(git diff --staged --name-only | wc -l)
             git commit -m "📝 Auto-generated ${POST_COUNT} trend post(s) - $(date +'%Y-%m-%d')"
             git push
+            echo "HAS_NEW_POSTS=true" >> $GITHUB_ENV
           fi
+      
+      # Jekyll 빌드 및 배포 (새 포스트가 있을 때만)
+      - name: Setup Pages
+        if: env.HAS_NEW_POSTS == 'true'
+        id: pages
+        uses: actions/configure-pages@v4
+
+      - name: Setup Ruby
+        if: env.HAS_NEW_POSTS == 'true'
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.3
+          bundler-cache: true
+
+      - name: Build Jekyll site
+        if: env.HAS_NEW_POSTS == 'true'
+        run: bundle exec jekyll b -d "_site${{ steps.pages.outputs.base_path }}"
+        env:
+          JEKYLL_ENV: "production"
+
+      - name: Upload site artifact
+        if: env.HAS_NEW_POSTS == 'true'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "_site${{ steps.pages.outputs.base_path }}"
+
+      - name: Deploy to GitHub Pages
+        if: env.HAS_NEW_POSTS == 'true'
+        id: deployment
+        uses: actions/deploy-pages@v4
