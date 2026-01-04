@@ -1,6 +1,6 @@
 ---
-layout: home
-# Index page
+layout: default
+# Custom home (render content + post list)
 ---
 
 <div class="pageviews-summary" style="margin: 0.75rem 0 1.25rem; opacity: 0.85;">
@@ -19,4 +19,26 @@ layout: home
 </script>
 
 <script defer src="/assets/js/pageviews.js"></script>
+
+<div class="posts">
+  {% assign posts = paginator.posts | default: site.posts %}
+  {% for post in posts limit: 10 %}
+    <article style="margin: 0 0 1.25rem;">
+      <h2 style="margin: 0 0 0.25rem; font-size: 1.25rem; line-height: 1.4;">
+        <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
+      </h2>
+      <div style="opacity: 0.75; font-size: 0.95rem; margin-bottom: 0.5rem;">
+        <time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%Y-%m-%d" }}</time>
+        {% if post.categories %}
+          · {{ post.categories | join: " / " }}
+        {% endif %}
+      </div>
+      {% if post.excerpt %}
+        <div style="opacity: 0.9;">
+          {{ post.excerpt }}
+        </div>
+      {% endif %}
+    </article>
+  {% endfor %}
+</div>
 
