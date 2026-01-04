@@ -9,6 +9,15 @@ pin: true
 <div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
   <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
 </div>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-7990TVG7C7');
+</script>
 <script defer src="/assets/js/pageviews.js"></script>
 
 

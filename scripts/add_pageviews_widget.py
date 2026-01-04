@@ -14,13 +14,39 @@ from pathlib import Path
 WIDGET = """<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
   <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
 </div>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-7990TVG7C7');
+</script>
 <script defer src="/assets/js/pageviews.js"></script>
 
 """
 
+GA_SNIPPET = """<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-7990TVG7C7');
+</script>
+"""
+
 
 def insert_widget(md: str) -> str:
+    # Case A: already has pageview widget; ensure GA snippet is present too.
     if 'id="pv-post"' in md:
+        if "gtag/js?id=G-7990TVG7C7" in md:
+            return md
+        marker = '<script defer src="/assets/js/pageviews.js"></script>'
+        if marker in md:
+            return md.replace(marker, GA_SNIPPET + marker, 1)
         return md
 
     # Find front matter end: first two occurrences of "---" at line start
