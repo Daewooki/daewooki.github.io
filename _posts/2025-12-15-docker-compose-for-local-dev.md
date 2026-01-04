@@ -5,6 +5,12 @@ categories: [Infrastructure, Docker]
 tags: [docker, docker-compose, devops, local-development]
 ---
 
+<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
+  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
+</div>
+<script defer src="/assets/js/pageviews.js"></script>
+
+
 ## 왜 Docker Compose인가?
 
 "내 컴퓨터에서는 되는데요?"

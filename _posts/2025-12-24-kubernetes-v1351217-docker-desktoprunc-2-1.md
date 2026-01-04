@@ -5,6 +5,12 @@ categories: [DevOps, News]
 tags: [devops, news, trend, 2025-12]
 ---
 
+<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
+  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
+</div>
+<script defer src="/assets/js/pageviews.js"></script>
+
+
 ## 들어가며
 2025년 12월 클라우드 네이티브 업계는 “기능 진화”와 “런타임 보안”이 동시에 전면에 부상한 달이었습니다. Kubernetes는 v1.35를 12월 17일 공개하며 대규모 개선(총 60개 enhancement)을 발표했고, 한편 Docker Desktop 및 runC 계열 취약점 이슈가 운영·개발 환경의 보안 기본선을 다시 끌어올렸습니다. ([kubernetes.io](https://kubernetes.io/blog/2025/12/17/kubernetes-v1-35-release/?utm_source=openai))
 

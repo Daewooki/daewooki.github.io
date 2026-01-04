@@ -5,6 +5,12 @@ categories: [AI, Prototyping]
 tags: [ai, llm, prototyping, productivity, cursor]
 ---
 
+<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
+  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
+</div>
+<script defer src="/assets/js/pageviews.js"></script>
+
+
 ## 들어가며
 
 요즘 저는 새로운 아이디어가 떠오르면 **하루 안에 동작하는 프로토타입**을 만들어봅니다.

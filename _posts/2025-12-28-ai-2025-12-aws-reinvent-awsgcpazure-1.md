@@ -5,6 +5,12 @@ categories: [Infrastructure, News]
 tags: [infrastructure, news, trend, 2025-12]
 ---
 
+<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
+  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
+</div>
+<script defer src="/assets/js/pageviews.js"></script>
+
+
 ## 들어가며
 2025년 12월, AWS는 re:Invent 2025를 통해 AI agent 중심의 대규모 신규 서비스/기능을 공개하며 “개발 생산성 + 인프라(칩/서버) + 모델 플랫폼”을 한 번에 밀어붙였습니다. 같은 시기 Azure는 Azure Copilot과 신규 PostgreSQL 계열 DB 프리뷰를 전면에 내세웠고, GCP는 Next ’25 발표 묶음에서 인프라/쿠버네티스/추론 게이트웨이 등 AI 실행 계층을 강화했습니다. ([aboutamazon.com](https://www.aboutamazon.com/news/aws/aws-re-invent-2025-ai-news-updates//?utm_source=openai))
 

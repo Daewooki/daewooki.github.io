@@ -5,6 +5,12 @@ categories: [Infrastructure, AWS]
 tags: [aws, cost-optimization, cloud, infra]
 ---
 
+<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
+  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
+</div>
+<script defer src="/assets/js/pageviews.js"></script>
+
+
 ## 배경
 
 어느 날 AWS 청구서를 보니... 😱

@@ -5,6 +5,12 @@ categories: [Infrastructure, News]
 tags: [infrastructure, news, trend, 2025-12]
 ---
 
+<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
+  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
+</div>
+<script defer src="/assets/js/pageviews.js"></script>
+
+
 ## 들어가며
 2025년 12월(정확히는 AWS re:Invent 2025 기간인 11월 30일~12월 4일 전후) AWS는 “AI agents를 실제 운영에 올리는 방법”을 제품 레벨로 대거 발표했습니다. 핵심은 모델 자체보다 **agent 운영(Observability, Policy, Evaluation, Incident 대응 자동화)**을 AWS 관리형 서비스로 흡수하기 시작했다는 점입니다. ([aws.amazon.com](https://aws.amazon.com/blogs/aws/top-announcements-of-aws-reinvent-2025/))
 

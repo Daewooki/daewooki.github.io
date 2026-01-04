@@ -5,6 +5,12 @@ categories: [Backend, Tutorial]
 tags: [backend, tutorial, trend, 2025-12]
 ---
 
+<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
+  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
+</div>
+<script defer src="/assets/js/pageviews.js"></script>
+
+
 ## 들어가며
 FastAPI는 “빠르게 만들고 빠르게 버리는” 프로토타입 프레임워크가 아닙니다. 2025년의 FastAPI는 **Pydantic 기반의 강력한 스키마/검증**, **ASGI 비동기 생태계**, **OpenAPI 중심의 계약(Contract) 주도 개발**을 바탕으로, Django 못지않게 큰 서비스도 운영할 수 있는 레벨에 도달했습니다. 다만 실무에서 문제가 되는 지점은 늘 비슷합니다.
 

@@ -5,6 +5,12 @@ categories: [DevOps, CICD]
 tags: [github-actions, cicd, devops, automation]
 ---
 
+<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
+  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
+</div>
+<script defer src="/assets/js/pageviews.js"></script>
+
+
 ## CI/CD가 왜 필요한가?
 
 수동 배포의 문제점:

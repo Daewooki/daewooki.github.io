@@ -5,6 +5,12 @@ categories: [AI, Tutorial]
 tags: [ai, tutorial, trend, 2025-12]
 ---
 
+<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
+  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
+</div>
+<script defer src="/assets/js/pageviews.js"></script>
+
+
 ## 들어가며
 2023~2024년의 RAG는 “질문 → retrieve(top-k) → LLM 답변”으로 끝나는 단일 패스가 주류였습니다. 그런데 2025년 실무에서는 이 구조가 자주 깨집니다. 사용자가 던지는 질문이 **복합적**(여러 하위 질문), **불완전**(용어가 애매/오타), **데이터 범위가 불명확**(내부 문서에 없는 것)하기 때문입니다.  
 그래서 최신 튜토리얼/프레임워크 흐름은 RAG를 “파이프라인”이 아니라 **Agent가 필요할 때 Retrieval을 ‘도구(tool)’로 호출하는 방식(Agentic RAG)**으로 옮겨가고 있습니다. Haystack은 RAG 결과가 부족하면 **조건부 라우팅으로 web search fallback**을 붙이는 형태를 “agentic behavior”로 설명하고, LlamaIndex는 Agent 프레임워크/Workflows로 Agentic RAG를 확장하는 방향을 강조합니다. ([haystack.deepset.ai](https://haystack.deepset.ai/blog/agentic-rag-in-deepset-studio?utm_source=openai))

@@ -5,6 +5,12 @@ categories: [AI, Tutorial]
 tags: [ai, tutorial, trend, 2026-01]
 ---
 
+<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
+  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
+</div>
+<script defer src="/assets/js/pageviews.js"></script>
+
+
 ## 들어가며
 2023~2024년의 “단순 RAG”는 **질문 → retrieve → LLM 답변**의 직선 파이프라인이 주류였지만, 2025년 실무에서는 이 구조가 쉽게 한계에 부딪힙니다. 예를 들어 사용자의 질문이 (1) 검색이 필요 없는 상식인지, (2) 내부 문서 기반인지, (3) 웹 최신 정보가 필요한지, (4) 검색 결과 품질이 낮아 재질의/재랭킹이 필요한지 등을 **매번 고정 파이프라인으로 처리하면 비용/지연/환각이 폭증**합니다.
 

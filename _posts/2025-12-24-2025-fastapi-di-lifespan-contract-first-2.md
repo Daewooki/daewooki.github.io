@@ -5,6 +5,12 @@ categories: [Backend, Tutorial]
 tags: [backend, tutorial, trend, 2025-12]
 ---
 
+<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
+  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
+</div>
+<script defer src="/assets/js/pageviews.js"></script>
+
+
 ## 들어가며
 2025년의 Python 백엔드에서 FastAPI는 “빠르게 만들기”보다 “오래 운영하기”에서 실력이 갈립니다. 특히 (1) settings/DB/http client 같은 리소스의 생명주기, (2) 테스트에서의 override 가능성, (3) API 계약(OpenAPI) 일관성이 무너지면 서비스가 커질수록 변경 비용이 폭증합니다.  
 핵심은 **FastAPI의 Dependency Injection(DI)을 요청 단위 경계로**, **Starlette Lifespan을 프로세스 단위 경계로** 명확히 나누고, 그 위에 **API 설계 규칙(에러/페이지네이션/버저닝)**을 “고정된 계약”으로 세우는 것입니다. FastAPI의 DI는 OpenAPI 스키마와도 강하게 결합되어 있어, 설계를 잘하면 문서/검증/보안이 함께 따라옵니다. ([fastapi.tiangolo.com](https://fastapi.tiangolo.com/he/tutorial/dependencies/?utm_source=openai))

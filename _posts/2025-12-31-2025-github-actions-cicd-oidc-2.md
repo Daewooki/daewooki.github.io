@@ -5,6 +5,12 @@ categories: [DevOps, Tutorial]
 tags: [devops, tutorial, trend, 2025-12]
 ---
 
+<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
+  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
+</div>
+<script defer src="/assets/js/pageviews.js"></script>
+
+
 ## 들어가며
 2025년의 CI/CD는 “돌아가기만 하면 된다”를 넘어 **속도(개발 리드타임)**, **안정성(배포 충돌/롤백)**, **보안(공급망/토큰 유출)**을 동시에 만족해야 합니다. GitHub Actions는 저장소 이벤트와 코드(Workflow YAML)가 결합된 형태라 진입장벽이 낮지만, 규모가 커질수록 YAML이 중복되고(팀/서비스별 파편화), 병렬 실행으로 리소스가 낭비되며, 토큰/시크릿 관리가 복잡해집니다.
 

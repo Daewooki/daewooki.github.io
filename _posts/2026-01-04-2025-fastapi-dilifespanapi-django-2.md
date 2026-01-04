@@ -5,6 +5,12 @@ categories: [Backend, Tutorial]
 tags: [backend, tutorial, trend, 2026-01]
 ---
 
+<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
+  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
+</div>
+<script defer src="/assets/js/pageviews.js"></script>
+
+
 ## 들어가며
 FastAPI는 “빠르게 만든 API”에서 끝나면 곤란합니다. 2025년의 FastAPI는 Pydantic v2, ASGI 생태계(uvicorn/starlette), async DB 드라이버/ORM(SQLAlchemy 2.x async)와 결합되며 **타입 기반 계약(Contract)** 과 **명시적 의존성(Dependency Injection)** 을 중심으로 아키텍처를 잡는 쪽으로 성숙했습니다. 실무에서 문제는 늘 비슷합니다: “라우트가 비대해짐”, “DB 세션/커넥션 누수”, “startup/shutdown이 환경마다 다르게 동작”, “에러 포맷 제각각”, “Django처럼 표준 레일이 없어서 팀마다 스타일이 분열”.  
 따라서 2025년 베스트 프랙티스는 *FastAPI를 Django처럼 ‘일관된 규칙’ 위에서 운용*하는 것입니다: **Lifespan으로 리소스 수명 관리**, **DI로 계층 분리**, **표준 에러 포맷(RFC 9457)로 API 설계 품질 고정**. ([medium.com](https://medium.com/%40dynamicy/fastapi-starlette-lifecycle-guide-startup-order-pitfalls-best-practices-and-a-production-ready-53e29dcb9249?utm_source=openai))

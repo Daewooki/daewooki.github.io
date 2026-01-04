@@ -5,6 +5,12 @@ categories: [AI, LangChain]
 tags: [langchain, rag, llm, ai, vector-db]
 ---
 
+<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
+  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
+</div>
+<script defer src="/assets/js/pageviews.js"></script>
+
+
 ## RAG란?
 
 **RAG (Retrieval-Augmented Generation)**는 LLM의 한계를 극복하는 핵심 기술입니다.

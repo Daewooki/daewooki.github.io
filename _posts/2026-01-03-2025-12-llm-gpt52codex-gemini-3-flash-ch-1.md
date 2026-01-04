@@ -5,6 +5,12 @@ categories: [AI, News]
 tags: [ai, news, trend, 2026-01]
 ---
 
+<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
+  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
+</div>
+<script defer src="/assets/js/pageviews.js"></script>
+
+
 ## 들어가며
 2025년 12월은 “더 똑똑한 모델” 경쟁을 넘어, **개발 워크플로우 자체를 장악하려는 LLM 플랫폼 전쟁**이 본격화된 달이었습니다. OpenAI는 GPT‑5.2 라인업과 개발자용 GPT‑5.2‑Codex를 연달아 공개했고, Google은 Gemini 3 Flash를 전면에 배치하며 속도/비용 축의 주도권을 노렸습니다. ([openai.com](https://openai.com/index/introducing-gpt-5-2-codex/?utm_source=openai))
 

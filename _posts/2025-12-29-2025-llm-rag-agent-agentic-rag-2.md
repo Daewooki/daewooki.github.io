@@ -5,6 +5,12 @@ categories: [AI, Tutorial]
 tags: [ai, tutorial, trend, 2025-12]
 ---
 
+<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
+  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
+</div>
+<script defer src="/assets/js/pageviews.js"></script>
+
+
 ## 들어가며
 2024~2025년에 RAG를 실제 서비스에 붙여본 팀들이 공통으로 부딪히는 벽이 있습니다. **“Vector search로 top-k 뽑고 LLM에 넣는 선형 파이프라인”**이 생각보다 쉽게 무너진다는 점입니다. 질문이 애매하거나, 답이 여러 문서에 흩어져 있거나, 첫 검색 결과가 부정확하면 모델은 그럴듯한 문장을 만들어 내며 실패합니다.
 

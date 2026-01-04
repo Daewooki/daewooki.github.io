@@ -5,6 +5,12 @@ categories: [AI, News]
 tags: [ai, news, trend, 2025-12]
 ---
 
+<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
+  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
+</div>
+<script defer src="/assets/js/pageviews.js"></script>
+
+
 ## 들어가며
 2025년 12월, LLM 업계의 ‘최신 뉴스’는 단순히 더 큰 모델이 아니라 **Agentic workflow를 버틸 “효율·오픈·배포성”**에 초점이 맞춰졌습니다. 특히 NVIDIA가 **Nemotron 3**를 전면에 내세우며 “칩 회사”에서 “모델/스택 제공자”로 확실히 확장하는 흐름이 눈에 띕니다. ([reuters.com](https://www.reuters.com/world/china/nvidia-unveils-new-open-source-ai-models-amid-boom-chinese-offerings-2025-12-15/?utm_source=openai))
 

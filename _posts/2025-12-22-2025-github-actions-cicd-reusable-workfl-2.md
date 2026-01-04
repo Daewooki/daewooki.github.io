@@ -5,6 +5,12 @@ categories: [DevOps, Tutorial]
 tags: [devops, tutorial, trend, 2025-12]
 ---
 
+<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
+  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
+</div>
+<script defer src="/assets/js/pageviews.js"></script>
+
+
 ## 들어가며
 
 2025년의 CI/CD는 “돌아가면 됐다” 수준을 이미 넘어섰습니다. PR마다 자동으로 test/build가 안정적으로 반복되고, main 병합 시에는 **검증된 산출물**이 **안전한 인증 방식(OIDC)** 으로 **배포 환경 보호(approvals)** 를 거쳐 **경합 없이(concurrency)** 릴리즈되는 흐름이 기본 기대치가 됐죠.  

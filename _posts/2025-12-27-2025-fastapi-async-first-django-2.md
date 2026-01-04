@@ -5,6 +5,12 @@ categories: [Backend, Tutorial]
 tags: [backend, tutorial, trend, 2025-12]
 ---
 
+<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
+  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
+</div>
+<script defer src="/assets/js/pageviews.js"></script>
+
+
 ## 들어가며
 2025년의 Python 백엔드는 “REST CRUD”를 넘어 **streaming/real-time, 고동시성 I/O, 타입 기반 계약(OpenAPI) 중심 협업**으로 무게중심이 이동했습니다. 이런 워크로드에서 FastAPI는 ASGI 기반의 async 모델과 Pydantic 중심 스키마가 강점이지만, “LEGO”처럼 조립형인 만큼 **아키텍처/트랜잭션/리소스 수명(lifecycle)**을 잘못 설계하면 운영에서 쉽게 흔들립니다. 반대로 Django는 admin/ORM/에코시스템이 강력하지만, async를 “부분적으로” 도입할 때 생기는 제약이 분명합니다. (Django async에서 sync middleware/트랜잭션 이슈로 성능/복잡도가 급증했다는 실전 경험담이 대표적입니다.) ([potapov.me](https://potapov.me/en/make/fastapi-vs-django-2025))
 

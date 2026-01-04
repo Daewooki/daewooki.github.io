@@ -10,6 +10,15 @@ import re
 from datetime import datetime
 from openai import OpenAI
 
+# 포스트 본문에 삽입될 조회수 위젯(정적 사이트용)
+# - 페이지 진입 시 페이지별/전체 조회수를 카운트하고 숫자를 표시합니다.
+PAGEVIEWS_WIDGET = """<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
+  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
+</div>
+<script defer src="/assets/js/pageviews.js"></script>
+
+"""
+
 # 검색할 카테고리 정의
 # type: "news" = 뉴스/트렌드 (시사점 중심), "tech" = 기술 심층 (코드/구현 중심)
 SEARCH_CATEGORIES = [
@@ -233,7 +242,7 @@ tags: [{', '.join(tags)}]
     filepath = os.path.join(posts_dir, filename)
     
     with open(filepath, 'w', encoding='utf-8') as f:
-        f.write(front_matter + body)
+        f.write(front_matter + PAGEVIEWS_WIDGET + body)
     
     print(f"✅ 포스트 생성: {filename}")
     return filename
