@@ -3,11 +3,6 @@ layout: default
 # Custom home (render content + post list)
 ---
 
-<div class="pageviews-summary" style="margin: 0.75rem 0 1.25rem; opacity: 0.85;">
-  <span style="font-weight: 600;">전체 조회수</span>:
-  <span id="pv-total">-</span>
-</div>
-
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
 <script>
@@ -17,8 +12,6 @@ layout: default
 
   gtag('config', 'G-7990TVG7C7');
 </script>
-
-<script defer src="/assets/js/pageviews.js"></script>
 
 <div class="posts">
   {% assign posts = paginator.posts | default: site.posts %}
