@@ -10,12 +10,8 @@ import re
 from datetime import datetime
 from openai import OpenAI
 
-# 포스트 본문에 삽입될 조회수 위젯(정적 사이트용)
-# - 페이지 진입 시 페이지별/전체 조회수를 카운트하고 숫자를 표시합니다.
-PAGEVIEWS_WIDGET = """<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
-  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
-</div>
-<!-- Google tag (gtag.js) -->
+# GA4 태그 (조회수 위젯 제거, GA만 유지)
+GA_TAG = """<!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -24,7 +20,6 @@ PAGEVIEWS_WIDGET = """<div class="pageviews" style="margin: 0.25rem 0 1rem; opac
 
   gtag('config', 'G-7990TVG7C7');
 </script>
-<script defer src="/assets/js/pageviews.js"></script>
 
 """
 
@@ -375,7 +370,7 @@ tags: [{', '.join(tags)}]
     filepath = os.path.join(posts_dir, filename)
     
     with open(filepath, 'w', encoding='utf-8') as f:
-        f.write(front_matter + PAGEVIEWS_WIDGET + body)
+        f.write(front_matter + GA_TAG + body)
     
     print(f"✅ 포스트 생성: {filename}")
     return filename
