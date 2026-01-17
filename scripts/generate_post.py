@@ -28,50 +28,164 @@ PAGEVIEWS_WIDGET = """<div class="pageviews" style="margin: 0.25rem 0 1rem; opac
 
 """
 
-# 검색할 카테고리 정의
+# 검색할 카테고리 정의 (AI 중심)
 # type: "news" = 뉴스/트렌드 (시사점 중심), "tech" = 기술 심층 (코드/구현 중심)
+# {date} 플레이스홀더는 실행 시 현재 날짜로 대체됨
 SEARCH_CATEGORIES = [
+    # ===== AI 뉴스/트렌드 =====
     {
         "category": "AI",
         "subcategory": "News",
         "type": "news",
-        "search_query": "2025년 12월 AI 인공지능 LLM 최신 뉴스 발표 출시",
-        "focus": "AI/LLM 업계 최신 뉴스, 신규 모델 출시, 기업 발표"
+        "search_query": "{date} LLM 신규 모델 출시 발표 GPT Claude Gemini",
+        "focus": "LLM 신규 모델 출시, 성능 비교, 업계 반응"
     },
     {
         "category": "AI",
-        "subcategory": "Tutorial",
+        "subcategory": "News",
+        "type": "news",
+        "search_query": "{date} AI 스타트업 투자 인수합병 뉴스",
+        "focus": "AI 스타트업 동향, 투자 유치, 인수합병 소식"
+    },
+    {
+        "category": "AI",
+        "subcategory": "News",
+        "type": "news",
+        "search_query": "{date} OpenAI Anthropic Google AI 발표 업데이트",
+        "focus": "빅테크 AI 기업 신규 발표, API 업데이트, 정책 변화"
+    },
+    {
+        "category": "AI",
+        "subcategory": "News",
+        "type": "news",
+        "search_query": "{date} AI 규제 법안 정책 윤리 뉴스",
+        "focus": "AI 규제 동향, 각국 정책, 윤리적 이슈"
+    },
+    # ===== AI 에이전트 =====
+    {
+        "category": "AI",
+        "subcategory": "Agent",
         "type": "tech",
-        "search_query": "2025년 LLM RAG 에이전트 구현 방법 튜토리얼",
-        "focus": "LLM 활용 개발, RAG 구현, AI 에이전트 개발 기술"
+        "search_query": "{date} AI Agent 개발 방법 LangGraph AutoGen CrewAI",
+        "focus": "AI 에이전트 프레임워크 비교, 멀티 에이전트 구현"
+    },
+    {
+        "category": "AI",
+        "subcategory": "Agent",
+        "type": "tech",
+        "search_query": "{date} AI Agent tool use function calling 구현",
+        "focus": "에이전트 도구 사용, Function Calling 패턴"
+    },
+    {
+        "category": "AI",
+        "subcategory": "Agent",
+        "type": "tech",
+        "search_query": "{date} Agentic RAG 자율 에이전트 구현 방법",
+        "focus": "Agentic RAG, 자율적 정보 검색 에이전트"
+    },
+    # ===== RAG & 벡터DB =====
+    {
+        "category": "AI",
+        "subcategory": "RAG",
+        "type": "tech",
+        "search_query": "{date} RAG 고급 기법 HyDE Reranking Query Expansion",
+        "focus": "RAG 성능 최적화, 고급 검색 기법"
+    },
+    {
+        "category": "AI",
+        "subcategory": "RAG",
+        "type": "tech",
+        "search_query": "{date} 벡터DB 비교 Pinecone Weaviate Qdrant Chroma",
+        "focus": "벡터 데이터베이스 선택 가이드, 성능 비교"
+    },
+    # ===== AI 코딩/프로토타이핑 =====
+    {
+        "category": "AI",
+        "subcategory": "Coding",
+        "type": "tech",
+        "search_query": "{date} AI 코딩 어시스턴트 Cursor Copilot Windsurf 활용법",
+        "focus": "AI 코딩 도구 활용, 생산성 향상 팁"
+    },
+    {
+        "category": "AI",
+        "subcategory": "Coding",
+        "type": "tech",
+        "search_query": "{date} Vibe Coding AI 프로토타이핑 빠른 개발 방법",
+        "focus": "AI 활용 빠른 프로토타이핑, MVP 개발"
+    },
+    {
+        "category": "AI",
+        "subcategory": "Coding",
+        "type": "tech",
+        "search_query": "{date} AI 코드 생성 프론트엔드 v0 bolt.new 활용",
+        "focus": "AI 기반 UI 생성, 프론트엔드 자동화 도구"
+    },
+    # ===== LLM 활용 =====
+    {
+        "category": "AI",
+        "subcategory": "LLM",
+        "type": "tech",
+        "search_query": "{date} 프롬프트 엔지니어링 고급 기법 Chain of Thought",
+        "focus": "프롬프트 최적화, 고급 프롬프팅 기법"
+    },
+    {
+        "category": "AI",
+        "subcategory": "LLM",
+        "type": "tech",
+        "search_query": "{date} LLM Fine-tuning LoRA QLoRA 방법 튜토리얼",
+        "focus": "LLM 파인튜닝, 효율적 학습 방법"
+    },
+    {
+        "category": "AI",
+        "subcategory": "LLM",
+        "type": "tech",
+        "search_query": "{date} LLM 평가 방법 벤치마크 MMLU HumanEval",
+        "focus": "LLM 성능 평가, 벤치마크 해석"
+    },
+    # ===== AI 인프라/MLOps =====
+    {
+        "category": "AI",
+        "subcategory": "MLOps",
+        "type": "tech",
+        "search_query": "{date} LLM 서빙 vLLM TGI Ollama 배포 방법",
+        "focus": "LLM 서빙 인프라, 로컬 배포, 최적화"
+    },
+    {
+        "category": "AI",
+        "subcategory": "MLOps",
+        "type": "tech",
+        "search_query": "{date} AI 애플리케이션 모니터링 LangSmith Langfuse",
+        "focus": "LLM 앱 모니터링, 디버깅, 비용 추적"
+    },
+    # ===== 멀티모달 AI =====
+    {
+        "category": "AI",
+        "subcategory": "Multimodal",
+        "type": "tech",
+        "search_query": "{date} 멀티모달 AI Vision Language Model 활용법",
+        "focus": "비전-언어 모델 활용, 이미지 분석 AI"
+    },
+    {
+        "category": "AI",
+        "subcategory": "Multimodal",
+        "type": "tech",
+        "search_query": "{date} AI 음성 TTS STT 실시간 음성 에이전트",
+        "focus": "음성 AI, 실시간 음성 대화 구현"
+    },
+    # ===== 백엔드 (AI 연계) =====
+    {
+        "category": "Backend",
+        "subcategory": "API",
+        "type": "tech",
+        "search_query": "{date} FastAPI LLM API 서버 구축 스트리밍",
+        "focus": "LLM API 서버 구축, 스트리밍 응답 처리"
     },
     {
         "category": "Backend",
-        "subcategory": "Tutorial",
+        "subcategory": "Architecture",
         "type": "tech",
-        "search_query": "2025년 FastAPI Python 백엔드 개발 베스트 프랙티스",
-        "focus": "FastAPI, Django, 백엔드 아키텍처, API 설계"
-    },
-    {
-        "category": "DevOps",
-        "subcategory": "News",
-        "type": "news",
-        "search_query": "2025년 12월 쿠버네티스 Docker 클라우드 최신 뉴스",
-        "focus": "Kubernetes, Docker, 클라우드 네이티브 업계 동향"
-    },
-    {
-        "category": "DevOps",
-        "subcategory": "Tutorial",
-        "type": "tech",
-        "search_query": "2025년 GitHub Actions CI/CD 파이프라인 구축 방법",
-        "focus": "CI/CD 파이프라인, GitHub Actions, 자동화 구현"
-    },
-    {
-        "category": "Infrastructure",
-        "subcategory": "News",
-        "type": "news",
-        "search_query": "2025년 12월 AWS 클라우드 신규 서비스 발표",
-        "focus": "AWS, GCP, Azure 신규 서비스, 클라우드 업계 동향"
+        "search_query": "{date} AI 애플리케이션 아키텍처 설계 패턴",
+        "focus": "AI 앱 설계 패턴, 확장 가능한 구조"
     },
 ]
 
@@ -164,6 +278,12 @@ TECH_PROMPT = """당신은 10년 경력의 시니어 개발자이자 기술 블�
 """
 
 
+def get_dynamic_date_str() -> str:
+    """현재 날짜를 검색 쿼리용 문자열로 반환"""
+    today = datetime.now()
+    return f"{today.year}년 {today.month}월"
+
+
 def search_and_generate_post(client: OpenAI, category_info: dict) -> tuple[str, str]:
     """웹 검색 후 블로그 포스트 생성"""
     
@@ -171,7 +291,11 @@ def search_and_generate_post(client: OpenAI, category_info: dict) -> tuple[str, 
     type_label = "뉴스/트렌드 분석" if post_type == "news" else "기술 심층 분석"
     prompt = NEWS_PROMPT if post_type == "news" else TECH_PROMPT
     
-    print(f"🔍 [{type_label}] '{category_info['search_query']}' 검색 중...")
+    # 동적 날짜 적용
+    date_str = get_dynamic_date_str()
+    search_query = category_info['search_query'].replace("{date}", date_str)
+    
+    print(f"🔍 [{type_label}] '{search_query}' 검색 중...")
     
     # GPT-5.2 + 웹 검색 도구로 최신 정보 검색 및 글 작성
     response = client.responses.create(
@@ -180,7 +304,7 @@ def search_and_generate_post(client: OpenAI, category_info: dict) -> tuple[str, 
         input=f"""다음 주제에 대해 웹 검색을 수행하고, 검색 결과를 바탕으로 블로그 포스트를 작성해주세요.
 
 글 유형: {type_label}
-검색 주제: {category_info['search_query']}
+검색 주제: {search_query}
 집중 분야: {category_info['focus']}
 
 요구사항:
@@ -280,24 +404,31 @@ def main():
     today = datetime.now()
     day_of_year = today.timetuple().tm_yday
     
-    # 뉴스 1개 + 기술 1개 조합 (2개인 경우)
+    # 더 다양한 조합을 위해 소수 기반 오프셋 사용
+    # 뉴스: 4개 → 4일 주기, 기술: 18개 → 18일 주기
+    # 서로 다른 소수로 오프셋을 줘서 조합이 겹치지 않도록
     selected_categories = []
     
     if num_posts >= 1 and news_categories:
+        # 뉴스는 day_of_year 기반
         news_idx = day_of_year % len(news_categories)
         selected_categories.append(news_categories[news_idx])
     
     if num_posts >= 2 and tech_categories:
-        tech_idx = day_of_year % len(tech_categories)
+        # 기술은 다른 오프셋으로 (소수 7 사용)
+        tech_idx = (day_of_year * 7) % len(tech_categories)
         selected_categories.append(tech_categories[tech_idx])
     
-    # 추가 포스트가 필요하면 순환
-    remaining = num_posts - len(selected_categories)
-    all_categories = news_categories + tech_categories
-    for i in range(remaining):
-        idx = (day_of_year + i + 2) % len(all_categories)
-        if all_categories[idx] not in selected_categories:
-            selected_categories.append(all_categories[idx])
+    # 추가 포스트가 필요하면 다른 오프셋으로 순환
+    if num_posts >= 3 and tech_categories:
+        tech_idx2 = (day_of_year * 13) % len(tech_categories)
+        if tech_categories[tech_idx2] not in selected_categories:
+            selected_categories.append(tech_categories[tech_idx2])
+    
+    if num_posts >= 4 and news_categories:
+        news_idx2 = (day_of_year * 3 + 1) % len(news_categories)
+        if news_categories[news_idx2] not in selected_categories:
+            selected_categories.append(news_categories[news_idx2])
     
     generated_files = []
     
