@@ -5,9 +5,6 @@ categories: [DevOps, News]
 tags: [devops, news, trend, 2025-12]
 ---
 
-<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
-  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
-</div>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
 <script>
@@ -17,9 +14,6 @@ tags: [devops, news, trend, 2025-12]
 
   gtag('config', 'G-7990TVG7C7');
 </script>
-<script defer src="/assets/js/pageviews.js"></script>
-
-
 ## 들어가며
 2025년 12월 클라우드 네이티브 업계에서 가장 눈에 띈 흐름은 “기능 경쟁”보다 “보안·신뢰(검증 가능성)·공급망”을 개발자 워크플로우의 기본값으로 밀어 넣는 움직임이었습니다. 특히 Docker가 Docker Hardened Images(DHI)를 무료로 전환하고, 이를 외부 기관 검증까지 공개하면서 컨테이너 생태계의 기대치가 한 단계 올라갔습니다. ([docker.com](https://www.docker.com/blog/docker-hardened-images-security-independently-validated-by-srlabs/?utm_source=openai))
 

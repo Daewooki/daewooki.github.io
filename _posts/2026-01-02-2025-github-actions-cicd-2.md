@@ -5,9 +5,6 @@ categories: [DevOps, Tutorial]
 tags: [devops, tutorial, trend, 2026-01]
 ---
 
-<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
-  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
-</div>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
 <script>
@@ -17,9 +14,6 @@ tags: [devops, tutorial, trend, 2026-01]
 
   gtag('config', 'G-7990TVG7C7');
 </script>
-<script defer src="/assets/js/pageviews.js"></script>
-
-
 ## 들어가며
 2025년의 CI/CD는 단순히 “빌드-테스트-배포”를 자동화하는 수준에서 끝나지 않습니다. 파이프라인이 커질수록 **권한 관리(credential leak)**, **공급망 공격(supply-chain attack)**, **배포 경쟁 상태(race condition)** 같은 문제가 실제 장애/사고로 이어지기 때문입니다.  
 GitHub Actions는 여전히 가장 널리 쓰이는 선택지지만, 이제는 “YAML 몇 줄”이 아니라 **보안·재현성·운영 안정성까지 포함한 설계**가 중요해졌습니다. 특히 GitHub는 클라우드 배포 인증에서 **OIDC(OpenID Connect)**를 강하게 권장하고, 빌드 산출물에 대해 **Artifact Attestations(서명된 provenance)**까지 제공하면서 “검증 가능한 배포”를 현실적인 표준으로 만들고 있습니다. ([docs.github.com](https://docs.github.com/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services?utm_source=openai))

@@ -5,9 +5,6 @@ categories: [DevOps, Tutorial]
 tags: [devops, tutorial, trend, 2026-01]
 ---
 
-<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
-  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
-</div>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
 <script>
@@ -17,8 +14,6 @@ tags: [devops, tutorial, trend, 2026-01]
 
   gtag('config', 'G-7990TVG7C7');
 </script>
-<script defer src="/assets/js/pageviews.js"></script>
-
 ## 들어가며
 2025년의 CI/CD는 “빌드/테스트 자동화”를 넘어서 **배포 권한 통제, 공급망 보안, 병렬 실행 제어, 캐시 전략**까지 한 덩어리로 설계해야 합니다. GitHub Actions는 YAML 몇 줄로 시작할 수 있지만, 실제 운영에서는 작은 설정 하나(예: `permissions`, `concurrency`, `cache` 버전) 때문에 **배포 충돌, 토큰 과권한, 캐시 실패로 인한 전면 장애**가 나기도 합니다.
 

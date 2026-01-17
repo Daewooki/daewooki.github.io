@@ -5,9 +5,6 @@ categories: [Backend, FastAPI]
 tags: [fastapi, python, backend, api, best-practices]
 ---
 
-<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
-  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
-</div>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
 <script>
@@ -17,9 +14,6 @@ tags: [fastapi, python, backend, api, best-practices]
 
   gtag('config', 'G-7990TVG7C7');
 </script>
-<script defer src="/assets/js/pageviews.js"></script>
-
-
 ## 들어가며
 
 FastAPI로 여러 프로젝트를 진행하면서 정립한 프로젝트 구조와 패턴을 공유합니다.

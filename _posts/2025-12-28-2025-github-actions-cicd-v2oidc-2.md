@@ -5,9 +5,6 @@ categories: [DevOps, Tutorial]
 tags: [devops, tutorial, trend, 2025-12]
 ---
 
-<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
-  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
-</div>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
 <script>
@@ -17,9 +14,6 @@ tags: [devops, tutorial, trend, 2025-12]
 
   gtag('config', 'G-7990TVG7C7');
 </script>
-<script defer src="/assets/js/pageviews.js"></script>
-
-
 ## 들어가며
 2025년의 CI/CD는 “돌아가기만 하면 된다”를 넘어, **속도(캐시/병렬화)·안정성(동시성 제어)·보안(권한 최소화/비밀 제거)**가 기본 요구사항이 됐습니다. 특히 GitHub Actions는 팀이 가장 손쉽게 선택하는 플랫폼이지만, 아무 설정 없이 워크플로를 늘리다 보면 다음 문제가 금방 터집니다.
 

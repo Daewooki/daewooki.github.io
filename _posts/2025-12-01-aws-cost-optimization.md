@@ -5,9 +5,6 @@ categories: [Infrastructure, AWS]
 tags: [aws, cost-optimization, cloud, infra]
 ---
 
-<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
-  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
-</div>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
 <script>
@@ -17,9 +14,6 @@ tags: [aws, cost-optimization, cloud, infra]
 
   gtag('config', 'G-7990TVG7C7');
 </script>
-<script defer src="/assets/js/pageviews.js"></script>
-
-
 ## 배경
 
 어느 날 AWS 청구서를 보니... 😱

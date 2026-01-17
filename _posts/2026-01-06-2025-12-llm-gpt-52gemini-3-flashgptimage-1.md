@@ -5,9 +5,6 @@ categories: [AI, News]
 tags: [ai, news, trend, 2026-01]
 ---
 
-<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
-  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
-</div>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
 <script>
@@ -17,8 +14,6 @@ tags: [ai, news, trend, 2026-01]
 
   gtag('config', 'G-7990TVG7C7');
 </script>
-<script defer src="/assets/js/pageviews.js"></script>
-
 ## 들어가며
 2025년 12월은 “신규 LLM 출시/기능 고도화”가 한꺼번에 몰린 달이었습니다. OpenAI는 GPT‑5.2와 이미지 생성 모델 GPT‑Image‑1.5를 전면에 내세웠고, Google은 Gemini 3 Flash를 기본(default) 모델로 올리며 속도·멀티모달 경쟁을 가속했습니다. ([academy.openai.com](https://academy.openai.com/en/home/resources/latest-model?utm_source=openai))
 

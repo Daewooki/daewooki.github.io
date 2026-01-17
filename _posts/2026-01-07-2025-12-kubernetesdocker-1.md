@@ -5,9 +5,6 @@ categories: [DevOps, News]
 tags: [devops, news, trend, 2026-01]
 ---
 
-<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
-  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
-</div>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
 <script>
@@ -17,8 +14,6 @@ tags: [devops, news, trend, 2026-01]
 
   gtag('config', 'G-7990TVG7C7');
 </script>
-<script defer src="/assets/js/pageviews.js"></script>
-
 ## 들어가며
 2025년 12월은 Kubernetes 쪽에서 **연말 메이저 릴리스(1.35.0)**와 **대규모 패치 릴리스(1.34/1.33/1.32 동시 업데이트)**가 겹치며, 운영·보안 관점에서 “업데이트를 미루기 어려운 달”로 기억될 만했습니다. 동시에 Docker Desktop도 12월에 **연속 릴리스(4.54.0, 4.55.0)**와 보안 패치를 내면서, 개발자 로컬 환경과 클러스터 런타임까지 업그레이드 흐름이 더 촘촘해졌습니다. ([kubernetes.io](https://kubernetes.io/releases?utm_source=openai))
 

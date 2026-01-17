@@ -5,9 +5,6 @@ categories: [DevOps, News]
 tags: [devops, news, trend, 2026-01]
 ---
 
-<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
-  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
-</div>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
 <script>
@@ -17,9 +14,6 @@ tags: [devops, news, trend, 2026-01]
 
   gtag('config', 'G-7990TVG7C7');
 </script>
-<script defer src="/assets/js/pageviews.js"></script>
-
-
 ## 들어가며
 2025년 12월은 겉으로는 “큰 사건”보다, 운영자·플랫폼 팀에게 장기적으로 치명적인 **기술 부채 청산 신호**가 또렷해진 달이었습니다. Docker Desktop은 12월 릴리스에서 보안/운영 이슈를 정리하며 개발 환경의 기본값을 다듬었고, Kubernetes는 v1.35(업스트림 2025년 12월 릴리스 예정)에서 **cgroup v1·containerd 1.x 정리** 같은 하부 스택 변화를 예고했습니다. ([docs.docker.com](https://docs.docker.com/docker-for-windows/release-notes/?utm_source=openai))
 

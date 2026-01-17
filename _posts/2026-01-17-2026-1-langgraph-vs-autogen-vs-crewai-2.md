@@ -5,9 +5,6 @@ categories: [AI, Agent]
 tags: [ai, agent, trend, 2026-01]
 ---
 
-<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
-  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
-</div>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
 <script>
@@ -17,8 +14,6 @@ tags: [ai, agent, trend, 2026-01]
 
   gtag('config', 'G-7990TVG7C7');
 </script>
-<script defer src="/assets/js/pageviews.js"></script>
-
 ## 들어가며
 2024~2025년의 “Agent”는 데모가 많았고, 2026년 1월의 “Agent”는 **운영 가능한 오케스트레이션**이 핵심입니다. 즉, (1) 에이전트가 여러 개일 때 **누가 언제 무엇을 하게 할지**, (2) 실패/재시도/검증을 **어떻게 제어할지**, (3) 추적 가능성(Observability)과 재현성(Replay)을 **어떻게 확보할지**가 생산성을 갈라요.
 

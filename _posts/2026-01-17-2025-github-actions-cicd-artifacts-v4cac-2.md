@@ -5,9 +5,6 @@ categories: [DevOps, Tutorial]
 tags: [devops, tutorial, trend, 2026-01]
 ---
 
-<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
-  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
-</div>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
 <script>
@@ -17,8 +14,6 @@ tags: [devops, tutorial, trend, 2026-01]
 
   gtag('config', 'G-7990TVG7C7');
 </script>
-<script defer src="/assets/js/pageviews.js"></script>
-
 ## 들어가며
 2025년의 GitHub Actions CI/CD는 “YAML 좀 잘 쓰면 된다” 수준을 넘었습니다. 실제 운영에서는 **속도(캐시/병렬화)**, **재현성(artifact/lockfile)**, **보안(최소 권한·OIDC·Environment gate)** 이 셋이 동시에 맞아야 파이프라인이 오래 갑니다. 특히 2025년 초 기준으로는 **artifact 액션 v3가 2025-01-30부터 GitHub.com에서 사용 불가**가 되어, 예전 워크플로를 그대로 두면 배포 파이프라인이 갑자기 깨질 수 있습니다. ([github.blog](https://github.blog/changelog/2024-04-16-deprecation-notice-v3-of-the-artifact-actions?utm_source=openai))  
 그래서 이 글은 “2025년에 깨지지 않고, 운영 친화적으로 확장 가능한” GitHub Actions CI/CD를 **원리부터 구현까지** 묶어서 정리합니다.

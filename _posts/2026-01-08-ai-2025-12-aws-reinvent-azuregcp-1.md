@@ -5,9 +5,6 @@ categories: [Infrastructure, News]
 tags: [infrastructure, news, trend, 2026-01]
 ---
 
-<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
-  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
-</div>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
 <script>
@@ -17,8 +14,6 @@ tags: [infrastructure, news, trend, 2026-01]
 
   gtag('config', 'G-7990TVG7C7');
 </script>
-<script defer src="/assets/js/pageviews.js"></script>
-
 ## 들어가며
 2025년 12월(정확히는 2025년 11월 30일~12월 4일) AWS re:Invent 2025에서 AWS가 대규모 신규 서비스를 쏟아냈고, 메시지는 한 줄로 요약됩니다: **AI 모델 자체보다 “AI agent를 안전하게, 대규모로 굴리는 플랫폼” 경쟁이 본격화**됐다는 것. ([aws.amazon.com](https://aws.amazon.com/blogs/aws/top-announcements-of-aws-reinvent-2025/?utm_source=openai))  
 동시에 Microsoft는 Ignite 흐름에서 **Security Copilot과 보안 에이전트**를 “라이선스 번들”로 확장하며, AI 운영의 중심을 보안/거버넌스로 끌어당겼습니다. ([learn.microsoft.com](https://learn.microsoft.com/en-us/partner-center/announcements/2025-december?utm_source=openai))

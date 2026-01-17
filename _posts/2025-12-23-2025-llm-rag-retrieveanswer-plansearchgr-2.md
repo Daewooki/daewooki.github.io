@@ -5,9 +5,6 @@ categories: [AI, Tutorial]
 tags: [ai, tutorial, trend, 2025-12]
 ---
 
-<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
-  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
-</div>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
 <script>
@@ -17,9 +14,6 @@ tags: [ai, tutorial, trend, 2025-12]
 
   gtag('config', 'G-7990TVG7C7');
 </script>
-<script defer src="/assets/js/pageviews.js"></script>
-
-
 ## 들어가며
 2024년까지의 전형적인 RAG는 “질문 → vector search → top-k 컨텍스트 → LLM 답변”이라는 단선형 파이프라인이었습니다. 문제는 이 구조가 **사용자 질문이 모호**하거나, **첫 검색 결과가 부정확**하거나, **답이 여러 소스에 흩어져** 있을 때 급격히 취약해진다는 점입니다. 그래서 2025년에는 “RAG + Agent”가 사실상 표준 패턴으로 자리 잡았습니다. 핵심은 LLM이 단순 생성기가 아니라, **도구(tool)를 선택하고 루프를 돌며 품질을 스스로 검증**하는 오케스트레이터가 되는 것입니다(일명 Agentic RAG). ([medium.com](https://medium.com/%40mohitagr18/the-ai-that-thinks-before-it-searches-a-deep-dive-into-agentic-rag-82e5db9a0826))
 

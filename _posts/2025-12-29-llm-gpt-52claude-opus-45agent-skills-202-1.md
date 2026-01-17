@@ -5,9 +5,6 @@ categories: [AI, News]
 tags: [ai, news, trend, 2025-12]
 ---
 
-<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
-  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
-</div>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
 <script>
@@ -17,9 +14,6 @@ tags: [ai, news, trend, 2025-12]
 
   gtag('config', 'G-7990TVG7C7');
 </script>
-<script defer src="/assets/js/pageviews.js"></script>
-
-
 ## 들어가며
 2025년 12월 AI/LLM 업계는 “모델 성능 경쟁”과 “Agent/개발자 도구 표준화”가 동시에 가속된 한 달이었습니다. OpenAI의 GPT-5.2 출시, Anthropic의 Claude Opus 4.5 강화, 그리고 Agent Skills 오픈 표준 움직임이 맞물리며 개발자 관점에서 선택지와 운영 전략이 크게 달라졌습니다. ([reuters.com](https://www.reuters.com/technology/openai-launches-gpt-52-ai-model-with-improved-capabilities-2025-12-11/?utm_source=openai))
 

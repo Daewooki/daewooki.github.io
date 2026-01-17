@@ -5,9 +5,6 @@ categories: [DevOps, News]
 tags: [devops, news, trend, 2026-01]
 ---
 
-<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
-  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
-</div>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
 <script>
@@ -17,8 +14,6 @@ tags: [devops, news, trend, 2026-01]
 
   gtag('config', 'G-7990TVG7C7');
 </script>
-<script defer src="/assets/js/pageviews.js"></script>
-
 ## 들어가며
 2025년 12월 Kubernetes/Docker/Managed Kubernetes 쪽 뉴스는 “새로운 혁신 기능 발표”보다는, **안정 채널 버전 업데이트·수명주기(EOL)·공급망 보안/배포 인프라 강화**가 눈에 띄었습니다. 특히 Docker와 CNCF의 협업, 그리고 GKE·EKS·AKS가 각자 방식으로 “지원 버전과 업그레이드 경로”를 더 명확히 하면서 운영팀의 선택지가 정리되는 흐름입니다. ([cncf.io](https://www.cncf.io/announcements/2025/09/18/cncf-expands-infrastructure-support-for-project-maintainers-through-partnership-with-docker/?utm_source=openai))
 

@@ -5,9 +5,6 @@ categories: [Infrastructure, Docker]
 tags: [infrastructure, docker]
 ---
 
-<div class="pageviews" style="margin: 0.25rem 0 1rem; opacity: 0.8;">
-  <span style="font-weight: 600;">조회수</span>: <span id="pv-post">-</span>
-</div>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
 <script>
@@ -17,9 +14,6 @@ tags: [infrastructure, docker]
 
   gtag('config', 'G-7990TVG7C7');
 </script>
-<script defer src="/assets/js/pageviews.js"></script>
-
-
 ## 들어가며
 Docker image는 배포 단위이자 운영 환경 그 자체라서, 크기와 보안 수준이 곧 비용과 장애 확률로 이어집니다. Multi-stage build는 build toolchain은 버리고 runtime만 남겨 이미지 용량을 줄이고, attack surface까지 함께 줄이는 가장 실용적인 패턴입니다.
 
