@@ -28,7 +28,9 @@ social:
     - https://github.com/daewooki
     - https://www.linkedin.com/in/daewooki
 
-google_site_verification: # fill in to your verification string
+# Google Search Console (https://search.google.com/search-console)
+# 사이트 등록 후 발급받은 인증 코드를 아래에 붙여넣으세요
+google_site_verification: # 예: "aBcDeFgHiJkLmNoPqRsTuVwXyZ"
 
 # ↑ --------------------------
 # The end of `jekyll-seo-tag` settings
