@@ -60,17 +60,18 @@ jobs:
         run: |
           git config --local user.email "eodnr9221@gmail.com"
           git config --local user.name "Daewook Kwon"
-          git add _posts/
+          git add _posts/ scripts/post_history.json
 
-          if git diff --staged --quiet; then
-            echo "No new posts to commit"
-            echo "HAS_NEW_POSTS=false" >> $GITHUB_ENV
-          else
-            POST_COUNT=$(git diff --staged --name-only | wc -l)
+          # _posts 하위 변경만 있을 때 실제 새 포스트로 간주
+          if git diff --staged --name-only | grep -q '^_posts/'; then
+            POST_COUNT=$(git diff --staged --name-only -- '_posts/' | wc -l)
             git commit -m "📝 Auto-generated ${POST_COUNT} trend post(s) - $(date +'%Y-%m-%d')"
             git pull --rebase origin "${GITHUB_REF_NAME}"
             git push origin HEAD
             echo "HAS_NEW_POSTS=true" >> $GITHUB_ENV
+          else
+            echo "No new posts to commit"
+            echo "HAS_NEW_POSTS=false" >> $GITHUB_ENV
           fi
 
       # Jekyll 빌드 및 배포 (새 포스트가 있을 때만)
