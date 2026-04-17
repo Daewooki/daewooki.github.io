@@ -21,12 +21,11 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
-# pages-deploy.yml과 동일한 "pages" 그룹을 쓰면 push 직후 상대 워크플로가
-# cancel-in-progress로 이 잡을 끊어 배포 단계가 실패·취소로 보일 수 있음.
-# 배포는 push로 트리거되는 pages-deploy.yml만 담당한다.
 concurrency:
-  group: auto-post
+  group: "pages"
   cancel-in-progress: true
 
 jobs:
@@ -62,13 +61,44 @@ jobs:
           git config --local user.email "eodnr9221@gmail.com"
           git config --local user.name "Daewook Kwon"
           git add _posts/
-          
+
           if git diff --staged --quiet; then
             echo "No new posts to commit"
+            echo "HAS_NEW_POSTS=false" >> $GITHUB_ENV
           else
             POST_COUNT=$(git diff --staged --name-only | wc -l)
             git commit -m "📝 Auto-generated ${POST_COUNT} trend post(s) - $(date +'%Y-%m-%d')"
-            # 체크아웃 이후 원격에 커밋이 생기면 단순 push가 거절될 수 있음
             git pull --rebase origin "${GITHUB_REF_NAME}"
             git push origin HEAD
+            echo "HAS_NEW_POSTS=true" >> $GITHUB_ENV
           fi
+
+      # Jekyll 빌드 및 배포 (새 포스트가 있을 때만)
+      - name: Setup Pages
+        if: env.HAS_NEW_POSTS == 'true'
+        id: pages
+        uses: actions/configure-pages@v4
+
+      - name: Setup Ruby
+        if: env.HAS_NEW_POSTS == 'true'
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.3
+          bundler-cache: true
+
+      - name: Build Jekyll site
+        if: env.HAS_NEW_POSTS == 'true'
+        run: bundle exec jekyll b -d "_site${{ steps.pages.outputs.base_path }}"
+        env:
+          JEKYLL_ENV: "production"
+
+      - name: Upload site artifact
+        if: env.HAS_NEW_POSTS == 'true'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "_site${{ steps.pages.outputs.base_path }}"
+
+      - name: Deploy to GitHub Pages
+        if: env.HAS_NEW_POSTS == 'true'
+        id: deployment
+        uses: actions/deploy-pages@v4
