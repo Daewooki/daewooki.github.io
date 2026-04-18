@@ -1,27 +1,110 @@
 [
-  {"date": "2026-04-04", "id": "tech-mlops-monitor"},
-  {"date": "2026-04-05", "id": "tech-agent-agentic-rag"},
-  {"date": "2026-04-06", "id": "news-llm-models"},
-  {"date": "2026-04-06", "id": "tech-llm-finetune"},
-  {"date": "2026-04-07", "id": "news-ai-invest"},
-  {"date": "2026-04-07", "id": "tech-backend-arch"},
-  {"date": "2026-04-08", "id": "news-bigtech-updates"},
-  {"date": "2026-04-08", "id": "tech-coding-vibe"},
-  {"date": "2026-04-09", "id": "news-ai-regulation"},
-  {"date": "2026-04-09", "id": "tech-multimodal-vlm"},
-  {"date": "2026-04-10", "id": "news-llm-models"},
-  {"date": "2026-04-10", "id": "tech-rag-advanced"},
-  {"date": "2026-04-11", "id": "news-ai-invest"},
-  {"date": "2026-04-11", "id": "tech-llm-eval"},
-  {"date": "2026-04-12", "id": "tech-agent-frameworks"},
-  {"date": "2026-04-12", "id": "news-bigtech-updates"},
-  {"date": "2026-04-13", "id": "news-ai-regulation"},
-  {"date": "2026-04-13", "id": "tech-coding-ui-gen"},
-  {"date": "2026-04-14", "id": "news-llm-models"},
-  {"date": "2026-04-14", "id": "tech-multimodal-voice"},
-  {"date": "2026-04-15", "id": "news-ai-invest"},
-  {"date": "2026-04-15", "id": "tech-rag-vectordb"},
-  {"date": "2026-04-16", "id": "news-bigtech-updates"},
-  {"date": "2026-04-16", "id": "tech-mlops-serving"},
-  {"date": "2026-04-17", "id": "tech-agent-tool-use"}
+  {
+    "date": "2026-04-04",
+    "id": "tech-mlops-monitor"
+  },
+  {
+    "date": "2026-04-05",
+    "id": "tech-agent-agentic-rag"
+  },
+  {
+    "date": "2026-04-06",
+    "id": "news-llm-models"
+  },
+  {
+    "date": "2026-04-06",
+    "id": "tech-llm-finetune"
+  },
+  {
+    "date": "2026-04-07",
+    "id": "news-ai-invest"
+  },
+  {
+    "date": "2026-04-07",
+    "id": "tech-backend-arch"
+  },
+  {
+    "date": "2026-04-08",
+    "id": "news-bigtech-updates"
+  },
+  {
+    "date": "2026-04-08",
+    "id": "tech-coding-vibe"
+  },
+  {
+    "date": "2026-04-09",
+    "id": "news-ai-regulation"
+  },
+  {
+    "date": "2026-04-09",
+    "id": "tech-multimodal-vlm"
+  },
+  {
+    "date": "2026-04-10",
+    "id": "news-llm-models"
+  },
+  {
+    "date": "2026-04-10",
+    "id": "tech-rag-advanced"
+  },
+  {
+    "date": "2026-04-11",
+    "id": "news-ai-invest"
+  },
+  {
+    "date": "2026-04-11",
+    "id": "tech-llm-eval"
+  },
+  {
+    "date": "2026-04-12",
+    "id": "tech-agent-frameworks"
+  },
+  {
+    "date": "2026-04-12",
+    "id": "news-bigtech-updates"
+  },
+  {
+    "date": "2026-04-13",
+    "id": "news-ai-regulation"
+  },
+  {
+    "date": "2026-04-13",
+    "id": "tech-coding-ui-gen"
+  },
+  {
+    "date": "2026-04-14",
+    "id": "news-llm-models"
+  },
+  {
+    "date": "2026-04-14",
+    "id": "tech-multimodal-voice"
+  },
+  {
+    "date": "2026-04-15",
+    "id": "news-ai-invest"
+  },
+  {
+    "date": "2026-04-15",
+    "id": "tech-rag-vectordb"
+  },
+  {
+    "date": "2026-04-16",
+    "id": "news-bigtech-updates"
+  },
+  {
+    "date": "2026-04-16",
+    "id": "tech-mlops-serving"
+  },
+  {
+    "date": "2026-04-17",
+    "id": "tech-agent-tool-use"
+  },
+  {
+    "date": "2026-04-18",
+    "id": "tech-backend-queue"
+  },
+  {
+    "date": "2026-04-18",
+    "id": "tech-coding-review"
+  }
 ]
