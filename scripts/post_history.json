@@ -106,5 +106,13 @@
   {
     "date": "2026-04-18",
     "id": "tech-coding-review"
+  },
+  {
+    "date": "2026-04-19",
+    "id": "tech-data-curation"
+  },
+  {
+    "date": "2026-04-19",
+    "id": "tech-llm-cost"
   }
 ]
