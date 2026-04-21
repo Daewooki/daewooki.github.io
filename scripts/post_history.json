@@ -122,5 +122,13 @@
   {
     "date": "2026-04-20",
     "id": "tech-rag-chunking"
+  },
+  {
+    "date": "2026-04-21",
+    "id": "tech-rag-embedding"
+  },
+  {
+    "date": "2026-04-21",
+    "id": "tech-rag-graph"
   }
 ]
