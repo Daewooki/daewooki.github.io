@@ -130,5 +130,13 @@
   {
     "date": "2026-04-21",
     "id": "tech-rag-graph"
+  },
+  {
+    "date": "2026-04-22",
+    "id": "tech-agent-mcp"
+  },
+  {
+    "date": "2026-04-22",
+    "id": "tech-agent-memory"
   }
 ]
