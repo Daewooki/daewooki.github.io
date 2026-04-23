@@ -138,5 +138,13 @@
   {
     "date": "2026-04-22",
     "id": "tech-agent-memory"
+  },
+  {
+    "date": "2026-04-23",
+    "id": "news-ai-hardware"
+  },
+  {
+    "date": "2026-04-23",
+    "id": "tech-backend-rate-limit"
   }
 ]
