@@ -146,5 +146,13 @@
   {
     "date": "2026-04-23",
     "id": "tech-backend-rate-limit"
+  },
+  {
+    "date": "2026-04-24",
+    "id": "tech-agent-agentic-rag"
+  },
+  {
+    "date": "2026-04-24",
+    "id": "tech-data-synth"
   }
 ]
