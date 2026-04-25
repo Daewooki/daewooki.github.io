@@ -154,5 +154,13 @@
   {
     "date": "2026-04-24",
     "id": "tech-data-synth"
+  },
+  {
+    "date": "2026-04-25",
+    "id": "tech-infra-k8s"
+  },
+  {
+    "date": "2026-04-25",
+    "id": "tech-llm-prompt-cot"
   }
 ]
