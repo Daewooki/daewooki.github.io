@@ -162,5 +162,13 @@
   {
     "date": "2026-04-25",
     "id": "tech-llm-prompt-cot"
+  },
+  {
+    "date": "2026-04-26",
+    "id": "tech-llm-finetune"
+  },
+  {
+    "date": "2026-04-26",
+    "id": "tech-mlops-gpu"
   }
 ]
