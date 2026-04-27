@@ -170,5 +170,13 @@
   {
     "date": "2026-04-26",
     "id": "tech-mlops-gpu"
+  },
+  {
+    "date": "2026-04-27",
+    "id": "news-ai-regulation"
+  },
+  {
+    "date": "2026-04-27",
+    "id": "tech-llm-eval"
   }
 ]
