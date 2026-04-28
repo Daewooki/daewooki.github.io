@@ -178,5 +178,13 @@
   {
     "date": "2026-04-27",
     "id": "tech-llm-eval"
+  },
+  {
+    "date": "2026-04-28",
+    "id": "tech-mlops-tracing"
+  },
+  {
+    "date": "2026-04-28",
+    "id": "tech-multimodal-video"
   }
 ]
