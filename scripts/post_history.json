@@ -186,5 +186,13 @@
   {
     "date": "2026-04-28",
     "id": "tech-multimodal-video"
+  },
+  {
+    "date": "2026-04-29",
+    "id": "tech-coding-assist"
+  },
+  {
+    "date": "2026-04-29",
+    "id": "tech-coding-cli-agents"
   }
 ]
