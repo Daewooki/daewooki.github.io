@@ -194,5 +194,13 @@
   {
     "date": "2026-04-29",
     "id": "tech-coding-cli-agents"
+  },
+  {
+    "date": "2026-04-30",
+    "id": "news-ai-security"
+  },
+  {
+    "date": "2026-04-30",
+    "id": "tech-mlops-serving"
   }
 ]
