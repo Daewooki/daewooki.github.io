@@ -202,5 +202,13 @@
   {
     "date": "2026-04-30",
     "id": "tech-mlops-serving"
+  },
+  {
+    "date": "2026-05-01",
+    "id": "tech-llm-caching"
+  },
+  {
+    "date": "2026-05-01",
+    "id": "tech-llm-context"
   }
 ]
