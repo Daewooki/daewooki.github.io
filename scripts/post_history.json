@@ -210,5 +210,13 @@
   {
     "date": "2026-05-01",
     "id": "tech-llm-context"
+  },
+  {
+    "date": "2026-05-02",
+    "id": "tech-agent-orchestration"
+  },
+  {
+    "date": "2026-05-02",
+    "id": "tech-agent-tool-use"
   }
 ]
