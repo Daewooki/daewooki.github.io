@@ -226,5 +226,13 @@
   {
     "date": "2026-05-03",
     "id": "tech-rag-hybrid"
+  },
+  {
+    "date": "2026-05-04",
+    "id": "news-enterprise-adoption"
+  },
+  {
+    "date": "2026-05-04",
+    "id": "tech-rag-advanced"
   }
 ]
