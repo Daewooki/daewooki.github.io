@@ -242,5 +242,13 @@
   {
     "date": "2026-05-05",
     "id": "tech-rag-embedding"
+  },
+  {
+    "date": "2026-05-06",
+    "id": "tech-agent-memory"
+  },
+  {
+    "date": "2026-05-06",
+    "id": "tech-rag-chunking"
   }
 ]
