@@ -250,5 +250,13 @@
   {
     "date": "2026-05-06",
     "id": "tech-rag-chunking"
+  },
+  {
+    "date": "2026-05-07",
+    "id": "news-bigtech-updates"
+  },
+  {
+    "date": "2026-05-07",
+    "id": "tech-backend-prompt-injection"
   }
 ]
