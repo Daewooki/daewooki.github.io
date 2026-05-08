@@ -258,5 +258,13 @@
   {
     "date": "2026-05-07",
     "id": "tech-backend-prompt-injection"
+  },
+  {
+    "date": "2026-05-08",
+    "id": "tech-prototype-rapid-ui"
+  },
+  {
+    "date": "2026-05-08",
+    "id": "tech-data-synth"
   }
 ]
