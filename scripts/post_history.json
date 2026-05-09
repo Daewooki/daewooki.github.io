@@ -266,5 +266,13 @@
   {
     "date": "2026-05-08",
     "id": "tech-data-synth"
+  },
+  {
+    "date": "2026-05-09",
+    "id": "tech-backend-rate-limit"
+  },
+  {
+    "date": "2026-05-09",
+    "id": "tech-agent-mcp"
   }
 ]
