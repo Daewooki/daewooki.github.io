@@ -274,5 +274,13 @@
   {
     "date": "2026-05-09",
     "id": "tech-agent-mcp"
+  },
+  {
+    "date": "2026-05-10",
+    "id": "tech-infra-k8s"
+  },
+  {
+    "date": "2026-05-10",
+    "id": "tech-coding-ui-gen"
   }
 ]
