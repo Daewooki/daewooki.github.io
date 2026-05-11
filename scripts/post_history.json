@@ -282,5 +282,13 @@
   {
     "date": "2026-05-10",
     "id": "tech-coding-ui-gen"
+  },
+  {
+    "date": "2026-05-11",
+    "id": "news-dev-tools"
+  },
+  {
+    "date": "2026-05-11",
+    "id": "tech-backend-queue"
   }
 ]
