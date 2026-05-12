@@ -290,5 +290,13 @@
   {
     "date": "2026-05-11",
     "id": "tech-backend-queue"
+  },
+  {
+    "date": "2026-05-12",
+    "id": "tech-mlops-tracing"
+  },
+  {
+    "date": "2026-05-12",
+    "id": "tech-multimodal-vlm"
   }
 ]
