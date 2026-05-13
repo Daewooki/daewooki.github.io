@@ -298,5 +298,13 @@
   {
     "date": "2026-05-12",
     "id": "tech-multimodal-vlm"
+  },
+  {
+    "date": "2026-05-13",
+    "id": "tech-mlops-batch"
+  },
+  {
+    "date": "2026-05-13",
+    "id": "tech-backend-arch"
   }
 ]
