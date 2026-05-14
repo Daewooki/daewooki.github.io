@@ -306,5 +306,13 @@
   {
     "date": "2026-05-13",
     "id": "tech-backend-arch"
+  },
+  {
+    "date": "2026-05-14",
+    "id": "news-opensource"
+  },
+  {
+    "date": "2026-05-14",
+    "id": "tech-coding-debug"
   }
 ]
