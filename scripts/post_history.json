@@ -1,9 +1,5 @@
 [
   {
-    "date": "2026-04-04",
-    "id": "tech-mlops-monitor"
-  },
-  {
     "date": "2026-04-05",
     "id": "tech-agent-agentic-rag"
   },
@@ -322,5 +318,13 @@
   {
     "date": "2026-05-15",
     "id": "tech-multimodal-video"
+  },
+  {
+    "date": "2026-05-16",
+    "id": "tech-backend-api"
+  },
+  {
+    "date": "2026-05-16",
+    "id": "tech-agent-tool-use"
   }
 ]
