@@ -1,9 +1,5 @@
 [
   {
-    "date": "2026-04-05",
-    "id": "tech-agent-agentic-rag"
-  },
-  {
     "date": "2026-04-06",
     "id": "news-llm-models"
   },
@@ -326,5 +322,13 @@
   {
     "date": "2026-05-16",
     "id": "tech-agent-tool-use"
+  },
+  {
+    "date": "2026-05-17",
+    "id": "tech-llm-eval"
+  },
+  {
+    "date": "2026-05-17",
+    "id": "tech-prototype-fullstack"
   }
 ]
