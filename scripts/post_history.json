@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-04-06",
-    "id": "news-llm-models"
-  },
-  {
-    "date": "2026-04-06",
-    "id": "tech-llm-finetune"
-  },
-  {
     "date": "2026-04-07",
     "id": "news-ai-invest"
   },
@@ -330,5 +322,13 @@
   {
     "date": "2026-05-17",
     "id": "tech-prototype-fullstack"
+  },
+  {
+    "date": "2026-05-18",
+    "id": "news-ai-security"
+  },
+  {
+    "date": "2026-05-18",
+    "id": "tech-coding-assist"
   }
 ]
