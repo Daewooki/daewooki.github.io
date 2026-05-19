@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-04-07",
-    "id": "news-ai-invest"
-  },
-  {
-    "date": "2026-04-07",
-    "id": "tech-backend-arch"
-  },
-  {
     "date": "2026-04-08",
     "id": "news-bigtech-updates"
   },
@@ -330,5 +322,13 @@
   {
     "date": "2026-05-18",
     "id": "tech-coding-assist"
+  },
+  {
+    "date": "2026-05-19",
+    "id": "tech-rag-embedding"
+  },
+  {
+    "date": "2026-05-19",
+    "id": "tech-llm-cost"
   }
 ]
