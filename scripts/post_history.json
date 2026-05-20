@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-04-08",
-    "id": "news-bigtech-updates"
-  },
-  {
-    "date": "2026-04-08",
-    "id": "tech-coding-vibe"
-  },
-  {
     "date": "2026-04-09",
     "id": "news-ai-regulation"
   },
@@ -330,5 +322,13 @@
   {
     "date": "2026-05-19",
     "id": "tech-llm-cost"
+  },
+  {
+    "date": "2026-05-20",
+    "id": "tech-mlops-monitor"
+  },
+  {
+    "date": "2026-05-20",
+    "id": "tech-llm-caching"
   }
 ]
