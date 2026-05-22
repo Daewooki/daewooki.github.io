@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-04-10",
-    "id": "news-llm-models"
-  },
-  {
-    "date": "2026-04-10",
-    "id": "tech-rag-advanced"
-  },
-  {
     "date": "2026-04-11",
     "id": "news-ai-invest"
   },
@@ -330,5 +322,13 @@
   {
     "date": "2026-05-21",
     "id": "tech-mlops-gpu"
+  },
+  {
+    "date": "2026-05-22",
+    "id": "tech-data-curation"
+  },
+  {
+    "date": "2026-05-22",
+    "id": "tech-mlops-serving"
   }
 ]
