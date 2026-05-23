@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-04-11",
-    "id": "news-ai-invest"
-  },
-  {
-    "date": "2026-04-11",
-    "id": "tech-llm-eval"
-  },
-  {
     "date": "2026-04-12",
     "id": "tech-agent-frameworks"
   },
@@ -330,5 +322,13 @@
   {
     "date": "2026-05-22",
     "id": "tech-mlops-serving"
+  },
+  {
+    "date": "2026-05-23",
+    "id": "tech-agent-mcp"
+  },
+  {
+    "date": "2026-05-23",
+    "id": "tech-coding-review"
   }
 ]
