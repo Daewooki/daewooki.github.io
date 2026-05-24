@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-04-12",
-    "id": "tech-agent-frameworks"
-  },
-  {
-    "date": "2026-04-12",
-    "id": "news-bigtech-updates"
-  },
-  {
     "date": "2026-04-13",
     "id": "news-ai-regulation"
   },
@@ -330,5 +322,13 @@
   {
     "date": "2026-05-23",
     "id": "tech-coding-review"
+  },
+  {
+    "date": "2026-05-24",
+    "id": "tech-coding-vibe"
+  },
+  {
+    "date": "2026-05-24",
+    "id": "tech-llm-prompt-cot"
   }
 ]
