@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-04-13",
-    "id": "news-ai-regulation"
-  },
-  {
-    "date": "2026-04-13",
-    "id": "tech-coding-ui-gen"
-  },
-  {
     "date": "2026-04-14",
     "id": "news-llm-models"
   },
@@ -330,5 +322,13 @@
   {
     "date": "2026-05-24",
     "id": "tech-llm-prompt-cot"
+  },
+  {
+    "date": "2026-05-25",
+    "id": "news-ai-regulation"
+  },
+  {
+    "date": "2026-05-25",
+    "id": "tech-rag-chunking"
   }
 ]
