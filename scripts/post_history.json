@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-04-14",
-    "id": "news-llm-models"
-  },
-  {
-    "date": "2026-04-14",
-    "id": "tech-multimodal-voice"
-  },
-  {
     "date": "2026-04-15",
     "id": "news-ai-invest"
   },
@@ -330,5 +322,13 @@
   {
     "date": "2026-05-25",
     "id": "tech-rag-chunking"
+  },
+  {
+    "date": "2026-05-26",
+    "id": "tech-agent-agentic-rag"
+  },
+  {
+    "date": "2026-05-26",
+    "id": "tech-rag-hybrid"
   }
 ]
