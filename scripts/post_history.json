@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-04-16",
-    "id": "news-bigtech-updates"
-  },
-  {
-    "date": "2026-04-16",
-    "id": "tech-mlops-serving"
-  },
-  {
     "date": "2026-04-17",
     "id": "tech-agent-tool-use"
   },
@@ -330,5 +322,13 @@
   {
     "date": "2026-05-27",
     "id": "tech-llm-context"
+  },
+  {
+    "date": "2026-05-28",
+    "id": "news-ai-research"
+  },
+  {
+    "date": "2026-05-28",
+    "id": "tech-llm-structured"
   }
 ]
