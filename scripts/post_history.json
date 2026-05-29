@@ -1,9 +1,5 @@
 [
   {
-    "date": "2026-04-17",
-    "id": "tech-agent-tool-use"
-  },
-  {
     "date": "2026-04-18",
     "id": "tech-backend-queue"
   },
@@ -330,5 +326,13 @@
   {
     "date": "2026-05-28",
     "id": "tech-llm-structured"
+  },
+  {
+    "date": "2026-05-29",
+    "id": "tech-multimodal-ocr"
+  },
+  {
+    "date": "2026-05-29",
+    "id": "tech-coding-cli-agents"
   }
 ]
