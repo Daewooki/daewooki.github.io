@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-04-18",
-    "id": "tech-backend-queue"
-  },
-  {
-    "date": "2026-04-18",
-    "id": "tech-coding-review"
-  },
-  {
     "date": "2026-04-19",
     "id": "tech-data-curation"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-05-29",
     "id": "tech-coding-cli-agents"
+  },
+  {
+    "date": "2026-05-30",
+    "id": "tech-agent-tool-use"
+  },
+  {
+    "date": "2026-05-30",
+    "id": "tech-data-synth"
   }
 ]
