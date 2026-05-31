@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-04-19",
-    "id": "tech-data-curation"
-  },
-  {
-    "date": "2026-04-19",
-    "id": "tech-llm-cost"
-  },
-  {
     "date": "2026-04-20",
     "id": "news-dev-tools"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-05-30",
     "id": "tech-data-synth"
+  },
+  {
+    "date": "2026-05-31",
+    "id": "tech-infra-serverless"
+  },
+  {
+    "date": "2026-05-31",
+    "id": "tech-rag-vectordb"
   }
 ]
