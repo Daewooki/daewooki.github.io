@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-04-20",
-    "id": "news-dev-tools"
-  },
-  {
-    "date": "2026-04-20",
-    "id": "tech-rag-chunking"
-  },
-  {
     "date": "2026-04-21",
     "id": "tech-rag-embedding"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-05-31",
     "id": "tech-rag-vectordb"
+  },
+  {
+    "date": "2026-06-01",
+    "id": "news-bigtech-updates"
+  },
+  {
+    "date": "2026-06-01",
+    "id": "tech-prototype-fullstack"
   }
 ]
