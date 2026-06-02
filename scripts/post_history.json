@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-04-21",
-    "id": "tech-rag-embedding"
-  },
-  {
-    "date": "2026-04-21",
-    "id": "tech-rag-graph"
-  },
-  {
     "date": "2026-04-22",
     "id": "tech-agent-mcp"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-06-01",
     "id": "tech-prototype-fullstack"
+  },
+  {
+    "date": "2026-06-02",
+    "id": "tech-backend-prompt-injection"
+  },
+  {
+    "date": "2026-06-02",
+    "id": "tech-backend-arch"
   }
 ]
