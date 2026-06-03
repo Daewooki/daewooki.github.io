@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-04-22",
-    "id": "tech-agent-mcp"
-  },
-  {
-    "date": "2026-04-22",
-    "id": "tech-agent-memory"
-  },
-  {
     "date": "2026-04-23",
     "id": "news-ai-hardware"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-06-02",
     "id": "tech-backend-arch"
+  },
+  {
+    "date": "2026-06-03",
+    "id": "tech-multimodal-vlm"
+  },
+  {
+    "date": "2026-06-03",
+    "id": "tech-coding-ui-gen"
   }
 ]
