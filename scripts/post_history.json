@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-04-23",
-    "id": "news-ai-hardware"
-  },
-  {
-    "date": "2026-04-23",
-    "id": "tech-backend-rate-limit"
-  },
-  {
     "date": "2026-04-24",
     "id": "tech-agent-agentic-rag"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-06-03",
     "id": "tech-coding-ui-gen"
+  },
+  {
+    "date": "2026-06-04",
+    "id": "news-ai-hardware"
+  },
+  {
+    "date": "2026-06-04",
+    "id": "tech-llm-cost"
   }
 ]
