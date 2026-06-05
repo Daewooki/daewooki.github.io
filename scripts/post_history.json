@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-04-24",
-    "id": "tech-agent-agentic-rag"
-  },
-  {
-    "date": "2026-04-24",
-    "id": "tech-data-synth"
-  },
-  {
     "date": "2026-04-25",
     "id": "tech-infra-k8s"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-06-04",
     "id": "tech-llm-cost"
+  },
+  {
+    "date": "2026-06-05",
+    "id": "tech-coding-assist"
+  },
+  {
+    "date": "2026-06-05",
+    "id": "tech-multimodal-voice"
   }
 ]
