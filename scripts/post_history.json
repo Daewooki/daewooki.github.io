@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-04-25",
-    "id": "tech-infra-k8s"
-  },
-  {
-    "date": "2026-04-25",
-    "id": "tech-llm-prompt-cot"
-  },
-  {
     "date": "2026-04-26",
     "id": "tech-llm-finetune"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-06-05",
     "id": "tech-multimodal-voice"
+  },
+  {
+    "date": "2026-06-06",
+    "id": "tech-mlops-serving"
+  },
+  {
+    "date": "2026-06-06",
+    "id": "tech-prototype-rapid-ui"
   }
 ]
