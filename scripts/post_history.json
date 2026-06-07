@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-04-26",
-    "id": "tech-llm-finetune"
-  },
-  {
-    "date": "2026-04-26",
-    "id": "tech-mlops-gpu"
-  },
-  {
     "date": "2026-04-27",
     "id": "news-ai-regulation"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-06-06",
     "id": "tech-prototype-rapid-ui"
+  },
+  {
+    "date": "2026-06-07",
+    "id": "tech-llm-finetune"
+  },
+  {
+    "date": "2026-06-07",
+    "id": "tech-llm-eval"
   }
 ]
