@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-04-28",
-    "id": "tech-mlops-tracing"
-  },
-  {
-    "date": "2026-04-28",
-    "id": "tech-multimodal-video"
-  },
-  {
     "date": "2026-04-29",
     "id": "tech-coding-assist"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-06-08",
     "id": "tech-llm-caching"
+  },
+  {
+    "date": "2026-06-09",
+    "id": "tech-backend-queue"
+  },
+  {
+    "date": "2026-06-09",
+    "id": "tech-rag-embedding"
   }
 ]
