@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-04-29",
-    "id": "tech-coding-assist"
-  },
-  {
-    "date": "2026-04-29",
-    "id": "tech-coding-cli-agents"
-  },
-  {
     "date": "2026-04-30",
     "id": "news-ai-security"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-06-09",
     "id": "tech-rag-embedding"
+  },
+  {
+    "date": "2026-06-10",
+    "id": "tech-rag-hybrid"
+  },
+  {
+    "date": "2026-06-10",
+    "id": "tech-rag-advanced"
   }
 ]
