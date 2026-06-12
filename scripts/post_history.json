@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-05-01",
-    "id": "tech-llm-caching"
-  },
-  {
-    "date": "2026-05-01",
-    "id": "tech-llm-context"
-  },
-  {
     "date": "2026-05-02",
     "id": "tech-agent-orchestration"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-06-11",
     "id": "tech-llm-context"
+  },
+  {
+    "date": "2026-06-12",
+    "id": "tech-agent-frameworks"
+  },
+  {
+    "date": "2026-06-12",
+    "id": "tech-llm-prompt-cot"
   }
 ]
