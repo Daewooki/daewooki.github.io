@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-05-02",
-    "id": "tech-agent-orchestration"
-  },
-  {
-    "date": "2026-05-02",
-    "id": "tech-agent-tool-use"
-  },
-  {
     "date": "2026-05-03",
     "id": "tech-coding-vibe"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-06-12",
     "id": "tech-llm-prompt-cot"
+  },
+  {
+    "date": "2026-06-13",
+    "id": "tech-agent-mcp"
+  },
+  {
+    "date": "2026-06-13",
+    "id": "tech-data-curation"
   }
 ]
