@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-05-05",
-    "id": "tech-rag-vectordb"
-  },
-  {
-    "date": "2026-05-05",
-    "id": "tech-rag-embedding"
-  },
-  {
     "date": "2026-05-06",
     "id": "tech-agent-memory"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-06-15",
     "id": "tech-prototype-fullstack"
+  },
+  {
+    "date": "2026-06-16",
+    "id": "tech-coding-cli-agents"
+  },
+  {
+    "date": "2026-06-16",
+    "id": "tech-mlops-batch"
   }
 ]
