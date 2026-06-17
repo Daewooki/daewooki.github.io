@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-05-06",
-    "id": "tech-agent-memory"
-  },
-  {
-    "date": "2026-05-06",
-    "id": "tech-rag-chunking"
-  },
-  {
     "date": "2026-05-07",
     "id": "news-bigtech-updates"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-06-16",
     "id": "tech-mlops-batch"
+  },
+  {
+    "date": "2026-06-17",
+    "id": "tech-multimodal-video"
+  },
+  {
+    "date": "2026-06-17",
+    "id": "tech-infra-k8s"
   }
 ]
