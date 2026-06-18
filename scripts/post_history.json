@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-05-07",
-    "id": "news-bigtech-updates"
-  },
-  {
-    "date": "2026-05-07",
-    "id": "tech-backend-prompt-injection"
-  },
-  {
     "date": "2026-05-08",
     "id": "tech-prototype-rapid-ui"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-06-17",
     "id": "tech-infra-k8s"
+  },
+  {
+    "date": "2026-06-18",
+    "id": "news-llm-models"
+  },
+  {
+    "date": "2026-06-18",
+    "id": "tech-llm-cost"
   }
 ]
