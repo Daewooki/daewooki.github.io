@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-05-08",
-    "id": "tech-prototype-rapid-ui"
-  },
-  {
-    "date": "2026-05-08",
-    "id": "tech-data-synth"
-  },
-  {
     "date": "2026-05-09",
     "id": "tech-backend-rate-limit"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-06-18",
     "id": "tech-llm-cost"
+  },
+  {
+    "date": "2026-06-19",
+    "id": "tech-coding-ui-gen"
+  },
+  {
+    "date": "2026-06-19",
+    "id": "tech-multimodal-voice"
   }
 ]
