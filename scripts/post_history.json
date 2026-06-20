@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-05-09",
-    "id": "tech-backend-rate-limit"
-  },
-  {
-    "date": "2026-05-09",
-    "id": "tech-agent-mcp"
-  },
-  {
     "date": "2026-05-10",
     "id": "tech-infra-k8s"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-06-19",
     "id": "tech-multimodal-voice"
+  },
+  {
+    "date": "2026-06-20",
+    "id": "tech-agent-orchestration"
+  },
+  {
+    "date": "2026-06-20",
+    "id": "tech-mlops-serving"
   }
 ]
