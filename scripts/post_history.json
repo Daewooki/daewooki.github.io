@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-05-10",
-    "id": "tech-infra-k8s"
-  },
-  {
-    "date": "2026-05-10",
-    "id": "tech-coding-ui-gen"
-  },
-  {
     "date": "2026-05-11",
     "id": "news-dev-tools"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-06-20",
     "id": "tech-mlops-serving"
+  },
+  {
+    "date": "2026-06-21",
+    "id": "tech-agent-agentic-rag"
+  },
+  {
+    "date": "2026-06-21",
+    "id": "tech-prototype-rapid-ui"
   }
 ]
