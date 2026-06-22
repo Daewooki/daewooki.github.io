@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-05-11",
-    "id": "news-dev-tools"
-  },
-  {
-    "date": "2026-05-11",
-    "id": "tech-backend-queue"
-  },
-  {
     "date": "2026-05-12",
     "id": "tech-mlops-tracing"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-06-21",
     "id": "tech-prototype-rapid-ui"
+  },
+  {
+    "date": "2026-06-22",
+    "id": "news-ai-security"
+  },
+  {
+    "date": "2026-06-22",
+    "id": "tech-rag-chunking"
   }
 ]
