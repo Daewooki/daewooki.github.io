@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-05-13",
-    "id": "tech-mlops-batch"
-  },
-  {
-    "date": "2026-05-13",
-    "id": "tech-backend-arch"
-  },
-  {
     "date": "2026-05-14",
     "id": "news-opensource"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-06-23",
     "id": "tech-infra-serverless"
+  },
+  {
+    "date": "2026-06-24",
+    "id": "tech-backend-rate-limit"
+  },
+  {
+    "date": "2026-06-24",
+    "id": "tech-coding-debug"
   }
 ]
