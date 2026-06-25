@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-05-14",
-    "id": "news-opensource"
-  },
-  {
-    "date": "2026-05-14",
-    "id": "tech-coding-debug"
-  },
-  {
     "date": "2026-05-15",
     "id": "tech-coding-cli-agents"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-06-24",
     "id": "tech-coding-debug"
+  },
+  {
+    "date": "2026-06-25",
+    "id": "news-bigtech-updates"
+  },
+  {
+    "date": "2026-06-25",
+    "id": "tech-rag-hybrid"
   }
 ]
