@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-05-16",
-    "id": "tech-backend-api"
-  },
-  {
-    "date": "2026-05-16",
-    "id": "tech-agent-tool-use"
-  },
-  {
     "date": "2026-05-17",
     "id": "tech-llm-eval"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-06-26",
     "id": "tech-llm-structured"
+  },
+  {
+    "date": "2026-06-27",
+    "id": "tech-backend-queue"
+  },
+  {
+    "date": "2026-06-27",
+    "id": "tech-llm-caching"
   }
 ]
