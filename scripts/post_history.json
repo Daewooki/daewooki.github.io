@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-05-17",
-    "id": "tech-llm-eval"
-  },
-  {
-    "date": "2026-05-17",
-    "id": "tech-prototype-fullstack"
-  },
-  {
     "date": "2026-05-18",
     "id": "news-ai-security"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-06-27",
     "id": "tech-llm-caching"
+  },
+  {
+    "date": "2026-06-28",
+    "id": "tech-rag-advanced"
+  },
+  {
+    "date": "2026-06-28",
+    "id": "tech-coding-assist"
   }
 ]
