@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-05-18",
-    "id": "news-ai-security"
-  },
-  {
-    "date": "2026-05-18",
-    "id": "tech-coding-assist"
-  },
-  {
     "date": "2026-05-19",
     "id": "tech-rag-embedding"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-06-28",
     "id": "tech-coding-assist"
+  },
+  {
+    "date": "2026-06-29",
+    "id": "news-ai-hardware"
+  },
+  {
+    "date": "2026-06-29",
+    "id": "tech-llm-prompt-cot"
   }
 ]
