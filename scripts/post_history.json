@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-05-19",
-    "id": "tech-rag-embedding"
-  },
-  {
-    "date": "2026-05-19",
-    "id": "tech-llm-cost"
-  },
-  {
     "date": "2026-05-20",
     "id": "tech-mlops-monitor"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-06-29",
     "id": "tech-llm-prompt-cot"
+  },
+  {
+    "date": "2026-06-30",
+    "id": "tech-agent-tool-use"
+  },
+  {
+    "date": "2026-06-30",
+    "id": "tech-agent-mcp"
   }
 ]
