@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-05-20",
-    "id": "tech-mlops-monitor"
-  },
-  {
-    "date": "2026-05-20",
-    "id": "tech-llm-caching"
-  },
-  {
     "date": "2026-05-21",
     "id": "news-ai-invest"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-06-30",
     "id": "tech-agent-mcp"
+  },
+  {
+    "date": "2026-07-01",
+    "id": "tech-prototype-fullstack"
+  },
+  {
+    "date": "2026-07-01",
+    "id": "tech-data-curation"
   }
 ]
