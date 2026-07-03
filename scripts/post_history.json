@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-05-22",
-    "id": "tech-data-curation"
-  },
-  {
-    "date": "2026-05-22",
-    "id": "tech-mlops-serving"
-  },
-  {
     "date": "2026-05-23",
     "id": "tech-agent-mcp"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-07-02",
     "id": "tech-agent-memory"
+  },
+  {
+    "date": "2026-07-03",
+    "id": "tech-infra-k8s"
+  },
+  {
+    "date": "2026-07-03",
+    "id": "tech-llm-finetune"
   }
 ]
