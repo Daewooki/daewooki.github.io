@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-05-23",
-    "id": "tech-agent-mcp"
-  },
-  {
-    "date": "2026-05-23",
-    "id": "tech-coding-review"
-  },
-  {
     "date": "2026-05-24",
     "id": "tech-coding-vibe"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-07-03",
     "id": "tech-llm-finetune"
+  },
+  {
+    "date": "2026-07-04",
+    "id": "tech-backend-api"
+  },
+  {
+    "date": "2026-07-04",
+    "id": "tech-mlops-serving"
   }
 ]
