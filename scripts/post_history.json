@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-05-24",
-    "id": "tech-coding-vibe"
-  },
-  {
-    "date": "2026-05-24",
-    "id": "tech-llm-prompt-cot"
-  },
-  {
     "date": "2026-05-25",
     "id": "news-ai-regulation"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-07-04",
     "id": "tech-mlops-serving"
+  },
+  {
+    "date": "2026-07-05",
+    "id": "tech-backend-arch"
+  },
+  {
+    "date": "2026-07-05",
+    "id": "tech-mlops-batch"
   }
 ]
