@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-05-25",
-    "id": "news-ai-regulation"
-  },
-  {
-    "date": "2026-05-25",
-    "id": "tech-rag-chunking"
-  },
-  {
     "date": "2026-05-26",
     "id": "tech-agent-agentic-rag"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-07-05",
     "id": "tech-mlops-batch"
+  },
+  {
+    "date": "2026-07-06",
+    "id": "news-ai-research"
+  },
+  {
+    "date": "2026-07-06",
+    "id": "tech-rag-embedding"
   }
 ]
