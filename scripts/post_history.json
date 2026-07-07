@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-05-26",
-    "id": "tech-agent-agentic-rag"
-  },
-  {
-    "date": "2026-05-26",
-    "id": "tech-rag-hybrid"
-  },
-  {
     "date": "2026-05-27",
     "id": "tech-infra-k8s"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-07-06",
     "id": "tech-rag-embedding"
+  },
+  {
+    "date": "2026-07-07",
+    "id": "tech-multimodal-voice"
+  },
+  {
+    "date": "2026-07-07",
+    "id": "tech-rag-chunking"
   }
 ]
