@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-05-30",
-    "id": "tech-agent-tool-use"
-  },
-  {
-    "date": "2026-05-30",
-    "id": "tech-data-synth"
-  },
-  {
     "date": "2026-05-31",
     "id": "tech-infra-serverless"
   },
@@ -318,5 +310,13 @@
   {
     "date": "2026-07-10",
     "id": "tech-rag-graph"
+  },
+  {
+    "date": "2026-07-11",
+    "id": "tech-coding-review"
+  },
+  {
+    "date": "2026-07-11",
+    "id": "tech-rag-hybrid"
   }
 ]
