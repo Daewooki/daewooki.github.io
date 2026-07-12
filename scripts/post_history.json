@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-05-31",
-    "id": "tech-infra-serverless"
-  },
-  {
-    "date": "2026-05-31",
-    "id": "tech-rag-vectordb"
-  },
-  {
     "date": "2026-06-01",
     "id": "news-bigtech-updates"
   },
@@ -318,5 +310,13 @@
   {
     "date": "2026-07-11",
     "id": "tech-rag-hybrid"
+  },
+  {
+    "date": "2026-07-12",
+    "id": "tech-coding-assist"
+  },
+  {
+    "date": "2026-07-12",
+    "id": "tech-coding-ui-gen"
   }
 ]
