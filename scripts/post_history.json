@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-06-01",
-    "id": "news-bigtech-updates"
-  },
-  {
-    "date": "2026-06-01",
-    "id": "tech-prototype-fullstack"
-  },
-  {
     "date": "2026-06-02",
     "id": "tech-backend-prompt-injection"
   },
@@ -318,5 +310,13 @@
   {
     "date": "2026-07-12",
     "id": "tech-coding-ui-gen"
+  },
+  {
+    "date": "2026-07-13",
+    "id": "news-bigtech-updates"
+  },
+  {
+    "date": "2026-07-13",
+    "id": "tech-rag-advanced"
   }
 ]
