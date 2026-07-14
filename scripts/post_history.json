@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-06-02",
-    "id": "tech-backend-prompt-injection"
-  },
-  {
-    "date": "2026-06-02",
-    "id": "tech-backend-arch"
-  },
-  {
     "date": "2026-06-03",
     "id": "tech-multimodal-vlm"
   },
@@ -318,5 +310,13 @@
   {
     "date": "2026-07-13",
     "id": "tech-rag-advanced"
+  },
+  {
+    "date": "2026-07-14",
+    "id": "tech-coding-cli-agents"
+  },
+  {
+    "date": "2026-07-14",
+    "id": "tech-multimodal-video"
   }
 ]
