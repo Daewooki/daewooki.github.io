@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-06-03",
-    "id": "tech-multimodal-vlm"
-  },
-  {
-    "date": "2026-06-03",
-    "id": "tech-coding-ui-gen"
-  },
-  {
     "date": "2026-06-04",
     "id": "news-ai-hardware"
   },
@@ -318,5 +310,13 @@
   {
     "date": "2026-07-14",
     "id": "tech-multimodal-video"
+  },
+  {
+    "date": "2026-07-15",
+    "id": "tech-llm-context"
+  },
+  {
+    "date": "2026-07-15",
+    "id": "tech-backend-queue"
   }
 ]
