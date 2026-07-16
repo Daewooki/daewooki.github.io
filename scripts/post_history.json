@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-06-04",
-    "id": "news-ai-hardware"
-  },
-  {
-    "date": "2026-06-04",
-    "id": "tech-llm-cost"
-  },
-  {
     "date": "2026-06-05",
     "id": "tech-coding-assist"
   },
@@ -318,5 +310,13 @@
   {
     "date": "2026-07-15",
     "id": "tech-backend-queue"
+  },
+  {
+    "date": "2026-07-16",
+    "id": "news-llm-models"
+  },
+  {
+    "date": "2026-07-16",
+    "id": "tech-mlops-tracing"
   }
 ]
