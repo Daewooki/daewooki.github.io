@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-06-05",
-    "id": "tech-coding-assist"
-  },
-  {
-    "date": "2026-06-05",
-    "id": "tech-multimodal-voice"
-  },
-  {
     "date": "2026-06-06",
     "id": "tech-mlops-serving"
   },
@@ -318,5 +310,13 @@
   {
     "date": "2026-07-16",
     "id": "tech-mlops-tracing"
+  },
+  {
+    "date": "2026-07-17",
+    "id": "tech-llm-prompt-cot"
+  },
+  {
+    "date": "2026-07-17",
+    "id": "tech-infra-serverless"
   }
 ]
