@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-06-06",
-    "id": "tech-mlops-serving"
-  },
-  {
-    "date": "2026-06-06",
-    "id": "tech-prototype-rapid-ui"
-  },
-  {
     "date": "2026-06-07",
     "id": "tech-llm-finetune"
   },
@@ -318,5 +310,13 @@
   {
     "date": "2026-07-17",
     "id": "tech-infra-serverless"
+  },
+  {
+    "date": "2026-07-18",
+    "id": "tech-data-curation"
+  },
+  {
+    "date": "2026-07-18",
+    "id": "tech-llm-caching"
   }
 ]
