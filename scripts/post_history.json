@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-06-07",
-    "id": "tech-llm-finetune"
-  },
-  {
-    "date": "2026-06-07",
-    "id": "tech-llm-eval"
-  },
-  {
     "date": "2026-06-08",
     "id": "news-opensource"
   },
@@ -318,5 +310,13 @@
   {
     "date": "2026-07-18",
     "id": "tech-llm-caching"
+  },
+  {
+    "date": "2026-07-19",
+    "id": "tech-agent-frameworks"
+  },
+  {
+    "date": "2026-07-19",
+    "id": "tech-agent-tool-use"
   }
 ]
