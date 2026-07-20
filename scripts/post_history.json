@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-06-08",
-    "id": "news-opensource"
-  },
-  {
-    "date": "2026-06-08",
-    "id": "tech-llm-caching"
-  },
-  {
     "date": "2026-06-09",
     "id": "tech-backend-queue"
   },
@@ -318,5 +310,13 @@
   {
     "date": "2026-07-19",
     "id": "tech-agent-tool-use"
+  },
+  {
+    "date": "2026-07-20",
+    "id": "news-ai-invest"
+  },
+  {
+    "date": "2026-07-20",
+    "id": "tech-llm-finetune"
   }
 ]
