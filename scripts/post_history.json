@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-06-10",
-    "id": "tech-rag-hybrid"
-  },
-  {
-    "date": "2026-06-10",
-    "id": "tech-rag-advanced"
-  },
-  {
     "date": "2026-06-11",
     "id": "news-ai-invest"
   },
@@ -318,5 +310,13 @@
   {
     "date": "2026-07-21",
     "id": "tech-multimodal-voice"
+  },
+  {
+    "date": "2026-07-22",
+    "id": "tech-data-synth"
+  },
+  {
+    "date": "2026-07-22",
+    "id": "tech-mlops-gpu"
   }
 ]
