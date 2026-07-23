@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-06-11",
-    "id": "news-ai-invest"
-  },
-  {
-    "date": "2026-06-11",
-    "id": "tech-llm-context"
-  },
-  {
     "date": "2026-06-12",
     "id": "tech-agent-frameworks"
   },
@@ -318,5 +310,13 @@
   {
     "date": "2026-07-22",
     "id": "tech-mlops-gpu"
+  },
+  {
+    "date": "2026-07-23",
+    "id": "news-ai-regulation"
+  },
+  {
+    "date": "2026-07-23",
+    "id": "tech-rag-vectordb"
   }
 ]
