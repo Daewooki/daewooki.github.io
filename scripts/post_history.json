@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-06-13",
-    "id": "tech-agent-mcp"
-  },
-  {
-    "date": "2026-06-13",
-    "id": "tech-data-curation"
-  },
-  {
     "date": "2026-06-14",
     "id": "tech-agent-tool-use"
   },
@@ -318,5 +310,13 @@
   {
     "date": "2026-07-24",
     "id": "tech-coding-debug"
+  },
+  {
+    "date": "2026-07-25",
+    "id": "tech-mlops-batch"
+  },
+  {
+    "date": "2026-07-25",
+    "id": "tech-coding-review"
   }
 ]
