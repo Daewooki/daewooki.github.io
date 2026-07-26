@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-06-14",
-    "id": "tech-agent-tool-use"
-  },
-  {
-    "date": "2026-06-14",
-    "id": "tech-coding-vibe"
-  },
-  {
     "date": "2026-06-15",
     "id": "news-enterprise-adoption"
   },
@@ -318,5 +310,13 @@
   {
     "date": "2026-07-25",
     "id": "tech-coding-review"
+  },
+  {
+    "date": "2026-07-26",
+    "id": "tech-agent-memory"
+  },
+  {
+    "date": "2026-07-26",
+    "id": "tech-coding-assist"
   }
 ]
