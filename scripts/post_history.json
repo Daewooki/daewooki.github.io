@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-06-15",
-    "id": "news-enterprise-adoption"
-  },
-  {
-    "date": "2026-06-15",
-    "id": "tech-prototype-fullstack"
-  },
-  {
     "date": "2026-06-16",
     "id": "tech-coding-cli-agents"
   },
@@ -318,5 +310,13 @@
   {
     "date": "2026-07-26",
     "id": "tech-coding-assist"
+  },
+  {
+    "date": "2026-07-27",
+    "id": "news-opensource"
+  },
+  {
+    "date": "2026-07-27",
+    "id": "tech-agent-agentic-rag"
   }
 ]
