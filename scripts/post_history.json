@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-06-16",
-    "id": "tech-coding-cli-agents"
-  },
-  {
-    "date": "2026-06-16",
-    "id": "tech-mlops-batch"
-  },
-  {
     "date": "2026-06-17",
     "id": "tech-multimodal-video"
   },
@@ -318,5 +310,13 @@
   {
     "date": "2026-07-27",
     "id": "tech-agent-agentic-rag"
+  },
+  {
+    "date": "2026-07-28",
+    "id": "tech-llm-structured"
+  },
+  {
+    "date": "2026-07-28",
+    "id": "tech-backend-api"
   }
 ]
