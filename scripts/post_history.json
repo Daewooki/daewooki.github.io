@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-06-17",
-    "id": "tech-multimodal-video"
-  },
-  {
-    "date": "2026-06-17",
-    "id": "tech-infra-k8s"
-  },
-  {
     "date": "2026-06-18",
     "id": "news-llm-models"
   },
@@ -318,5 +310,13 @@
   {
     "date": "2026-07-28",
     "id": "tech-backend-api"
+  },
+  {
+    "date": "2026-07-29",
+    "id": "tech-agent-orchestration"
+  },
+  {
+    "date": "2026-07-29",
+    "id": "tech-llm-eval"
   }
 ]
