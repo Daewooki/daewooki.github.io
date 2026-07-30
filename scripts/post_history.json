@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-06-18",
-    "id": "news-llm-models"
-  },
-  {
-    "date": "2026-06-18",
-    "id": "tech-llm-cost"
-  },
-  {
     "date": "2026-06-19",
     "id": "tech-coding-ui-gen"
   },
@@ -318,5 +310,13 @@
   {
     "date": "2026-07-29",
     "id": "tech-llm-eval"
+  },
+  {
+    "date": "2026-07-30",
+    "id": "news-ai-research"
+  },
+  {
+    "date": "2026-07-30",
+    "id": "tech-rag-chunking"
   }
 ]
