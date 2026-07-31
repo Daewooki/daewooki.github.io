@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-06-19",
-    "id": "tech-coding-ui-gen"
-  },
-  {
-    "date": "2026-06-19",
-    "id": "tech-multimodal-voice"
-  },
-  {
     "date": "2026-06-20",
     "id": "tech-agent-orchestration"
   },
@@ -318,5 +310,13 @@
   {
     "date": "2026-07-30",
     "id": "tech-rag-chunking"
+  },
+  {
+    "date": "2026-07-31",
+    "id": "tech-coding-cli-agents"
+  },
+  {
+    "date": "2026-07-31",
+    "id": "tech-rag-embedding"
   }
 ]
