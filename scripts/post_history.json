@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-06-20",
-    "id": "tech-agent-orchestration"
-  },
-  {
-    "date": "2026-06-20",
-    "id": "tech-mlops-serving"
-  },
-  {
     "date": "2026-06-21",
     "id": "tech-agent-agentic-rag"
   },
@@ -318,5 +310,13 @@
   {
     "date": "2026-07-31",
     "id": "tech-rag-embedding"
+  },
+  {
+    "date": "2026-08-01",
+    "id": "tech-backend-queue"
+  },
+  {
+    "date": "2026-08-01",
+    "id": "tech-infra-serverless"
   }
 ]
