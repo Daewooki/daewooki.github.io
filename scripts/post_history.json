@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-06-21",
-    "id": "tech-agent-agentic-rag"
-  },
-  {
-    "date": "2026-06-21",
-    "id": "tech-prototype-rapid-ui"
-  },
-  {
     "date": "2026-06-22",
     "id": "news-ai-security"
   },
@@ -318,5 +310,13 @@
   {
     "date": "2026-08-01",
     "id": "tech-infra-serverless"
+  },
+  {
+    "date": "2026-08-02",
+    "id": "tech-infra-k8s"
+  },
+  {
+    "date": "2026-08-02",
+    "id": "tech-agent-frameworks"
   }
 ]
