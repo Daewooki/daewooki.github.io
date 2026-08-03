@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-06-22",
-    "id": "news-ai-security"
-  },
-  {
-    "date": "2026-06-22",
-    "id": "tech-rag-chunking"
-  },
-  {
     "date": "2026-06-23",
     "id": "tech-data-synth"
   },
@@ -318,5 +310,13 @@
   {
     "date": "2026-08-02",
     "id": "tech-agent-frameworks"
+  },
+  {
+    "date": "2026-08-03",
+    "id": "news-ai-hardware"
+  },
+  {
+    "date": "2026-08-03",
+    "id": "tech-agent-mcp"
   }
 ]
