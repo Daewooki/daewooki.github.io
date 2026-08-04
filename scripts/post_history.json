@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-06-23",
-    "id": "tech-data-synth"
-  },
-  {
-    "date": "2026-06-23",
-    "id": "tech-infra-serverless"
-  },
-  {
     "date": "2026-06-24",
     "id": "tech-backend-rate-limit"
   },
@@ -318,5 +310,13 @@
   {
     "date": "2026-08-03",
     "id": "tech-agent-mcp"
+  },
+  {
+    "date": "2026-08-04",
+    "id": "tech-prototype-rapid-ui"
+  },
+  {
+    "date": "2026-08-04",
+    "id": "tech-rag-hybrid"
   }
 ]
