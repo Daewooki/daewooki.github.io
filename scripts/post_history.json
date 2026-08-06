@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-06-25",
-    "id": "news-bigtech-updates"
-  },
-  {
-    "date": "2026-06-25",
-    "id": "tech-rag-hybrid"
-  },
-  {
     "date": "2026-06-26",
     "id": "tech-agent-frameworks"
   },
@@ -318,5 +310,13 @@
   {
     "date": "2026-08-05",
     "id": "tech-mlops-serving"
+  },
+  {
+    "date": "2026-08-06",
+    "id": "news-llm-models"
+  },
+  {
+    "date": "2026-08-06",
+    "id": "tech-llm-context"
   }
 ]
