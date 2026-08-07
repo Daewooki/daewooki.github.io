@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-06-26",
-    "id": "tech-agent-frameworks"
-  },
-  {
-    "date": "2026-06-26",
-    "id": "tech-llm-structured"
-  },
-  {
     "date": "2026-06-27",
     "id": "tech-backend-queue"
   },
@@ -318,5 +310,13 @@
   {
     "date": "2026-08-06",
     "id": "tech-llm-context"
+  },
+  {
+    "date": "2026-08-07",
+    "id": "tech-rag-vectordb"
+  },
+  {
+    "date": "2026-08-07",
+    "id": "tech-llm-cost"
   }
 ]
