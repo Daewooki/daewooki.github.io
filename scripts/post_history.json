@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-06-27",
-    "id": "tech-backend-queue"
-  },
-  {
-    "date": "2026-06-27",
-    "id": "tech-llm-caching"
-  },
-  {
     "date": "2026-06-28",
     "id": "tech-rag-advanced"
   },
@@ -318,5 +310,13 @@
   {
     "date": "2026-08-07",
     "id": "tech-llm-cost"
+  },
+  {
+    "date": "2026-08-08",
+    "id": "tech-multimodal-voice"
+  },
+  {
+    "date": "2026-08-08",
+    "id": "tech-agent-tool-use"
   }
 ]
