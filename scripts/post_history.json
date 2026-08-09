@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-06-28",
-    "id": "tech-rag-advanced"
-  },
-  {
-    "date": "2026-06-28",
-    "id": "tech-coding-assist"
-  },
-  {
     "date": "2026-06-29",
     "id": "news-ai-hardware"
   },
@@ -318,5 +310,13 @@
   {
     "date": "2026-08-08",
     "id": "tech-agent-tool-use"
+  },
+  {
+    "date": "2026-08-09",
+    "id": "tech-prototype-fullstack"
+  },
+  {
+    "date": "2026-08-09",
+    "id": "tech-rag-advanced"
   }
 ]
