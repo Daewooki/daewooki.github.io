@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-07-01",
-    "id": "tech-prototype-fullstack"
-  },
-  {
-    "date": "2026-07-01",
-    "id": "tech-data-curation"
-  },
-  {
     "date": "2026-07-02",
     "id": "news-llm-models"
   },
@@ -318,5 +310,13 @@
   {
     "date": "2026-08-11",
     "id": "tech-backend-api"
+  },
+  {
+    "date": "2026-08-12",
+    "id": "tech-data-curation"
+  },
+  {
+    "date": "2026-08-12",
+    "id": "tech-llm-eval"
   }
 ]
