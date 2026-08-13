@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-07-02",
-    "id": "news-llm-models"
-  },
-  {
-    "date": "2026-07-02",
-    "id": "tech-agent-memory"
-  },
-  {
     "date": "2026-07-03",
     "id": "tech-infra-k8s"
   },
@@ -318,5 +310,13 @@
   {
     "date": "2026-08-12",
     "id": "tech-llm-eval"
+  },
+  {
+    "date": "2026-08-13",
+    "id": "news-ai-security"
+  },
+  {
+    "date": "2026-08-13",
+    "id": "tech-coding-ui-gen"
   }
 ]
