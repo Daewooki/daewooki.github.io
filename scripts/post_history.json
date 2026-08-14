@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-07-03",
-    "id": "tech-infra-k8s"
-  },
-  {
-    "date": "2026-07-03",
-    "id": "tech-llm-finetune"
-  },
-  {
     "date": "2026-07-04",
     "id": "tech-backend-api"
   },
@@ -318,5 +310,13 @@
   {
     "date": "2026-08-13",
     "id": "tech-coding-ui-gen"
+  },
+  {
+    "date": "2026-08-14",
+    "id": "tech-coding-assist"
+  },
+  {
+    "date": "2026-08-14",
+    "id": "tech-coding-cli-agents"
   }
 ]
