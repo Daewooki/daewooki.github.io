@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-07-04",
-    "id": "tech-backend-api"
-  },
-  {
-    "date": "2026-07-04",
-    "id": "tech-mlops-serving"
-  },
-  {
     "date": "2026-07-05",
     "id": "tech-backend-arch"
   },
@@ -318,5 +310,13 @@
   {
     "date": "2026-08-14",
     "id": "tech-coding-cli-agents"
+  },
+  {
+    "date": "2026-08-15",
+    "id": "tech-agent-memory"
+  },
+  {
+    "date": "2026-08-15",
+    "id": "tech-llm-structured"
   }
 ]
