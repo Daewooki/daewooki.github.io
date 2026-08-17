@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-07-06",
-    "id": "news-ai-research"
-  },
-  {
-    "date": "2026-07-06",
-    "id": "tech-rag-embedding"
-  },
-  {
     "date": "2026-07-07",
     "id": "tech-multimodal-voice"
   },
@@ -318,5 +310,13 @@
   {
     "date": "2026-08-16",
     "id": "tech-agent-frameworks"
+  },
+  {
+    "date": "2026-08-17",
+    "id": "news-ai-regulation"
+  },
+  {
+    "date": "2026-08-17",
+    "id": "tech-llm-caching"
   }
 ]
