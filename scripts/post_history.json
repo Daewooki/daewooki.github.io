@@ -318,5 +318,13 @@
   {
     "date": "2026-08-18",
     "id": "tech-coding-review"
+  },
+  {
+    "date": "2026-08-19",
+    "id": "tech-llm-prompt-cot"
+  },
+  {
+    "date": "2026-08-19",
+    "id": "tech-data-synth"
   }
 ]
