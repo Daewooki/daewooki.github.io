@@ -326,5 +326,13 @@
   {
     "date": "2026-08-19",
     "id": "tech-data-synth"
+  },
+  {
+    "date": "2026-08-20",
+    "id": "news-ai-research"
+  },
+  {
+    "date": "2026-08-20",
+    "id": "tech-rag-embedding"
   }
 ]
