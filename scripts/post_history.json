@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-07-10",
-    "id": "tech-multimodal-ocr"
-  },
-  {
-    "date": "2026-07-10",
-    "id": "tech-rag-graph"
-  },
-  {
     "date": "2026-07-11",
     "id": "tech-coding-review"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-08-20",
     "id": "tech-rag-embedding"
+  },
+  {
+    "date": "2026-08-21",
+    "id": "tech-backend-rate-limit"
+  },
+  {
+    "date": "2026-08-21",
+    "id": "tech-rag-chunking"
   }
 ]
