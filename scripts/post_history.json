@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-07-14",
-    "id": "tech-coding-cli-agents"
-  },
-  {
-    "date": "2026-07-14",
-    "id": "tech-multimodal-video"
-  },
-  {
     "date": "2026-07-15",
     "id": "tech-llm-context"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-08-24",
     "id": "tech-backend-arch"
+  },
+  {
+    "date": "2026-08-25",
+    "id": "tech-agent-tool-use"
+  },
+  {
+    "date": "2026-08-25",
+    "id": "tech-agent-orchestration"
   }
 ]
