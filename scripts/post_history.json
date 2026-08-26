@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-07-15",
-    "id": "tech-llm-context"
-  },
-  {
-    "date": "2026-07-15",
-    "id": "tech-backend-queue"
-  },
-  {
     "date": "2026-07-16",
     "id": "news-llm-models"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-08-25",
     "id": "tech-agent-orchestration"
+  },
+  {
+    "date": "2026-08-26",
+    "id": "tech-multimodal-video"
+  },
+  {
+    "date": "2026-08-26",
+    "id": "tech-prototype-rapid-ui"
   }
 ]
