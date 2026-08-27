@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-07-16",
-    "id": "news-llm-models"
-  },
-  {
-    "date": "2026-07-16",
-    "id": "tech-mlops-tracing"
-  },
-  {
     "date": "2026-07-17",
     "id": "tech-llm-prompt-cot"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-08-26",
     "id": "tech-prototype-rapid-ui"
+  },
+  {
+    "date": "2026-08-27",
+    "id": "news-ai-hardware"
+  },
+  {
+    "date": "2026-08-27",
+    "id": "tech-mlops-serving"
   }
 ]
