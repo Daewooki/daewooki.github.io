@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-07-18",
-    "id": "tech-data-curation"
-  },
-  {
-    "date": "2026-07-18",
-    "id": "tech-llm-caching"
-  },
-  {
     "date": "2026-07-19",
     "id": "tech-agent-frameworks"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-08-28",
     "id": "tech-mlops-tracing"
+  },
+  {
+    "date": "2026-08-29",
+    "id": "tech-rag-advanced"
+  },
+  {
+    "date": "2026-08-29",
+    "id": "tech-coding-ui-gen"
   }
 ]
