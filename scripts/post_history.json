@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-07-19",
-    "id": "tech-agent-frameworks"
-  },
-  {
-    "date": "2026-07-19",
-    "id": "tech-agent-tool-use"
-  },
-  {
     "date": "2026-07-20",
     "id": "news-ai-invest"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-08-29",
     "id": "tech-coding-ui-gen"
+  },
+  {
+    "date": "2026-08-30",
+    "id": "tech-llm-eval"
+  },
+  {
+    "date": "2026-08-30",
+    "id": "tech-agent-agentic-rag"
   }
 ]
