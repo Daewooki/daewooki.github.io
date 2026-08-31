@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-07-20",
-    "id": "news-ai-invest"
-  },
-  {
-    "date": "2026-07-20",
-    "id": "tech-llm-finetune"
-  },
-  {
     "date": "2026-07-21",
     "id": "tech-backend-rate-limit"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-08-30",
     "id": "tech-agent-agentic-rag"
+  },
+  {
+    "date": "2026-08-31",
+    "id": "news-dev-tools"
+  },
+  {
+    "date": "2026-08-31",
+    "id": "tech-data-curation"
   }
 ]
