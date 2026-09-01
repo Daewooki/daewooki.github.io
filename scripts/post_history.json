@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-07-21",
-    "id": "tech-backend-rate-limit"
-  },
-  {
-    "date": "2026-07-21",
-    "id": "tech-multimodal-voice"
-  },
-  {
     "date": "2026-07-22",
     "id": "tech-data-synth"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-08-31",
     "id": "tech-data-curation"
+  },
+  {
+    "date": "2026-09-01",
+    "id": "tech-llm-caching"
+  },
+  {
+    "date": "2026-09-01",
+    "id": "tech-backend-queue"
   }
 ]
