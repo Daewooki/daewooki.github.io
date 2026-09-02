@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-07-22",
-    "id": "tech-data-synth"
-  },
-  {
-    "date": "2026-07-22",
-    "id": "tech-mlops-gpu"
-  },
-  {
     "date": "2026-07-23",
     "id": "news-ai-regulation"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-09-01",
     "id": "tech-backend-queue"
+  },
+  {
+    "date": "2026-09-02",
+    "id": "tech-llm-prompt-cot"
+  },
+  {
+    "date": "2026-09-02",
+    "id": "tech-multimodal-voice"
   }
 ]
