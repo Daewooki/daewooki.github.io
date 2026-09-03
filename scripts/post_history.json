@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-07-23",
-    "id": "news-ai-regulation"
-  },
-  {
-    "date": "2026-07-23",
-    "id": "tech-rag-vectordb"
-  },
-  {
     "date": "2026-07-24",
     "id": "tech-multimodal-ocr"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-09-02",
     "id": "tech-multimodal-voice"
+  },
+  {
+    "date": "2026-09-03",
+    "id": "news-ai-invest"
+  },
+  {
+    "date": "2026-09-03",
+    "id": "tech-data-synth"
   }
 ]
