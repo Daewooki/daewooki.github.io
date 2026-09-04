@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-07-24",
-    "id": "tech-multimodal-ocr"
-  },
-  {
-    "date": "2026-07-24",
-    "id": "tech-coding-debug"
-  },
-  {
     "date": "2026-07-25",
     "id": "tech-mlops-batch"
   },
@@ -334,5 +326,13 @@
   {
     "date": "2026-09-03",
     "id": "tech-data-synth"
+  },
+  {
+    "date": "2026-09-04",
+    "id": "tech-coding-cli-agents"
+  },
+  {
+    "date": "2026-09-04",
+    "id": "tech-backend-api"
   }
 ]
