@@ -274,15 +274,37 @@ def call_json(client: OpenAI, *, instructions: str, prompt: str, schema_name: st
         text_cfg["verbosity"] = verbosity
     try:
         resp = client.responses.create(input=prompt, text=text_cfg, **base)
+        _log_usage(resp)
         return json.loads(_response_text(resp))
-    except (openai.BadRequestError, json.JSONDecodeError, ResponseIncomplete) as e:
-        # 400: text.format/verbosity 조합 미지원 등 요청 형식 문제, 그 외: 출력이 JSON이 아니거나 잘림
+    except ResponseIncomplete as e:
+        # 잘린 경우 같은 예산으로 다시 부르면 또 잘린다 → 예산을 두 배로 늘려 구조화 출력으로 한 번 더
+        if "max_output_tokens" not in str(e):
+            raise
+        base["max_output_tokens"] = min(max_output_tokens * 2, 120000)
+        print(f"⚠️ 출력이 잘렸습니다 → max_output_tokens={base['max_output_tokens']} 로 재시도")
+        resp = client.responses.create(input=prompt, text=text_cfg, **base)
+        _log_usage(resp)
+        return json.loads(_response_text(resp))
+    except (openai.BadRequestError, json.JSONDecodeError) as e:
+        # 400: text.format/verbosity 조합 미지원 등 요청 형식 문제, JSONDecodeError: 출력이 JSON이 아님
         print(f"⚠️ structured output 실패 ({type(e).__name__}: {str(e)[:200]}) → 자유 출력으로 재시도")
     resp = client.responses.create(
         input=prompt + "\n\n출력은 코드펜스 없이, 위에서 요구한 필드를 가진 JSON 객체 하나만 작성하세요.",
         **base,
     )
+    _log_usage(resp)
     return _extract_json(_response_text(resp))
+
+
+def _log_usage(resp) -> None:
+    """CI 로그에서 예산을 조정할 수 있도록 토큰 사용량을 남긴다."""
+    u = getattr(resp, "usage", None)
+    if not u:
+        return
+    details = getattr(u, "output_tokens_details", None)
+    reasoning = getattr(details, "reasoning_tokens", None)
+    print(f"   ↳ tokens: input={getattr(u, 'input_tokens', '?')} output={getattr(u, 'output_tokens', '?')}"
+          + (f" (reasoning={reasoning})" if reasoning is not None else ""))
 
 
 # ---------------------------------------------------------------------------
@@ -318,7 +340,7 @@ def discover_topics(client: OpenAI, today: datetime, history: list[dict]) -> lis
 """
     data = call_json(client, instructions=DISCOVER_INSTRUCTIONS, prompt=prompt,
                      schema_name="topic_candidates", schema=CANDIDATES_SCHEMA,
-                     max_output_tokens=24000, effort="medium", max_tool_calls=16)
+                     max_output_tokens=40000, effort="medium", max_tool_calls=16)
     cands = []
     for c in data.get("candidates", []) or []:
         if not isinstance(c, dict) or not c.get("topic"):
