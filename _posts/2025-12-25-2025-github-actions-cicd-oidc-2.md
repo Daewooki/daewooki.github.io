@@ -3,6 +3,7 @@ title: "2025년형 GitHub Actions로 “안전하고 빠른” CI/CD 파이프�
 date: 2025-12-25 02:11:32 +0900
 categories: [DevOps, Tutorial]
 tags: [devops, tutorial, trend, 2025-12]
+render_with_liquid: false
 ---
 
 <!-- Google tag (gtag.js) -->

@@ -3,6 +3,7 @@ title: "MMLU·HumanEval 점수, 이제 그대로 믿으면 안 된다: 2026년 8
 date: 2026-08-12 02:31:17 +0900
 categories: [AI, LLM]
 tags: [ai, llm, trend, 2026-08]
+render_with_liquid: false
 ---
 
 <!-- Google tag (gtag.js) -->

@@ -3,6 +3,7 @@ title: "2026년 8월, “멀티 에이전트”를 진짜로 프로덕션에 올
 date: 2026-08-02 03:37:30 +0900
 categories: [AI, Agent]
 tags: [ai, agent, trend, 2026-08]
+render_with_liquid: false
 ---
 
 <!-- Google tag (gtag.js) -->

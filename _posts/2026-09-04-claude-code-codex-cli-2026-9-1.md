@@ -3,6 +3,7 @@ title: "Claude Code × Codex CLI 에이전트(2026년 9월): “터미널에서 
 date: 2026-09-04 04:07:48 +0900
 categories: [AI, Coding]
 tags: [ai, coding, trend, 2026-09]
+render_with_liquid: false
 ---
 
 <!-- Google tag (gtag.js) -->

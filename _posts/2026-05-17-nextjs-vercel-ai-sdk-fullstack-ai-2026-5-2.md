@@ -3,6 +3,7 @@ title: "Next.js + Vercel AI SDK로 “진짜” Fullstack AI 앱 만드는 법 (
 date: 2026-05-17 04:07:23 +0900
 categories: [AI, Prototyping]
 tags: [ai, prototyping, trend, 2026-05]
+render_with_liquid: false
 ---
 
 <!-- Google tag (gtag.js) -->

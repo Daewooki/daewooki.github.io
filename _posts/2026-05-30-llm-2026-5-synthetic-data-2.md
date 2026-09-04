@@ -3,6 +3,7 @@ title: "합성 데이터로 LLM 파인튜닝 “진짜 성능” 뽑는 법: 202
 date: 2026-05-30 04:06:40 +0900
 categories: [AI, Data]
 tags: [ai, data, trend, 2026-05]
+render_with_liquid: false
 ---
 
 <!-- Google tag (gtag.js) -->

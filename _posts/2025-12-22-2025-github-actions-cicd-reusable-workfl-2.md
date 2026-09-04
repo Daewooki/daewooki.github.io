@@ -3,6 +3,7 @@ title: "2025년형 GitHub Actions로 “진짜” CI/CD 파이프라인 구축�
 date: 2025-12-22 02:24:01 +0900
 categories: [DevOps, Tutorial]
 tags: [devops, tutorial, trend, 2025-12]
+render_with_liquid: false
 ---
 
 <!-- Google tag (gtag.js) -->

@@ -3,6 +3,7 @@ title: "컨텍스트 윈도우가 길어질수록 더 위험해진다: 2026년�
 date: 2026-07-15 03:14:35 +0900
 categories: [AI, LLM]
 tags: [ai, llm, trend, 2026-07]
+render_with_liquid: false
 ---
 
 <!-- Google tag (gtag.js) -->

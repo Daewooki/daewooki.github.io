@@ -3,6 +3,7 @@ title: "2026년 8월 기준: Next.js + Vercel AI SDK로 “운영 가능한” F
 date: 2026-08-09 02:13:51 +0900
 categories: [AI, Prototyping]
 tags: [ai, prototyping, trend, 2026-08]
+render_with_liquid: false
 ---
 
 <!-- Google tag (gtag.js) -->

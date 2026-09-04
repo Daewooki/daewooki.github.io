@@ -3,6 +3,7 @@ title: "2026년 6월 기준: Next.js + Vercel AI SDK로 “진짜” Fullstack A
 date: 2026-06-01 05:02:43 +0900
 categories: [AI, Prototyping]
 tags: [ai, prototyping, trend, 2026-06]
+render_with_liquid: false
 ---
 
 <!-- Google tag (gtag.js) -->

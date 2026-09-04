@@ -3,6 +3,7 @@ title: "토큰 예산이 병목인 시대: 2026년 7월 Video AI(understanding+g
 date: 2026-07-14 03:15:54 +0900
 categories: [AI, Multimodal]
 tags: [ai, multimodal, trend, 2026-07]
+render_with_liquid: false
 ---
 
 <!-- Google tag (gtag.js) -->
