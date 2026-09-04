@@ -477,6 +477,7 @@ title: "{title}"
 date: {time_str}
 categories: [{category_info['category']}, {category_info['subcategory']}]
 tags: [{', '.join(tags)}]
+render_with_liquid: false
 ---
 
 """
