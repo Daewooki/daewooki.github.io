@@ -26,10 +26,12 @@ layout: default
           · {{ post.categories | join: " / " }}
         {% endif %}
       </div>
-      {% if post.excerpt %}
-        <div style="opacity: 0.9;">
-          {{ post.excerpt }}
-        </div>
+      {% assign summary = post.description %}
+      {% if summary == nil or summary == empty %}
+        {% assign summary = post.excerpt | strip_html | strip_newlines | truncate: 200 %}
+      {% endif %}
+      {% if summary and summary != empty %}
+        <p style="opacity: 0.9; margin: 0;">{{ summary }}</p>
       {% endif %}
     </article>
   {% endfor %}
