@@ -26,6 +26,7 @@ import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+import openai
 from openai import OpenAI
 
 
@@ -166,13 +167,13 @@ POST_SCHEMA = {
 # ---------------------------------------------------------------------------
 
 def load_history() -> list[dict]:
-    if HISTORY_PATH.exists():
-        try:
-            data = json.loads(HISTORY_PATH.read_text(encoding="utf-8"))
-            return data if isinstance(data, list) else []
-        except (json.JSONDecodeError, OSError):
-            return []
-    return []
+    """history 파일이 깨져 있으면 빈 목록으로 덮어쓰지 않고 실행을 중단한다."""
+    if not HISTORY_PATH.exists():
+        return []
+    data = json.loads(HISTORY_PATH.read_text(encoding="utf-8"))
+    if not isinstance(data, list):
+        raise ValueError(f"{HISTORY_PATH.name}: JSON 배열이어야 합니다")
+    return data
 
 
 def save_history(history: list[dict], today: datetime) -> None:
@@ -221,38 +222,67 @@ def _extract_json(text: str) -> dict:
     return json.loads(text[start:end + 1])
 
 
-def _check_complete(resp) -> None:
-    if getattr(resp, "status", None) == "incomplete":
+class ResponseIncomplete(RuntimeError):
+    """max_output_tokens 초과, 실패, 거부 등으로 쓸 수 있는 본문이 없는 경우."""
+
+
+def _response_text(resp) -> str:
+    """마지막 message 아이템의 텍스트를 돌려준다 (output_text는 모든 message를 이어붙이므로)."""
+    status = getattr(resp, "status", None)
+    if status == "incomplete":
         reason = getattr(getattr(resp, "incomplete_details", None), "reason", "unknown")
-        raise RuntimeError(f"응답이 잘렸습니다 (reason={reason})")
+        raise ResponseIncomplete(f"응답이 잘렸습니다 (reason={reason})")
+    if status == "failed":
+        err = getattr(resp, "error", None)
+        raise ResponseIncomplete(f"응답 실패: {getattr(err, 'message', err)}")
+    last_text = None
+    for item in getattr(resp, "output", None) or []:
+        if getattr(item, "type", None) != "message":
+            continue
+        for part in getattr(item, "content", None) or []:
+            ptype = getattr(part, "type", None)
+            if ptype == "refusal":
+                raise ResponseIncomplete(f"모델이 거부했습니다: {getattr(part, 'refusal', '')[:200]}")
+            if ptype == "output_text":
+                last_text = getattr(part, "text", None)
+    if last_text is None:
+        last_text = getattr(resp, "output_text", "") or ""
+    if not last_text.strip():
+        raise ResponseIncomplete("응답 본문이 비어 있습니다")
+    return last_text
 
 
 def call_json(client: OpenAI, *, instructions: str, prompt: str, schema_name: str,
-              schema: dict, max_output_tokens: int, effort: str = "medium") -> dict:
+              schema: dict, max_output_tokens: int, effort: str = "medium",
+              max_tool_calls: int = 12, verbosity: str | None = None) -> dict:
+    """Structured Outputs(json_schema) 로 호출하고, 스키마/JSON 문제일 때만 자유 출력으로 한 번 더 시도한다.
+
+    max_output_tokens 에는 reasoning 토큰도 포함되므로 본문 목표보다 넉넉히 잡는다.
+    네트워크/인증/한도 오류는 그대로 올려서 (SDK 재시도 후) 워크플로우가 실패하게 둔다.
+    """
     base = dict(
         model=MODEL,
         instructions=instructions,
         tools=[{"type": "web_search"}],
         max_output_tokens=max_output_tokens,
+        max_tool_calls=max_tool_calls,
         reasoning={"effort": effort},
     )
+    text_cfg: dict = {"format": {"type": "json_schema", "name": schema_name,
+                                 "schema": schema, "strict": True}}
+    if verbosity:
+        text_cfg["verbosity"] = verbosity
     try:
-        resp = client.responses.create(
-            input=prompt,
-            text={"format": {"type": "json_schema", "name": schema_name,
-                             "schema": schema, "strict": True}},
-            **base,
-        )
-        _check_complete(resp)
-        return json.loads(resp.output_text)
-    except Exception as e:  # noqa: BLE001 - 구조화 출력 실패 시 자유 출력으로 재시도
+        resp = client.responses.create(input=prompt, text=text_cfg, **base)
+        return json.loads(_response_text(resp))
+    except (openai.BadRequestError, json.JSONDecodeError, ResponseIncomplete) as e:
+        # 400: text.format/verbosity 조합 미지원 등 요청 형식 문제, 그 외: 출력이 JSON이 아니거나 잘림
         print(f"⚠️ structured output 실패 ({type(e).__name__}: {str(e)[:200]}) → 자유 출력으로 재시도")
-        resp = client.responses.create(
-            input=prompt + "\n\n출력은 코드펜스 없이, 위에서 요구한 필드를 가진 JSON 객체 하나만 작성하세요.",
-            **base,
-        )
-        _check_complete(resp)
-        return _extract_json(resp.output_text)
+    resp = client.responses.create(
+        input=prompt + "\n\n출력은 코드펜스 없이, 위에서 요구한 필드를 가진 JSON 객체 하나만 작성하세요.",
+        **base,
+    )
+    return _extract_json(_response_text(resp))
 
 
 # ---------------------------------------------------------------------------
@@ -288,12 +318,21 @@ def discover_topics(client: OpenAI, today: datetime, history: list[dict]) -> lis
 """
     data = call_json(client, instructions=DISCOVER_INSTRUCTIONS, prompt=prompt,
                      schema_name="topic_candidates", schema=CANDIDATES_SCHEMA,
-                     max_output_tokens=16000, effort="medium")
-    cands = [c for c in data.get("candidates", []) if c.get("topic")]
-    for c in cands:
-        c["keywords"] = normalize_keywords(c.get("keywords") or [])
-        c["domain"] = c.get("domain") if c.get("domain") in DOMAINS else "Tools"
-        c["type"] = c.get("type") if c.get("type") in ("news", "tech") else "tech"
+                     max_output_tokens=24000, effort="medium", max_tool_calls=16)
+    cands = []
+    for c in data.get("candidates", []) or []:
+        if not isinstance(c, dict) or not c.get("topic"):
+            continue
+        cands.append({
+            "type": c.get("type") if c.get("type") in ("news", "tech") else "tech",
+            "domain": c.get("domain") if c.get("domain") in DOMAINS else "Tools",
+            "topic": str(c.get("topic")).strip(),
+            "angle": str(c.get("angle") or "").strip(),
+            "why_now": str(c.get("why_now") or "").strip(),
+            "search_queries": [str(q) for q in (c.get("search_queries") or []) if q],
+            "keywords": normalize_keywords(c.get("keywords") or []),
+            "sources": [str(s) for s in (c.get("sources") or []) if s],
+        })
     return cands
 
 
@@ -366,6 +405,11 @@ def select_topics(cands: list[dict], today: datetime, history: list[dict], num_p
             or fresh
         pick = pool[0]
         fresh.remove(pick)
+        # 같은 실행 안에서 같은 사건을 두 번 고르지 않도록
+        dup, why = is_duplicate(pick, [{"title": s["topic"], "keywords": s["keywords"]} for s in selected])
+        if dup:
+            print(f"   ⏭️  오늘 선택분과 중복: {pick['topic'][:60]}  ≈  {why[:60]}")
+            continue
         selected.append(pick)
         used_domains.add(pick["domain"])
         i += 1
@@ -421,22 +465,27 @@ def write_post(client: OpenAI, cand: dict, history: list[dict], today: datetime)
 """
     return call_json(client, instructions=WRITER_INSTRUCTIONS, prompt=prompt,
                      schema_name="blog_post", schema=POST_SCHEMA,
-                     max_output_tokens=40000, effort="medium")
+                     max_output_tokens=64000, effort="medium", max_tool_calls=12,
+                     verbosity="high")
 
 
 # ---------------------------------------------------------------------------
 # 4) 후처리 (기존 글 정리 스크립트에서도 재사용)
 # ---------------------------------------------------------------------------
 
-TRACKING_PARAMS = re.compile(r"(?:utm_[a-z]+|ref|ref_src|fbclid|gclid)=[^&#\s)]*", re.I)
+TRACKING_PARAMS = re.compile(r"(?:utm_[a-z]+|ref_src|fbclid|gclid|mc_cid|mc_eid)=[^&#\s)]*", re.I)
 CITATION_GROUP = re.compile(
     r"\(\s*(\[[^\]\n]+\]\(https?://[^)\s]+\)\s*(?:[,;、]\s*\[[^\]\n]+\]\(https?://[^)\s]+\)\s*)*)\)"
 )
 MD_LINK = re.compile(r"\[([^\]\n]+)\]\((https?://[^)\s]+)\)")
-OFFER_TRIGGER = re.compile(r"(원하시면|원하면|원하신다면|필요하시면|필요하면|말씀해\s*주시면|알려\s*주시면|알려주면|요청하시면)")
-OFFER_VERB = re.compile(r"(드릴게요|드리겠습니다|드릴\s*수\s*있|해\s*드릴|해드릴|드릴게|드립니다|드려요|제안드|도와드)")
+OFFER_TRIGGER = re.compile(r"(원하시면|원하면|원하신다면|필요하시면|필요하면|말씀해\s*주시면|알려\s*주시면|알려주면|요청하시면|댓글로)")
+# 문장 끝에 오는 제안형 종결어미만 (본문 속 "~를 권해 드립니다" 같은 일반 문장은 남긴다)
+OFFER_VERB = re.compile(r"(드릴게요|드리겠습니다|드릴\s*수\s*있(?:습니다|어요)|해\s*드릴게|해드릴게|드릴게|드릴까요|드려요)\s*[.!]?\s*$")
+# 제목의 시점 표기: "(2026년 9월 기준)" 같은 괄호형과 "2026년 9월 기준: " 같은 선행형만 (문장 속 연도는 건드리지 않음)
 TITLE_STAMP = re.compile(
-    r"[\(（]?\s*20\d\d\s*년\s*(?:\d{1,2}\s*월)?\s*(?:기준|현재|판|버전)?\s*[\)）]?"
+    r"\s*[\(（]\s*20\d\d\s*년\s*(?:\d{1,2}\s*월)?\s*(?:기준|현재|판|버전)?\s*[\)）]"
+    r"|^\s*20\d\d\s*년\s*\d{1,2}\s*월\s*(?:기준|현재)?\s*[:：,，]?\s+"
+    r"|\s*[:：,，]\s*20\d\d\s*년\s*\d{1,2}\s*월\s*(?:기준|현재)?\s*$"
 )
 
 
@@ -462,11 +511,14 @@ def citations_to_footnotes(body: str) -> str:
         return body
     numbers: dict[str, int] = {}
     defs: list[str] = []
+    # 모델이 이미 [^n] 각주를 썼다면 그 다음 번호부터
+    existing = [int(n) for n in re.findall(r"\[\^(\d+)\]", body)]
+    offset = max(existing) if existing else 0
 
     def ref_for(url: str) -> str:
         url = strip_tracking(url)
         if url not in numbers:
-            numbers[url] = len(numbers) + 1
+            numbers[url] = offset + len(numbers) + 1
             defs.append(f"[^{numbers[url]}]: <{url}>")
         return f"[^{numbers[url]}]"
 
@@ -505,7 +557,7 @@ def remove_closing_offers(body: str) -> str:
         if "```" in p:
             break
         checked += 1
-        if checked > 3:
+        if checked > 6:
             break
         if OFFER_TRIGGER.search(p) and OFFER_VERB.search(p):
             if p.lstrip().startswith(("-", "*", "#", ">", "|")) or "\n" in p.strip():
@@ -523,7 +575,9 @@ def remove_closing_offers(body: str) -> str:
 
 
 def clean_title(title: str) -> str:
-    t = title.strip().strip('"').strip("'").strip()
+    t = title.strip()
+    if len(t) >= 2 and t[0] == t[-1] and t[0] in "\"'":
+        t = t[1:-1].strip()
     t = re.sub(r"^#+\s*", "", t)
     t = TITLE_STAMP.sub(" ", t)
     t = re.sub(r"\(\s*\)", "", t)
@@ -535,10 +589,11 @@ def clean_title(title: str) -> str:
 
 def clean_body(body: str) -> str:
     b = body.replace("\r\n", "\n").strip()
-    # 모델이 front matter나 # 제목을 넣었으면 제거
-    if b.startswith("---"):
-        end = b.find("\n---", 3)
-        if end != -1:
+    # 모델이 front matter를 넣었으면 제거 (수평선 '---' 과 구분: key: value 줄이 있어야 front matter)
+    if b.startswith("---\n"):
+        end = b.find("\n---", 4)
+        block = b[4:end] if end != -1 else ""
+        if end != -1 and end < 800 and re.search(r"^\w+:\s", block, re.M):
             b = b[end + 4:].lstrip()
     b = re.sub(r"^#\s+[^\n]+\n+", "", b, count=1)
     b = re.sub(r"^```(?:markdown|md)\s*\n(.*)\n```\s*$", r"\1", b, flags=re.S)
@@ -564,12 +619,24 @@ def sanitize_tags(tags) -> list[str]:
     return out[:6]
 
 
+KNOWN_CASING = {
+    "api": "API", "rag": "RAG", "llm": "LLM", "mlops": "MLOps", "devops": "DevOps", "ci/cd": "CI/CD",
+    "postgresql": "PostgreSQL", "postgres": "PostgreSQL", "mysql": "MySQL", "sql": "SQL", "nosql": "NoSQL",
+    "kubernetes": "Kubernetes", "k8s": "Kubernetes", "graphql": "GraphQL", "grpc": "gRPC", "ios": "iOS",
+    "javascript": "JavaScript", "typescript": "TypeScript", "nodejs": "Node.js", "node.js": "Node.js",
+    "aws": "AWS", "gcp": "GCP", "azure": "Azure", "oss": "OSS", "ai": "AI", "ml": "ML", "ui": "UI", "ux": "UX",
+    "mcp": "MCP", "sdk": "SDK", "cli": "CLI", "os": "OS", "http": "HTTP", "http/3": "HTTP/3", "tls": "TLS",
+}
+
+
 def sanitize_subcategory(sub: str, fallback: str) -> str:
-    s = re.sub(r"[^A-Za-z0-9 .+#/-]", "", (sub or "")).strip()
-    s = re.sub(r"\s+", " ", s)[:30].strip()
+    s = re.sub(r"[^A-Za-z0-9 .+/-]", "", (sub or "")).strip()
+    s = re.sub(r"\s+", " ", s)[:30].strip(" .-/")
     if not s:
         return fallback
-    return s if any(ch.isupper() for ch in s) else s.title()
+    if s.lower() in KNOWN_CASING:
+        return KNOWN_CASING[s.lower()]
+    return s if any(ch.isupper() for ch in s) else s[:1].upper() + s[1:]
 
 
 def yaml_str(s: str) -> str:
@@ -619,8 +686,8 @@ def create_post_file(post: dict, cand: dict, ts: datetime, taken_slugs: set[str]
         lines.append(f"description: {yaml_str(description)}")
     lines += [
         f"date: {ts:%Y-%m-%d %H:%M:%S %z}",
-        f"categories: [{', '.join(categories)}]",
-        f"tags: [{', '.join(tags)}]",
+        f"categories: [{', '.join(yaml_str(c) for c in categories)}]",   # 숫자/불리언처럼 보이는 값도 문자열로
+        f"tags: [{', '.join(yaml_str(t) for t in tags)}]",
         "render_with_liquid: false",
         "---",
         "",
@@ -656,10 +723,15 @@ def main() -> int:
         print("❌ OPENAI_API_KEY 환경변수가 설정되지 않았습니다.")
         return 1
 
-    client = OpenAI(api_key=api_key, timeout=1200, max_retries=2)
+    # 장문 생성은 수 분이 걸린다. 타임아웃 재시도는 전체 호출을 다시 하므로 1회로 제한.
+    client = OpenAI(api_key=api_key, timeout=1800, max_retries=1)
     num_posts = max(1, int(os.environ.get("NUM_POSTS", "2") or 2))
     now = datetime.now(KST)
-    history = load_history()
+    try:
+        history = load_history()
+    except (ValueError, OSError) as e:
+        print(f"❌ post_history.json 을 읽을 수 없습니다 (덮어쓰기 방지를 위해 중단): {e}")
+        return 1
 
     print("🚀 최신 IT 뉴스/기술 포스트 생성 시작")
     print("=" * 60)

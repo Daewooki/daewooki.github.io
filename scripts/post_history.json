@@ -1,338 +1,6976 @@
 [
   {
-    "date": "2026-07-25",
-    "id": "tech-mlops-batch"
+    "date": "2025-12-21",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "FastAPI 백엔드 베스트 프랙티스: “빠른 개발”을 “지속 가능한 아키텍처”로 바꾸는 설계법",
+    "slug": "2025-fastapi-2",
+    "keywords": [
+      "backend",
+      "tutorial",
+      "fastapi"
+    ]
+  },
+  {
+    "date": "2025-12-21",
+    "type": "news",
+    "domain": "DevOps",
+    "title": "Kubernetes 1.35 ‘Timbernetes’가 던진 신호: cgroup v1 종료, containerd 1.x 최종 경고, 그리고 “Pod 리소스 무중단 변경”의 현실화",
+    "slug": "kubernetes-135-timbernetes-cgroup-v1-con-1",
+    "keywords": [
+      "devops",
+      "1.35",
+      "1.x",
+      "cgroup",
+      "containerd",
+      "kubernetes",
+      "pod",
+      "timbernetes"
+    ]
+  },
+  {
+    "date": "2025-12-22",
+    "type": "news",
+    "domain": "Infrastructure",
+    "title": "12월 클라우드 3사 신제품 전쟁: AWS는 ‘Agent + Multicloud’, GCP는 ‘Agent Engine GA’, Azure는 ‘Foundry + 새 DB’로 판이 커졌다",
+    "slug": "12-3-aws-agent-multicloud-gcp-agent-engi-1",
+    "keywords": [
+      "infrastructure",
+      "agent",
+      "aws",
+      "azure",
+      "engine",
+      "foundry",
+      "gcp",
+      "multicloud"
+    ]
+  },
+  {
+    "date": "2025-12-22",
+    "type": "tech",
+    "domain": "DevOps",
+    "title": "GitHub Actions로 “진짜” CI/CD 파이프라인 구축하기: Reusable Workflow·OIDC·Concurrency·Artifacts까지",
+    "slug": "2025-github-actions-cicd-reusable-workfl-2",
+    "keywords": [
+      "devops",
+      "tutorial",
+      "actions",
+      "artifacts",
+      "concurrency",
+      "github",
+      "oidc",
+      "reusable"
+    ]
+  },
+  {
+    "date": "2025-12-23",
+    "type": "news",
+    "domain": "AI",
+    "title": "12월 LLM 판이 다시 뒤집혔다: NVIDIA Nemotron 3 ‘오픈 모델’ 공세와 Agent 시대의 비용 전쟁",
+    "slug": "12-llm-nvidia-nemotron-3-agent-1",
+    "keywords": [
+      "ai",
+      "agent",
+      "llm",
+      "nemotron",
+      "nvidia"
+    ]
+  },
+  {
+    "date": "2025-12-23",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LLM RAG 에이전트 튜토리얼: “retrieve→answer”를 넘어 “plan→search→grade→rewrite”로 진화시키기",
+    "slug": "2025-llm-rag-retrieveanswer-plansearchgr-2",
+    "keywords": [
+      "ai",
+      "tutorial",
+      "answer",
+      "grade",
+      "llm",
+      "plan",
+      "rag",
+      "retrieve"
+    ]
+  },
+  {
+    "date": "2025-12-24",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "FastAPI 백엔드 베스트 프랙티스: “DI + Lifespan + Contract-First”로 아키텍처를 고정하라",
+    "slug": "2025-fastapi-di-lifespan-contract-first-2",
+    "keywords": [
+      "backend",
+      "tutorial",
+      "contract-first",
+      "fastapi",
+      "lifespan"
+    ]
+  },
+  {
+    "date": "2025-12-24",
+    "type": "news",
+    "domain": "DevOps",
+    "title": "Kubernetes v1.35(12/17) 릴리스와 Docker Desktop·runC 취약점 이슈가 만든 클라우드 네이티브 판도 변화",
+    "slug": "kubernetes-v1351217-docker-desktoprunc-2-1",
+    "keywords": [
+      "devops",
+      "desktop",
+      "docker",
+      "kubernetes",
+      "runc",
+      "v1.35"
+    ]
+  },
+  {
+    "date": "2025-12-25",
+    "type": "news",
+    "domain": "Infrastructure",
+    "title": "AWS가 던진 ‘Agentic Cloud’ 신호탄: CloudWatch·Bedrock AgentCore·Nova 2가 바꿀 운영 패러다임",
+    "slug": "2025-12-aws-agentic-cloud-cloudwatchbedr-1",
+    "keywords": [
+      "infrastructure",
+      "agentcore",
+      "agentic",
+      "aws",
+      "bedrock",
+      "cloud",
+      "cloudwatch",
+      "nova"
+    ]
+  },
+  {
+    "date": "2025-12-25",
+    "type": "tech",
+    "domain": "DevOps",
+    "title": "GitHub Actions로 “안전하고 빠른” CI/CD 파이프라인 구축하는 법 (재사용·캐시·OIDC·배포보호까지)",
+    "slug": "2025-github-actions-cicd-oidc-2",
+    "keywords": [
+      "devops",
+      "tutorial",
+      "actions",
+      "github",
+      "oidc"
+    ]
+  },
+  {
+    "date": "2025-12-26",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LLM RAG Agent 구현 튜토리얼: “검색”을 도구로 쓰는 Agentic RAG 아키텍처 완전 정복",
+    "slug": "2025-llm-rag-agent-agentic-rag-2",
+    "keywords": [
+      "ai",
+      "tutorial",
+      "agent",
+      "agentic",
+      "llm",
+      "rag"
+    ]
+  },
+  {
+    "date": "2025-12-26",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 업계 2025년 12월: “LLM 성능 경쟁”에서 “Agent/OS·인프라 전쟁”으로",
+    "slug": "ai-2025-12-llm-agentos-1",
+    "keywords": [
+      "ai",
+      "agent",
+      "llm"
+    ]
+  },
+  {
+    "date": "2025-12-27",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "FastAPI 백엔드 베스트 프랙티스: “async-first”를 지키면서도 Django급 운영 안정성을 얻는 법",
+    "slug": "2025-fastapi-async-first-django-2",
+    "keywords": [
+      "backend",
+      "tutorial",
+      "async-first",
+      "django",
+      "fastapi"
+    ]
+  },
+  {
+    "date": "2025-12-27",
+    "type": "news",
+    "domain": "DevOps",
+    "title": "Docker가 “Hardened Images”를 무료로 푼 이유: Kubernetes·Docker·클라우드 네이티브 판이 바뀌는 신호들",
+    "slug": "docker-hardened-images-2025-12-kubernete-1",
+    "keywords": [
+      "devops",
+      "docker",
+      "hardened",
+      "images",
+      "kubernetes"
+    ]
+  },
+  {
+    "date": "2025-12-28",
+    "type": "tech",
+    "domain": "DevOps",
+    "title": "GitHub Actions로 “안전하고 빠른” CI/CD 파이프라인 구축하는 법 (캐시 v2·OIDC·권한 최소화까지)",
+    "slug": "2025-github-actions-cicd-v2oidc-2",
+    "keywords": [
+      "devops",
+      "tutorial",
+      "actions",
+      "github",
+      "oidc"
+    ]
+  },
+  {
+    "date": "2025-12-28",
+    "type": "news",
+    "domain": "Infrastructure",
+    "title": "AI 에이전트가 클라우드의 ‘새 기본값’이 된 2025년 12월: AWS re:Invent 발표로 본 AWS·GCP·Azure 경쟁 구도",
+    "slug": "ai-2025-12-aws-reinvent-awsgcpazure-1",
+    "keywords": [
+      "infrastructure",
+      "aws",
+      "azure",
+      "gcp",
+      "invent"
+    ]
+  },
+  {
+    "date": "2025-12-29",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LLM RAG Agent 튜토리얼: “검색 → 검증 → 재검색”까지 자동화하는 Agentic RAG 설계/구현",
+    "slug": "2025-llm-rag-agent-agentic-rag-2",
+    "keywords": [
+      "ai",
+      "tutorial",
+      "agent",
+      "agentic",
+      "llm",
+      "rag"
+    ]
+  },
+  {
+    "date": "2025-12-29",
+    "type": "news",
+    "domain": "AI",
+    "title": "연말 ‘LLM 업그레이드 러시’(GPT-5.2·Claude Opus 4.5·Agent Skills 오픈 표준): AI/LLM 뉴스 핵심 정리",
+    "slug": "llm-gpt-52claude-opus-45agent-skills-202-1",
+    "keywords": [
+      "ai",
+      "4.5",
+      "agent",
+      "claude",
+      "gpt-5.2",
+      "llm",
+      "opus",
+      "skills"
+    ]
+  },
+  {
+    "date": "2025-12-30",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "FastAPI 백엔드 “진짜” 베스트 프랙티스: DI·Lifespan·아키텍처·API 설계로 Django급 운영 안정성 만들기",
+    "slug": "2025-fastapi-dilifespanapi-django-2",
+    "keywords": [
+      "backend",
+      "tutorial",
+      "api",
+      "django",
+      "fastapi",
+      "lifespan"
+    ]
+  },
+  {
+    "date": "2025-12-30",
+    "type": "news",
+    "domain": "DevOps",
+    "title": "Kubernetes v1.35 출시부터 Docker Desktop 12월 연속 업데이트까지: 클라우드 네이티브 판이 바뀌는 신호들",
+    "slug": "kubernetes-v135-docker-desktop-12-2025-1-1",
+    "keywords": [
+      "devops",
+      "desktop",
+      "docker",
+      "kubernetes",
+      "v1.35"
+    ]
+  },
+  {
+    "date": "2025-12-31",
+    "type": "tech",
+    "domain": "DevOps",
+    "title": "GitHub Actions로 “안전하고 빠른” CI/CD 파이프라인 구축하기: 재사용·동시성·OIDC까지 한 번에",
+    "slug": "2025-github-actions-cicd-oidc-2",
+    "keywords": [
+      "devops",
+      "tutorial",
+      "actions",
+      "github",
+      "oidc"
+    ]
+  },
+  {
+    "date": "2025-12-31",
+    "type": "news",
+    "domain": "Infrastructure",
+    "title": "AWS가 ‘멀티클라우드’를 공식 제품으로 만들었다: 클라우드 신규 서비스 트렌드 분석",
+    "slug": "aws-2025-12-1",
+    "keywords": [
+      "infrastructure",
+      "aws"
+    ]
+  },
+  {
+    "date": "2026-01-01",
+    "type": "news",
+    "domain": "DevOps",
+    "title": "Kubernetes·Docker·클라우드 네이티브 판이 “업그레이드 압박” 국면으로 들어간 이유",
+    "slug": "2025-12-kubernetesdocker-1",
+    "keywords": [
+      "devops",
+      "docker",
+      "kubernetes"
+    ]
+  },
+  {
+    "date": "2026-01-01",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "FastAPI로 “빨리” 만들고, Django처럼 “오래” 버티는 2025 백엔드 베스트 프랙티스",
+    "slug": "fastapi-django-2025-2",
+    "keywords": [
+      "backend",
+      "tutorial",
+      "django",
+      "fastapi"
+    ]
+  },
+  {
+    "date": "2026-01-02",
+    "type": "tech",
+    "domain": "DevOps",
+    "title": "GitHub Actions CI/CD 파이프라인: “자동화”를 넘어 “신뢰 가능한 배포”까지",
+    "slug": "2025-github-actions-cicd-2",
+    "keywords": [
+      "devops",
+      "tutorial",
+      "actions",
+      "github"
+    ]
+  },
+  {
+    "date": "2026-01-02",
+    "type": "news",
+    "domain": "Infrastructure",
+    "title": "AI 에이전트·벡터·관측성으로 재편되는 클라우드 신서비스 전쟁: AWS re:Invent 이후판",
+    "slug": "ai-2025-12-aws-reinvent-1",
+    "keywords": [
+      "infrastructure",
+      "aws",
+      "invent"
+    ]
+  },
+  {
+    "date": "2026-01-03",
+    "type": "news",
+    "domain": "AI",
+    "title": "LLM 전쟁의 ‘다음 라운드’가 열렸다: GPT‑5.2·Codex와 Gemini 3 Flash, 그리고 ChatGPT App Directory",
+    "slug": "2025-12-llm-gpt52codex-gemini-3-flash-ch-1",
+    "keywords": [
+      "ai",
+      "5.2",
+      "app",
+      "chatgpt",
+      "codex",
+      "directory",
+      "flash",
+      "gemini"
+    ]
+  },
+  {
+    "date": "2026-01-03",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LLM RAG 에이전트 구현 튜토리얼: LangGraph + (OpenAI Responses/File Search)로 “검색→판단→생성→검증” 루프 만들기",
+    "slug": "2025-llm-rag-langgraph-openai-responsesf-2",
+    "keywords": [
+      "ai",
+      "tutorial",
+      "file",
+      "langgraph",
+      "llm",
+      "openai",
+      "rag",
+      "responses"
+    ]
+  },
+  {
+    "date": "2026-01-04",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "FastAPI 백엔드 “진짜” 베스트 프랙티스: DI·Lifespan·API 설계로 Django급 안정성 만들기",
+    "slug": "2025-fastapi-dilifespanapi-django-2",
+    "keywords": [
+      "backend",
+      "tutorial",
+      "api",
+      "django",
+      "fastapi",
+      "lifespan"
+    ]
+  },
+  {
+    "date": "2026-01-04",
+    "type": "news",
+    "domain": "DevOps",
+    "title": "Kubernetes v1.35와 Docker Desktop 4.54~4.55가 말해주는 Cloud Native의 “보안·생산성” 전환점",
+    "slug": "kubernetes-v135-docker-desktop-454455-20-1",
+    "keywords": [
+      "devops",
+      "4.54",
+      "4.55",
+      "cloud",
+      "desktop",
+      "docker",
+      "kubernetes",
+      "native"
+    ]
+  },
+  {
+    "date": "2026-01-05",
+    "type": "news",
+    "domain": "Infrastructure",
+    "title": "12월 클라우드 전쟁의 포인트는 ‘AI Agent + 거대 컨텍스트 + 크로스클라우드’였다: AWS re:Invent 2025와 GCP/Azure의 맞불",
+    "slug": "12-ai-agent-aws-reinvent-2025-gcpazure-1",
+    "keywords": [
+      "infrastructure",
+      "agent",
+      "aws",
+      "azure",
+      "gcp",
+      "invent"
+    ]
+  },
+  {
+    "date": "2026-01-05",
+    "type": "tech",
+    "domain": "DevOps",
+    "title": "GitHub Actions CI/CD 파이프라인: “재사용·보안·속도” 3가지만 제대로 잡으면 끝납니다",
+    "slug": "2025-github-actions-cicd-3-2",
+    "keywords": [
+      "devops",
+      "tutorial",
+      "actions",
+      "github"
+    ]
+  },
+  {
+    "date": "2026-01-06",
+    "type": "news",
+    "domain": "AI",
+    "title": "LLM 전쟁 결산: GPT-5.2·Gemini 3 Flash·GPT‑Image‑1.5가 바꾼 개발자 스택",
+    "slug": "2025-12-llm-gpt-52gemini-3-flashgptimage-1",
+    "keywords": [
+      "ai",
+      "1.5",
+      "flash",
+      "gemini",
+      "gpt",
+      "gpt-5.2",
+      "image",
+      "llm"
+    ]
+  },
+  {
+    "date": "2026-01-06",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LLM이 “찾아보고(검색) → 판단하고(계획) → 답한다(생성)”까지 하는 2025 RAG Agent 구현 튜토리얼",
+    "slug": "llm-2025-rag-agent-2",
+    "keywords": [
+      "ai",
+      "tutorial",
+      "agent",
+      "llm",
+      "rag"
+    ]
+  },
+  {
+    "date": "2026-01-07",
+    "type": "news",
+    "domain": "DevOps",
+    "title": "Kubernetes·Docker·클라우드 네이티브에 “업데이트 압력”이 커진 이유",
+    "slug": "2025-12-kubernetesdocker-1",
+    "keywords": [
+      "devops",
+      "docker",
+      "kubernetes"
+    ]
+  },
+  {
+    "date": "2026-01-07",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "FastAPI 백엔드 베스트 프랙티스: “빠르게 만들기”에서 “오래 가게 만들기”로",
+    "slug": "2025-fastapi-2",
+    "keywords": [
+      "backend",
+      "tutorial",
+      "fastapi"
+    ]
+  },
+  {
+    "date": "2026-01-08",
+    "type": "tech",
+    "domain": "DevOps",
+    "title": "GitHub Actions CI/CD 파이프라인: “빠르게”가 아니라 “안전하게 자동화”하는 방법",
+    "slug": "2025-github-actions-cicd-2",
+    "keywords": [
+      "devops",
+      "tutorial",
+      "actions",
+      "github"
+    ]
+  },
+  {
+    "date": "2026-01-08",
+    "type": "news",
+    "domain": "Infrastructure",
+    "title": "에이전틱 AI가 클라우드 “신규 서비스 발표”의 주인공이 된 2025년 12월: AWS re:Invent발 변화와 Azure/GCP의 대응",
+    "slug": "ai-2025-12-aws-reinvent-azuregcp-1",
+    "keywords": [
+      "infrastructure",
+      "aws",
+      "azure",
+      "gcp",
+      "invent"
+    ]
+  },
+  {
+    "date": "2026-01-17",
+    "type": "tech",
+    "domain": "DevOps",
+    "title": "GitHub Actions로 “안전하고 빠른” CI/CD 파이프라인 만들기: Artifacts v4·Cache v5·OIDC까지 한 번에",
+    "slug": "2025-github-actions-cicd-artifacts-v4cac-2",
+    "keywords": [
+      "devops",
+      "tutorial",
+      "actions",
+      "artifacts",
+      "cache",
+      "github",
+      "oidc"
+    ]
+  },
+  {
+    "date": "2026-01-17",
+    "type": "tech",
+    "domain": "AI",
+    "title": "AI Agent 개발의 ‘정답’은 없다: LangGraph vs AutoGen vs CrewAI로 멀티 에이전트 설계하기",
+    "slug": "2026-1-ai-agent-langgraph-vs-autogen-vs--2",
+    "keywords": [
+      "ai",
+      "agent",
+      "autogen",
+      "crewai",
+      "langgraph"
+    ]
+  },
+  {
+    "date": "2026-01-17",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LangGraph vs AutoGen vs CrewAI로 “멀티 에이전트”를 제대로 만드는 법 (비교 + 구현 패턴)",
+    "slug": "2026-1-langgraph-vs-autogen-vs-crewai-2",
+    "keywords": [
+      "ai",
+      "agent",
+      "autogen",
+      "crewai",
+      "langgraph"
+    ]
+  },
+  {
+    "date": "2026-01-17",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 스타트업 ‘돈’이 몰린 곳: 투자·인수합병이 말해주는 3가지 방향",
+    "slug": "ai-2026-1-3-1",
+    "keywords": [
+      "ai"
+    ]
+  },
+  {
+    "date": "2026-01-17",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 스타트업 돈줄이 ‘Health·Agent·On-device’로 몰린다: 투자·인수합병 핵심 정리",
+    "slug": "ai-healthagenton-device-2026-1-1",
+    "keywords": [
+      "ai",
+      "agent",
+      "health",
+      "on-device"
+    ]
+  },
+  {
+    "date": "2026-01-17",
+    "type": "news",
+    "domain": "Infrastructure",
+    "title": "AWS re:Invent 2025(12월)가 던진 한 방: “AI 모델을 ‘고객이 직접 훈련’하는 클라우드”로 전환 중",
+    "slug": "aws-reinvent-202512-ai-1",
+    "keywords": [
+      "infrastructure",
+      "aws",
+      "invent"
+    ]
+  },
+  {
+    "date": "2026-01-17",
+    "type": "news",
+    "domain": "DevOps",
+    "title": "Docker Desktop 4.55(2025-12-16)·GKE Stable 1.33.5(2025-12-05): 2025년 12월은 “업그레이드/보안/공급망”이 클라우드 네이티브의 중심이 된 달",
+    "slug": "docker-desktop-4552025-12-16gke-stable-1-3",
+    "keywords": [
+      "devops",
+      "1.33.5",
+      "2025-12-05",
+      "2025-12-16",
+      "4.55",
+      "desktop",
+      "docker",
+      "gke"
+    ]
+  },
+  {
+    "date": "2026-01-17",
+    "type": "news",
+    "domain": "AI",
+    "title": "GPT·Claude·Gemini “1월 대격돌”? 2026년 1월 LLM 출시/기능 업데이트로 본 경쟁 구도",
+    "slug": "gptclaudegemini-1-2026-1-llm-3",
+    "keywords": [
+      "ai",
+      "claude",
+      "gemini",
+      "gpt",
+      "llm"
+    ]
+  },
+  {
+    "date": "2026-01-18",
+    "type": "tech",
+    "domain": "AI",
+    "title": "AI가 UI를 “그려주고”, Bolt.new가 “실행·수정·배포”까지 끝낸다: v0 + bolt.new 프론트엔드 자동화 심층 분석",
+    "slug": "ai-ui-boltnew-2026-1-v0-boltnew-2",
+    "keywords": [
+      "ai",
+      "coding",
+      "bolt.new"
+    ]
+  },
+  {
+    "date": "2026-01-18",
+    "type": "news",
+    "domain": "AI",
+    "title": "ChatGPT에 광고, Claude는 “Cowork”, Gemini API는 대규모 파일·모델 정리 모드: 빅테크 AI 업데이트 총정리",
+    "slug": "chatgpt-claude-cowork-gemini-api-2026-1--1",
+    "keywords": [
+      "ai",
+      "api",
+      "chatgpt",
+      "claude",
+      "cowork",
+      "gemini"
+    ]
+  },
+  {
+    "date": "2026-01-19",
+    "type": "tech",
+    "domain": "AI",
+    "title": "실시간 음성 에이전트 2026: “STT→LLM→TTS”를 넘어 Speech-to-Speech로 가는 설계와 구현",
+    "slug": "2026-sttllmtts-speech-to-speech-2",
+    "keywords": [
+      "ai",
+      "multimodal",
+      "llm",
+      "speech-to-speech",
+      "stt",
+      "tts"
+    ]
+  },
+  {
+    "date": "2026-01-19",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 규제, “실행의 해”로 들어가나: 글로벌 법안·정책·윤리 이슈 정리",
+    "slug": "ai-2026-1-1",
+    "keywords": [
+      "ai"
+    ]
+  },
+  {
+    "date": "2026-01-20",
+    "type": "tech",
+    "domain": "AI",
+    "title": "벡터DB 선택, 2026년 1월에 다시 해야 하는 이유: Pinecone vs Weaviate vs Qdrant vs Chroma 성능·운영 심층 비교",
+    "slug": "db-2026-1-pinecone-vs-weaviate-vs-qdrant-2",
+    "keywords": [
+      "ai",
+      "rag",
+      "chroma",
+      "pinecone",
+      "qdrant",
+      "weaviate"
+    ]
+  },
+  {
+    "date": "2026-01-20",
+    "type": "news",
+    "domain": "AI",
+    "title": "GPT·Claude·Gemini, 2026년 1월의 관전 포인트는 ‘신규 모델’이 아니라 ‘배포·개인화·에이전트’다",
+    "slug": "gptclaudegemini-2026-1-1",
+    "keywords": [
+      "ai",
+      "claude",
+      "gemini",
+      "gpt"
+    ]
+  },
+  {
+    "date": "2026-01-21",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 스타트업 투자·M&A가 ‘제품’이 아니라 ‘팀+워크플로우’로 쏠리는 이유",
+    "slug": "2026-1-ai-ma-1",
+    "keywords": [
+      "ai"
+    ]
+  },
+  {
+    "date": "2026-01-21",
+    "type": "tech",
+    "domain": "AI",
+    "title": "로컬부터 멀티 GPU까지: vLLM·TGI·Ollama LLM 서빙 배포/최적화 실전 가이드",
+    "slug": "gpu-2026-1-vllmtgiollama-llm-2",
+    "keywords": [
+      "ai",
+      "mlops",
+      "gpu",
+      "llm",
+      "ollama",
+      "tgi",
+      "vllm"
+    ]
+  },
+  {
+    "date": "2026-01-22",
+    "type": "tech",
+    "domain": "AI",
+    "title": "도구를 “API”로 바꾸는 순간: AI Agent Function Calling 구현 패턴 심층 분석",
+    "slug": "api-2026-ai-agent-function-calling-2",
+    "keywords": [
+      "ai",
+      "agent",
+      "api",
+      "calling",
+      "function"
+    ]
+  },
+  {
+    "date": "2026-01-22",
+    "type": "news",
+    "domain": "AI",
+    "title": "API 수명주기 전쟁 2026: OpenAI·Anthropic·Google의 1월 업데이트가 개발자에게 던진 신호",
+    "slug": "api-2026-openaianthropicgoogle-1-1",
+    "keywords": [
+      "ai",
+      "anthropic",
+      "api",
+      "google",
+      "openai"
+    ]
+  },
+  {
+    "date": "2026-01-23",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 규제, 2026년 1월에 ‘정책·안보·아동보호·윤리’가 한꺼번에 몰려왔다",
+    "slug": "ai-2026-1-1",
+    "keywords": [
+      "ai"
+    ]
+  },
+  {
+    "date": "2026-01-23",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Chain of Thought, 2026년식으로 다시 쓰기: “생각을 길게”가 아니라 “검증 가능한 추론 파이프라인”을 설계하라",
+    "slug": "chain-of-thought-2026-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "chain",
+      "thought"
+    ]
+  },
+  {
+    "date": "2026-01-24",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "FastAPI로 LLM API 서버 “진짜 스트리밍” 만들기: SSE/StreamingResponse 함정까지",
+    "slug": "fastapi-llm-api-ssestreamingresponse-202-2",
+    "keywords": [
+      "backend",
+      "api",
+      "fastapi",
+      "llm",
+      "sse",
+      "streamingresponse"
+    ]
+  },
+  {
+    "date": "2026-01-24",
+    "type": "news",
+    "domain": "AI",
+    "title": "GPT-5.2·Gemini 3 확산, Claude는 ‘모델’보다 ‘운영/안전’이 이슈가 된 2026년 1월",
+    "slug": "gpt-52gemini-3-claude-2026-1-1",
+    "keywords": [
+      "ai",
+      "claude",
+      "gemini",
+      "gpt-5.2"
+    ]
+  },
+  {
+    "date": "2026-01-25",
+    "type": "news",
+    "domain": "AI",
+    "title": "메타·오픈AI가 ‘사고’, VC는 ‘대형 베팅’했다: AI 스타트업 투자·M&A 지형도",
+    "slug": "ai-vc-2026-1-ai-ma-1",
+    "keywords": [
+      "ai"
+    ]
+  },
+  {
+    "date": "2026-01-25",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Cursor·Copilot·Windsurf로 “에디터 안에서” 에이전트 협업하기: 실전 활용법 심층 분석",
+    "slug": "cursorcopilotwindsurf-2026-1-2",
+    "keywords": [
+      "ai",
+      "coding",
+      "copilot",
+      "cursor",
+      "windsurf"
+    ]
+  },
+  {
+    "date": "2026-01-26",
+    "type": "news",
+    "domain": "AI",
+    "title": "애플·미성년자·모델 폐기까지: OpenAI·Anthropic·Google AI 업데이트가 말해주는 것",
+    "slug": "2026-1-openaianthropicgoogle-ai-1",
+    "keywords": [
+      "ai",
+      "anthropic",
+      "google",
+      "openai"
+    ]
+  },
+  {
+    "date": "2026-01-26",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LLM 앱 운영의 현실: LangSmith vs Langfuse로 “디버깅·비용·품질”을 한 번에 잡는 법 (2026년 1월 관점)",
+    "slug": "llm-langsmith-vs-langfuse-2026-1-2",
+    "keywords": [
+      "ai",
+      "mlops",
+      "langfuse",
+      "langsmith",
+      "llm"
+    ]
+  },
+  {
+    "date": "2026-01-27",
+    "type": "tech",
+    "domain": "AI",
+    "title": "스스로 “검색→판단→재검색→검증”까지 도는 Agentic RAG 자율 에이전트, 구현 패턴",
+    "slug": "agentic-rag-2026-1-2",
+    "keywords": [
+      "ai",
+      "agent",
+      "agentic",
+      "rag"
+    ]
+  },
+  {
+    "date": "2026-01-27",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 규제, “모델”보다 “배포·악용·국가안보”로 무게중심 이동 (2026년 1월 정책/윤리 뉴스 정리)",
+    "slug": "ai-2026-1-1",
+    "keywords": [
+      "ai"
+    ]
+  },
+  {
+    "date": "2026-01-28",
+    "type": "news",
+    "domain": "AI",
+    "title": "GPT·Claude·Gemini, 2026년 1월의 “LLM 출시/적용” 전쟁: 모델은 더 똑똑해졌고, 제품은 더 깊게 잠겼다",
+    "slug": "gptclaudegemini-2026-1-llm-1",
+    "keywords": [
+      "ai",
+      "claude",
+      "gemini",
+      "gpt",
+      "llm"
+    ]
+  },
+  {
+    "date": "2026-01-28",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LoRA vs QLoRA, “진짜 효율”로 LLM Fine-tuning 하는 법 (원리+실전코드)",
+    "slug": "lora-vs-qlora-2026-1-llm-fine-tuning-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "fine-tuning",
+      "lora",
+      "qlora"
+    ]
+  },
+  {
+    "date": "2026-01-29",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "확장 가능한 AI 애플리케이션 아키텍처 설계 패턴: “RAG + Agent + Workflow”로 가는 이유",
+    "slug": "2026-1-ai-rag-agent-workflow-2",
+    "keywords": [
+      "backend",
+      "architecture",
+      "agent",
+      "rag",
+      "workflow"
+    ]
+  },
+  {
+    "date": "2026-01-29",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 스타트업 투자·M&A, 2026년 1월은 ‘Agent’와 ‘Vertical Workflow’로 돈이 몰렸다",
+    "slug": "ai-ma-2026-1-agent-vertical-workflow-1",
+    "keywords": [
+      "ai",
+      "agent",
+      "vertical",
+      "workflow"
+    ]
+  },
+  {
+    "date": "2026-01-30",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 빅3의 업데이트 총정리: Gemini API “100MB 파일 입력”, Claude Opus 3 은퇴, OpenAI 정책/안전 변화",
+    "slug": "ai-3-2026-1-gemini-api-100mb-claude-opus-1",
+    "keywords": [
+      "ai",
+      "100mb",
+      "api",
+      "claude",
+      "gemini",
+      "openai",
+      "opus"
+    ]
+  },
+  {
+    "date": "2026-01-30",
+    "type": "tech",
+    "domain": "AI",
+    "title": "프로토타입을 ‘느낌’으로 끝내지 않고 MVP로 끌고 가는 2026 Vibe Coding 실전 프레임워크",
+    "slug": "mvp-2026-vibe-coding-2",
+    "keywords": [
+      "ai",
+      "coding",
+      "mvp",
+      "vibe"
+    ]
+  },
+  {
+    "date": "2026-01-31",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 규제, 2026년 1월에 ‘집행·인프라·콘텐츠 윤리’로 재편되다",
+    "slug": "ai-2026-1-1",
+    "keywords": [
+      "ai"
+    ]
+  },
+  {
+    "date": "2026-01-31",
+    "type": "tech",
+    "domain": "AI",
+    "title": "멀티모달 VLM(Vision-Language Model) 활용법: “이미지 → 구조화된 데이터” 파이프라인을 가장 단단하게 만드는 법",
+    "slug": "vlmvision-language-model-2026-1-2",
+    "keywords": [
+      "ai",
+      "multimodal",
+      "model",
+      "vision-language",
+      "vlm"
+    ]
+  },
+  {
+    "date": "2026-02-01",
+    "type": "news",
+    "domain": "AI",
+    "title": "‘GPT 교체’와 ‘Gemini 에이전트화’가 동시에 온다 — Claude는 “모델”보다 “통합”으로 승부",
+    "slug": "2026-2-gpt-gemini-claude-1",
+    "keywords": [
+      "ai",
+      "claude",
+      "gemini",
+      "gpt"
+    ]
+  },
+  {
+    "date": "2026-02-01",
+    "type": "tech",
+    "domain": "AI",
+    "title": "HyDE + Reranking + Query Expansion: RAG 성능을 “한 단계” 끌어올리는 3단 조합",
+    "slug": "hyde-reranking-query-expansion-2026-rag--2",
+    "keywords": [
+      "ai",
+      "rag",
+      "expansion",
+      "hyde",
+      "query",
+      "reranking"
+    ]
+  },
+  {
+    "date": "2026-02-02",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 스타트업 투자·인수합병이 ‘추론(Inference)·디바이스·엔터프라이즈’로 쏠리는 이유 (2026년 2월 초 기준)",
+    "slug": "ai-inference-2026-2-1",
+    "keywords": [
+      "ai",
+      "inference"
+    ]
+  },
+  {
+    "date": "2026-02-02",
+    "type": "tech",
+    "domain": "AI",
+    "title": "MMLU 점수 90점의 함정: LLM 벤치마크(MMLU·HumanEval) 해석 가이드",
+    "slug": "mmlu-90-2026-2-llm-mmluhumaneval-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "humaneval",
+      "mmlu"
+    ]
+  },
+  {
+    "date": "2026-02-03",
+    "type": "news",
+    "domain": "AI",
+    "title": "2월 2026 빅테크 AI 업데이트 총정리: “모델 정리(Deprecation)·에이전트 확장·규제 전면전”이 동시에 왔다",
+    "slug": "2-2026-ai-deprecation-1",
+    "keywords": [
+      "ai",
+      "deprecation"
+    ]
+  },
+  {
+    "date": "2026-02-03",
+    "type": "tech",
+    "domain": "AI",
+    "title": "멀티 에이전트 “진짜로” 굴리기: LangGraph vs AutoGen vs CrewAI 심층 비교와 구현 패턴",
+    "slug": "2026-2-langgraph-vs-autogen-vs-crewai-2",
+    "keywords": [
+      "ai",
+      "agent",
+      "autogen",
+      "crewai",
+      "langgraph"
+    ]
+  },
+  {
+    "date": "2026-02-04",
+    "type": "news",
+    "domain": "AI",
+    "title": "EU AI Act “카운트다운”이 현실이 됐다: 2026년 2월, AI 규제·정책·윤리 이슈가 한 번에 몰려오는 이유",
+    "slug": "eu-ai-act-2026-2-ai-1",
+    "keywords": [
+      "ai",
+      "act"
+    ]
+  },
+  {
+    "date": "2026-02-04",
+    "type": "tech",
+    "domain": "AI",
+    "title": "v0와 bolt.new로 “UI는 AI가 만들고, 나는 로직만 짠다” — 2026년 2월 프론트엔드 자동화 실전 가이드",
+    "slug": "v0-boltnew-ui-ai-2026-2-2",
+    "keywords": [
+      "ai",
+      "coding",
+      "bolt.new"
+    ]
+  },
+  {
+    "date": "2026-02-05",
+    "type": "tech",
+    "domain": "AI",
+    "title": "실시간 음성 에이전트: STT/TTS를 “파이프라인”이 아닌 “스트리밍 런타임”으로 다루는 법",
+    "slug": "2026-2-stttts-2",
+    "keywords": [
+      "ai",
+      "multimodal",
+      "stt",
+      "tts"
+    ]
+  },
+  {
+    "date": "2026-02-05",
+    "type": "news",
+    "domain": "AI",
+    "title": "GPT·Claude·Gemini “신규 모델”보다 더 큰 변화: LLM 전쟁의 초점이 ‘성능’에서 ‘비즈니스/배포’로 이동한다",
+    "slug": "gptclaudegemini-2026-2-llm-1",
+    "keywords": [
+      "ai",
+      "claude",
+      "gemini",
+      "gpt",
+      "llm"
+    ]
+  },
+  {
+    "date": "2026-02-06",
+    "type": "tech",
+    "domain": "AI",
+    "title": "2월 2026 기준 벡터DB 선택 가이드: Pinecone vs Weaviate vs Qdrant vs Chroma 성능·비용·운영성 한 방에 정리",
+    "slug": "2-2026-db-pinecone-vs-weaviate-vs-qdrant-2",
+    "keywords": [
+      "ai",
+      "rag",
+      "chroma",
+      "pinecone",
+      "qdrant",
+      "weaviate"
+    ]
+  },
+  {
+    "date": "2026-02-06",
+    "type": "news",
+    "domain": "AI",
+    "title": "SpaceX–xAI 초대형 합병부터 ElevenLabs 5억 달러 투자까지: AI 스타트업 투자·M&A가 말하는 것",
+    "slug": "spacexxai-elevenlabs-5-2026-2-ai-ma-1",
+    "keywords": [
+      "ai",
+      "elevenlabs",
+      "spacex",
+      "xai"
+    ]
+  },
+  {
+    "date": "2026-02-07",
+    "type": "news",
+    "domain": "AI",
+    "title": "빅테크 AI “업데이트 폭주” — OpenAI 코딩 에이전트, Anthropic 100만 토큰, Google Gemini 커머스·비전",
+    "slug": "2026-2-ai-openai-anthropic-100-google-ge-1",
+    "keywords": [
+      "ai",
+      "anthropic",
+      "gemini",
+      "google",
+      "openai"
+    ]
+  },
+  {
+    "date": "2026-02-07",
+    "type": "tech",
+    "domain": "AI",
+    "title": "vLLM·TGI·Ollama 배포법: “로컬 개발 → 프로덕션 서빙”까지 한 번에 정리",
+    "slug": "2026-2-vllmtgiollama-2",
+    "keywords": [
+      "ai",
+      "mlops",
+      "ollama",
+      "tgi",
+      "vllm"
+    ]
+  },
+  {
+    "date": "2026-02-08",
+    "type": "tech",
+    "domain": "AI",
+    "title": "AI Agent “Tool Use + Function Calling” 구현의 정답: 스키마 강제(Strict)·루프 제어·추적(Tracing)으로 프로덕션까지",
+    "slug": "2026-2-ai-agent-tool-use-function-callin-2",
+    "keywords": [
+      "ai",
+      "agent",
+      "calling",
+      "function",
+      "strict",
+      "tool",
+      "tracing",
+      "use"
+    ]
+  },
+  {
+    "date": "2026-02-08",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 규제 ‘실행의 달’이 온다: 2026년 2월을 관통하는 EU AI Act·미국 주(州)법·윤리 프레임워크",
+    "slug": "ai-2026-2-eu-ai-act-1",
+    "keywords": [
+      "ai",
+      "act"
+    ]
+  },
+  {
+    "date": "2026-02-09",
+    "type": "tech",
+    "domain": "AI",
+    "title": "생각을 “보이게” 만들지 말고 “결과를 강하게” 만들자: Chain of Thought 고급 프롬프트 최적화",
+    "slug": "2026-chain-of-thought-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "chain",
+      "thought"
+    ]
+  },
+  {
+    "date": "2026-02-09",
+    "type": "news",
+    "domain": "AI",
+    "title": "GPT·Claude·Gemini, ‘LLM 신모델 러시’가 말해주는 것",
+    "slug": "gptclaudegemini-2026-2-llm-1",
+    "keywords": [
+      "ai",
+      "claude",
+      "gemini",
+      "gpt",
+      "llm"
+    ]
+  },
+  {
+    "date": "2026-02-10",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 스타트업 ‘돈’과 ‘엑시트’가 동시에 터졌다: 투자 유치·인수합병 5가지 신호",
+    "slug": "2026-2-ai-5-1",
+    "keywords": [
+      "ai"
+    ]
+  },
+  {
+    "date": "2026-02-10",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "2026년 2월판: FastAPI로 LLM API 서버 스트리밍(SSE) “제대로” 구축하는 법",
+    "slug": "2026-2-fastapi-llm-api-sse-2",
+    "keywords": [
+      "backend",
+      "api",
+      "fastapi",
+      "llm",
+      "sse"
+    ]
+  },
+  {
+    "date": "2026-02-11",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Cursor·Copilot·Windsurf 3종 세트로 “AI가 코드를 쓰게” 만드는 실전 운영법",
+    "slug": "cursorcopilotwindsurf-3-ai-2026-2-2",
+    "keywords": [
+      "ai",
+      "coding",
+      "copilot",
+      "cursor",
+      "windsurf"
+    ]
+  },
+  {
+    "date": "2026-02-11",
+    "type": "news",
+    "domain": "AI",
+    "title": "OpenAI·Anthropic·Google, ‘API/정책’이 동시에 흔들린다: 코딩 에이전트 강화와 디프리케이션 러시",
+    "slug": "openaianthropicgoogle-2026-2-api-1",
+    "keywords": [
+      "ai",
+      "anthropic",
+      "api",
+      "google",
+      "openai"
+    ]
+  },
+  {
+    "date": "2026-02-12",
+    "type": "news",
+    "domain": "AI",
+    "title": "규제의 시계가 빨라진 2026년 2월: EU AI Act ‘완전 적용’ 카운트다운과 각국의 윤리·저작권 전선",
+    "slug": "2026-2-eu-ai-act-1",
+    "keywords": [
+      "ai",
+      "act"
+    ]
+  },
+  {
+    "date": "2026-02-12",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LLM 앱에서 “어디서 터졌고, 왜 비싸졌는지” 끝까지 추적하기: LangSmith vs Langfuse (2026년 2월 관점)",
+    "slug": "llm-langsmith-vs-langfuse-2026-2-2",
+    "keywords": [
+      "ai",
+      "mlops",
+      "langfuse",
+      "langsmith",
+      "llm"
+    ]
+  },
+  {
+    "date": "2026-02-13",
+    "type": "news",
+    "domain": "AI",
+    "title": "2월 초 ‘동시 출격’한 GPT-5.3-Codex vs Claude Opus 4.6, 그리고 Gemini 3의 ‘Agentic’ 승부수",
+    "slug": "2-gpt-53-codex-vs-claude-opus-46-gemini--1",
+    "keywords": [
+      "ai",
+      "4.6",
+      "agentic",
+      "claude",
+      "gemini",
+      "gpt-5.3-codex",
+      "opus"
+    ]
+  },
+  {
+    "date": "2026-02-13",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Agentic RAG로 “자율적 정보 검색 에이전트” 만드는 법 (설계 원리부터 코드까지)",
+    "slug": "2026-2-agentic-rag-2",
+    "keywords": [
+      "ai",
+      "agent",
+      "agentic",
+      "rag"
+    ]
+  },
+  {
+    "date": "2026-02-14",
+    "type": "news",
+    "domain": "AI",
+    "title": "2월 AI 스타트업 투자·M&A, ‘모델’보다 ‘인프라·에이전트’로 돈이 움직였다",
+    "slug": "2-ai-ma-1",
+    "keywords": [
+      "ai"
+    ]
+  },
+  {
+    "date": "2026-02-14",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LoRA/QLoRA로 LLM Fine-tuning을 “현실적으로” 끝내는 방법 (원리+실전)",
+    "slug": "2026-2-loraqlora-llm-fine-tuning-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "fine-tuning",
+      "lora",
+      "qlora"
+    ]
+  },
+  {
+    "date": "2026-02-15",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "“AI 앱이 PoC를 넘어서” 확장 가능한 아키텍처 패턴 6가지",
+    "slug": "2026-2-ai-poc-6-2",
+    "keywords": [
+      "backend",
+      "architecture",
+      "poc"
+    ]
+  },
+  {
+    "date": "2026-02-15",
+    "type": "news",
+    "domain": "AI",
+    "title": "API “수명”이 더 짧아진 2026년 2월: OpenAI·Anthropic·Google AI 업데이트가 던진 신호",
+    "slug": "api-2026-2-openaianthropicgoogle-ai-1",
+    "keywords": [
+      "ai",
+      "anthropic",
+      "api",
+      "google",
+      "openai"
+    ]
+  },
+  {
+    "date": "2026-02-16",
+    "type": "news",
+    "domain": "AI",
+    "title": "영국은 “AI Chatbot도 예외 없다” 선언…EU는 AI Act 이행 시계 가속, 미국은 주(州) 규제와 정면충돌",
+    "slug": "ai-chatbot-eu-ai-act-2026-2-1",
+    "keywords": [
+      "ai",
+      "act",
+      "chatbot"
+    ]
+  },
+  {
+    "date": "2026-02-16",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Vibe Coding으로 48시간 안에 MVP 찍어내기: “Agentic Prototyping” 실전 가이드",
+    "slug": "vibe-coding-48-mvp-2026-2-agentic-protot-2",
+    "keywords": [
+      "ai",
+      "coding",
+      "agentic",
+      "mvp",
+      "prototyping",
+      "vibe"
+    ]
+  },
+  {
+    "date": "2026-02-17",
+    "type": "tech",
+    "domain": "AI",
+    "title": "VLM(Vision Language Model)로 “이미지 분석 AI”를 제품에 넣는 법: 멀티모달 설계부터 비용/정확도 최적화까지",
+    "slug": "2026-2-vlmvision-language-model-ai-2",
+    "keywords": [
+      "ai",
+      "multimodal",
+      "language",
+      "model",
+      "vision",
+      "vlm"
+    ]
+  },
+  {
+    "date": "2026-02-17",
+    "type": "news",
+    "domain": "AI",
+    "title": "GPT·Claude·Gemini, ‘LLM 신모델 러시’가 만든 판 변화",
+    "slug": "gptclaudegemini-2026-2-llm-1",
+    "keywords": [
+      "ai",
+      "claude",
+      "gemini",
+      "gpt",
+      "llm"
+    ]
+  },
+  {
+    "date": "2026-02-18",
+    "type": "news",
+    "domain": "AI",
+    "title": "Anthropic 300억달러·개발툴 Seed 6,000만달러…2026년 2월, AI 스타트업 투자·M&A가 ‘플랫폼 전쟁’으로 바뀌었다",
+    "slug": "anthropic-300-seed-60002026-2-ai-ma-1",
+    "keywords": [
+      "ai",
+      "anthropic",
+      "seed"
+    ]
+  },
+  {
+    "date": "2026-02-18",
+    "type": "tech",
+    "domain": "AI",
+    "title": "RAG 성능을 한 단계 끌어올리는 3종 세트: HyDE + Reranking + Query Expansion",
+    "slug": "rag-3-hyde-reranking-query-expansion-202-2",
+    "keywords": [
+      "ai",
+      "rag",
+      "expansion",
+      "hyde",
+      "query",
+      "reranking"
+    ]
+  },
+  {
+    "date": "2026-02-19",
+    "type": "news",
+    "domain": "AI",
+    "title": "2월 2026 빅테크 AI 업데이트 총정리: OpenAI ‘레거시 정리’ vs Anthropic ‘안전 거버넌스’ vs Google ‘API 진화 + 보안 경보’",
+    "slug": "2-2026-ai-openai-vs-anthropic-vs-google--1",
+    "keywords": [
+      "ai",
+      "anthropic",
+      "api",
+      "google",
+      "openai"
+    ]
+  },
+  {
+    "date": "2026-02-19",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LLM 성능평가의 함정: MMLU·HumanEval 벤치마크를 “숫자”가 아니라 “방법”으로 읽는 법",
+    "slug": "llm-2026-2-mmluhumaneval-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "humaneval",
+      "mmlu"
+    ]
+  },
+  {
+    "date": "2026-02-20",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 규제 ‘강화’만 남았나: 2026년 2월, EU 시행 카운트다운과 글로벌 ‘AI commons’의 부상",
+    "slug": "ai-2026-2-eu-ai-commons-1",
+    "keywords": [
+      "ai",
+      "commons"
+    ]
+  },
+  {
+    "date": "2026-02-20",
+    "type": "tech",
+    "domain": "AI",
+    "title": "그래프(State)로 통제하고, 대화(Chat)로 협업하라: LangGraph·AutoGen·CrewAI 멀티 Agent 프레임워크 심층 비교",
+    "slug": "state-chat-2026-2-langgraphautogencrewai-2",
+    "keywords": [
+      "ai",
+      "agent",
+      "autogen",
+      "chat",
+      "crewai",
+      "langgraph",
+      "state"
+    ]
+  },
+  {
+    "date": "2026-02-21",
+    "type": "news",
+    "domain": "AI",
+    "title": "2월 한 달, LLM 판도가 또 바뀌었다: GPT‑5.3‑Codex vs Claude 4.6 vs Gemini 3.1 Pro",
+    "slug": "2-llm-gpt53codex-vs-claude-46-vs-gemini--1",
+    "keywords": [
+      "ai",
+      "3.1",
+      "4.6",
+      "5.3",
+      "claude",
+      "codex",
+      "gemini",
+      "gpt"
+    ]
+  },
+  {
+    "date": "2026-02-21",
+    "type": "tech",
+    "domain": "AI",
+    "title": "v0 + bolt.new로 “UI를 말로 만들고, 코드로 굳히는” 2026 프론트엔드 워크플로우",
+    "slug": "v0-boltnew-ui-2026-2",
+    "keywords": [
+      "ai",
+      "coding",
+      "bolt.new"
+    ]
+  },
+  {
+    "date": "2026-02-22",
+    "type": "tech",
+    "domain": "AI",
+    "title": "실시간 음성 에이전트의 스택 지도: STT/TTS/LLM을 “대화 지연 1초대”로 묶는 법",
+    "slug": "2026-2-sttttsllm-1-2",
+    "keywords": [
+      "ai",
+      "multimodal",
+      "llm",
+      "stt",
+      "tts"
+    ]
+  },
+  {
+    "date": "2026-02-22",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 스타트업 투자·M&A가 “동시에 폭발”한 2026년 2월: 메가라운드와 인수전이 말해주는 것",
+    "slug": "ai-ma-2026-2-1",
+    "keywords": [
+      "ai"
+    ]
+  },
+  {
+    "date": "2026-02-23",
+    "type": "news",
+    "domain": "AI",
+    "title": "빅테크 AI “2월 업데이트” 총정리: OpenAI는 Codex를 에이전트로, Anthropic은 Opus 4.6, Google은 Gemini 3.1 Pro로 승부수",
+    "slug": "ai-2-openai-codex-anthropic-opus-46-goog-1",
+    "keywords": [
+      "ai",
+      "3.1",
+      "4.6",
+      "anthropic",
+      "codex",
+      "gemini",
+      "google",
+      "openai"
+    ]
+  },
+  {
+    "date": "2026-02-23",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Pinecone vs Weaviate vs Qdrant vs Chroma: “성능/운영/비용”으로 고르는 벡터DB 선택 가이드",
+    "slug": "pinecone-vs-weaviate-vs-qdrant-vs-chroma-2",
+    "keywords": [
+      "ai",
+      "rag",
+      "chroma",
+      "pinecone",
+      "qdrant",
+      "weaviate"
+    ]
+  },
+  {
+    "date": "2026-02-24",
+    "type": "tech",
+    "domain": "AI",
+    "title": "2월 2026 기준: vLLM vs TGI vs Ollama, “어떻게” 배포하고 “왜” 그렇게 튜닝하는가",
+    "slug": "2-2026-vllm-vs-tgi-vs-ollama-2",
+    "keywords": [
+      "ai",
+      "mlops",
+      "ollama",
+      "tgi",
+      "vllm"
+    ]
+  },
+  {
+    "date": "2026-02-24",
+    "type": "news",
+    "domain": "AI",
+    "title": "EU AI Act ‘시계’가 2026년을 겨냥한다: 각국 규제·윤리 이슈가 개발 프로세스를 바꾸는 중",
+    "slug": "eu-ai-act-2026-1",
+    "keywords": [
+      "ai",
+      "act"
+    ]
+  },
+  {
+    "date": "2026-02-25",
+    "type": "tech",
+    "domain": "AI",
+    "title": "AI Agent의 “Tool Use + Function Calling” 구현 패턴, 어디까지 표준화됐나",
+    "slug": "2026-2-ai-agent-tool-use-function-callin-2",
+    "keywords": [
+      "ai",
+      "agent",
+      "calling",
+      "function",
+      "tool",
+      "use"
+    ]
+  },
+  {
+    "date": "2026-02-25",
+    "type": "news",
+    "domain": "AI",
+    "title": "GPT·Claude·Gemini, ‘신규 LLM’ 러시: 코딩 에이전트와 1M 컨텍스트 경쟁이 시작됐다",
+    "slug": "gptclaudegemini-2026-2-llm-1m-1",
+    "keywords": [
+      "ai",
+      "claude",
+      "gemini",
+      "gpt",
+      "llm"
+    ]
+  },
+  {
+    "date": "2026-02-26",
+    "type": "news",
+    "domain": "AI",
+    "title": "2월 한 달, AI 스타트업은 ‘초대형 투자’와 ‘기능 흡수형 M&A’로 재편 중",
+    "slug": "2-ai-ma-1",
+    "keywords": [
+      "ai"
+    ]
+  },
+  {
+    "date": "2026-02-26",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Chain-of-Thought(CoT) 2026 심층 가이드: “생각을 쓰게”가 아니라 “비용/정확도”를 최적화하라",
+    "slug": "chain-of-thoughtcot-2026-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "chain-of-thought",
+      "cot"
+    ]
+  },
+  {
+    "date": "2026-02-27",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "FastAPI로 LLM API 서버 “진짜 스트리밍” 만들기: SSE, Cancel, Backpressure까지 한 번에",
+    "slug": "fastapi-llm-api-2026-2-sse-cancel-backpr-2",
+    "keywords": [
+      "backend",
+      "api",
+      "backpressure",
+      "cancel",
+      "fastapi",
+      "llm",
+      "sse"
+    ]
+  },
+  {
+    "date": "2026-02-27",
+    "type": "news",
+    "domain": "AI",
+    "title": "OpenAI·Anthropic·Google, “API/정책/모델”이 동시에 흔들린 이유",
+    "slug": "openaianthropicgoogle-2026-2-api-1",
+    "keywords": [
+      "ai",
+      "anthropic",
+      "api",
+      "google",
+      "openai"
+    ]
+  },
+  {
+    "date": "2026-02-28",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 규제는 “가이드”에서 “집행 설계”로 넘어갔다: EU AI Act·한국 AI 기본법·윤리 쟁점 총정리",
+    "slug": "2026-2-ai-eu-ai-act-ai-1",
+    "keywords": [
+      "ai",
+      "act"
+    ]
+  },
+  {
+    "date": "2026-02-28",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Cursor·Copilot·Windsurf(Cascade)로 “에이전트급” 개발 생산성 뽑아내는 실전 가이드",
+    "slug": "cursorcopilotwindsurfcascade-2026-2-2",
+    "keywords": [
+      "ai",
+      "coding",
+      "cascade",
+      "copilot",
+      "cursor",
+      "windsurf"
+    ]
+  },
+  {
+    "date": "2026-03-01",
+    "type": "news",
+    "domain": "AI",
+    "title": "GPT·Claude·Gemini, 2026년 2~3월 ‘신규 모델 러시’가 바꿀 개발 판도",
+    "slug": "gptclaudegemini-2026-23-1",
+    "keywords": [
+      "ai",
+      "claude",
+      "gemini",
+      "gpt"
+    ]
+  },
+  {
+    "date": "2026-03-01",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LLM 앱이 “왜 이상하게” 동작하는지 30분 안에 잡아내는 관측성: LangSmith vs Langfuse 심층 분석 (디버깅·비용·추적)",
+    "slug": "llm-30-2026-3-langsmith-vs-langfuse-2",
+    "keywords": [
+      "ai",
+      "mlops",
+      "langfuse",
+      "langsmith",
+      "llm"
+    ]
+  },
+  {
+    "date": "2026-03-02",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Agentic RAG로 “스스로 찾아오고, 스스로 검증하는” 자율 에이전트 구현법",
+    "slug": "agentic-rag-2026-3-2",
+    "keywords": [
+      "ai",
+      "agent",
+      "agentic",
+      "rag"
+    ]
+  },
+  {
+    "date": "2026-03-02",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 스타트업 돈줄이 ‘인프라·음성·웨어러블’로 쏠린 2026년 3월: 초대형 투자와 빅테크 M&A가 만든 새 판",
+    "slug": "ai-2026-3-ma-1",
+    "keywords": [
+      "ai"
+    ]
+  },
+  {
+    "date": "2026-03-03",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LoRA/QLoRA 파인튜닝 실전 튜토리얼: 4-bit NF4 + PEFT + TRL로 “효율”을 끝까지 뽑아내기",
+    "slug": "2026-3-loraqlora-4-bit-nf4-peft-trl-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "4-bit",
+      "lora",
+      "nf4",
+      "peft",
+      "qlora",
+      "trl"
+    ]
+  },
+  {
+    "date": "2026-03-03",
+    "type": "news",
+    "domain": "AI",
+    "title": "3월 2026, OpenAI·Anthropic·Google AI 업데이트 총정리: “모델”보다 “API·정책·운영”이 승부처가 됐다",
+    "slug": "3-2026-openaianthropicgoogle-ai-api-1",
+    "keywords": [
+      "ai",
+      "anthropic",
+      "api",
+      "google",
+      "openai"
+    ]
+  },
+  {
+    "date": "2026-03-04",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "“확장 가능한 AI 앱”을 만드는 아키텍처 설계 패턴 7가지: Agentic RAG부터 MCP/Observability까지",
+    "slug": "2026-3-ai-7-agentic-rag-mcpobservability-2",
+    "keywords": [
+      "backend",
+      "architecture",
+      "agentic",
+      "mcp",
+      "observability",
+      "rag"
+    ]
+  },
+  {
+    "date": "2026-03-04",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 규제 ‘시계’가 빨라졌다: 2026년 3월, 각국 정책·윤리 이슈가 개발자에게 던진 신호",
+    "slug": "ai-2026-3-1",
+    "keywords": [
+      "ai"
+    ]
+  },
+  {
+    "date": "2026-03-05",
+    "type": "news",
+    "domain": "AI",
+    "title": "GPT·Claude·Gemini, “신규 모델 러시”가 개발 워크플로를 바꾼다",
+    "slug": "gptclaudegemini-2026-3-1",
+    "keywords": [
+      "ai",
+      "claude",
+      "gemini",
+      "gpt"
+    ]
+  },
+  {
+    "date": "2026-03-05",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Vibe Coding 시대의 “하루 MVP”: 2026년 3월, AI 에이전트로 프로토타이핑 속도를 10배 올리는 방법",
+    "slug": "vibe-coding-mvp-2026-3-ai-10-2",
+    "keywords": [
+      "ai",
+      "coding",
+      "mvp",
+      "vibe"
+    ]
+  },
+  {
+    "date": "2026-03-06",
+    "type": "tech",
+    "domain": "AI",
+    "title": "멀티모달 Vision-Language Model을 “이미지 분석 AI”로 실전에 꽂아 넣는 법",
+    "slug": "2026-3-vision-language-model-ai-2",
+    "keywords": [
+      "ai",
+      "multimodal",
+      "model",
+      "vision-language"
+    ]
+  },
+  {
+    "date": "2026-03-06",
+    "type": "news",
+    "domain": "AI",
+    "title": "3월 AI 스타트업 투자·M&A, ‘Agent + Physical AI’로 재편되는 판",
+    "slug": "3-ai-ma-agent-physical-ai-1",
+    "keywords": [
+      "ai",
+      "agent",
+      "physical"
+    ]
+  },
+  {
+    "date": "2026-03-07",
+    "type": "news",
+    "domain": "AI",
+    "title": "빅테크 AI 업데이트 총정리: OpenAI는 “코딩 에이전트”, Google은 “초저가 Flash-Lite”, Anthropic은 “안전정책 정교화”",
+    "slug": "2026-3-ai-openai-google-flash-lite-anthr-1",
+    "keywords": [
+      "ai",
+      "anthropic",
+      "flash-lite",
+      "google",
+      "openai"
+    ]
+  },
+  {
+    "date": "2026-03-07",
+    "type": "tech",
+    "domain": "AI",
+    "title": "RAG 성능이 안 오르는 진짜 이유: HyDE + Reranking + Query Expansion을 “같이” 최적화하는 법",
+    "slug": "rag-hyde-reranking-query-expansion-2026--2",
+    "keywords": [
+      "ai",
+      "rag",
+      "expansion",
+      "hyde",
+      "query",
+      "reranking"
+    ]
+  },
+  {
+    "date": "2026-03-08",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 규제 “적용 카운트다운”과 “주(州) 단속전”이 동시에 시작됐다: 정책·윤리 뉴스 정리",
+    "slug": "ai-2026-3-1",
+    "keywords": [
+      "ai"
+    ]
+  },
+  {
+    "date": "2026-03-08",
+    "type": "tech",
+    "domain": "AI",
+    "title": "MMLU와 HumanEval, 점수 하나로 모델을 뽑으면 망하는 이유: LLM 벤치마크 해석법",
+    "slug": "mmlu-humaneval-2026-3-llm-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "humaneval",
+      "mmlu"
+    ]
+  },
+  {
+    "date": "2026-03-09",
+    "type": "news",
+    "domain": "AI",
+    "title": "GPT-5.4 vs Gemini 3.1 Flash‑Lite: ‘LLM 출시전’의 승부처는 성능이 아니라 “배포 속도와 비용”이다",
+    "slug": "gpt-54-vs-gemini-31-flashlite-2026-3-llm-1",
+    "keywords": [
+      "ai",
+      "3.1",
+      "flash",
+      "gemini",
+      "gpt-5.4",
+      "lite",
+      "llm"
+    ]
+  },
+  {
+    "date": "2026-03-09",
+    "type": "tech",
+    "domain": "AI",
+    "title": "그래프(LangGraph) vs 대화(AutoGen) vs 조직(CrewAI): 멀티 에이전트 구현의 승부처",
+    "slug": "langgraph-vs-autogen-vs-crewai-2026-3-2",
+    "keywords": [
+      "ai",
+      "agent",
+      "autogen",
+      "crewai",
+      "langgraph"
+    ]
+  },
+  {
+    "date": "2026-03-10",
+    "type": "news",
+    "domain": "AI",
+    "title": "에이전트 전쟁이 M&A로 번졌다: AI 스타트업 투자·인수합병 핵심 정리",
+    "slug": "ma-2026-3-ai-1",
+    "keywords": [
+      "ai"
+    ]
+  },
+  {
+    "date": "2026-03-10",
+    "type": "tech",
+    "domain": "AI",
+    "title": "v0 + bolt.new로 “UI는 AI가 만들고, 나는 제품을 만든다”: 프론트엔드 자동화 워크플로우 심층 분석",
+    "slug": "v0-boltnew-ui-ai-2026-3-2",
+    "keywords": [
+      "ai",
+      "coding",
+      "bolt.new"
+    ]
+  },
+  {
+    "date": "2026-03-11",
+    "type": "tech",
+    "domain": "AI",
+    "title": "실시간 음성 에이전트: STT/TTS를 “파이프라인”이 아니라 “스트림”으로 재설계하기",
+    "slug": "2026-3-stttts-2",
+    "keywords": [
+      "ai",
+      "multimodal",
+      "stt",
+      "tts"
+    ]
+  },
+  {
+    "date": "2026-03-11",
+    "type": "news",
+    "domain": "AI",
+    "title": "GPT‑5.3 Instant, Gemini 3.1 Flash‑Lite, 그리고 Anthropic RSP 변화: 빅테크 AI 업데이트가 의미하는 것",
+    "slug": "gpt53-instant-gemini-31-flashlite-anthro-1",
+    "keywords": [
+      "ai",
+      "3.1",
+      "5.3",
+      "anthropic",
+      "flash",
+      "gemini",
+      "gpt",
+      "instant"
+    ]
+  },
+  {
+    "date": "2026-03-12",
+    "type": "tech",
+    "domain": "AI",
+    "title": "벡터DB 4대장(Pinecone·Weaviate·Qdrant·Chroma) 2026년 3월 실전 선택 가이드: “성능”은 벤치마크가 아니라 워크로드가 결정한다",
+    "slug": "db-4pineconeweaviateqdrantchroma-2026-3-2",
+    "keywords": [
+      "ai",
+      "rag",
+      "chroma",
+      "pinecone",
+      "qdrant",
+      "weaviate"
+    ]
+  },
+  {
+    "date": "2026-03-12",
+    "type": "news",
+    "domain": "AI",
+    "title": "EU·미국·중국이 동시에 조이는 AI 규제: “법안”을 넘어 “집행·가이드라인·윤리”의 싸움",
+    "slug": "eu-2026-3-ai-1",
+    "keywords": [
+      "ai"
+    ]
+  },
+  {
+    "date": "2026-03-13",
+    "type": "news",
+    "domain": "AI",
+    "title": "GPT·Claude·Gemini, ‘신규 LLM’ 러시: 무엇이 바뀌었고 개발자는 무엇을 준비해야 하나",
+    "slug": "gptclaudegemini-2026-3-llm-1",
+    "keywords": [
+      "ai",
+      "claude",
+      "gemini",
+      "gpt",
+      "llm"
+    ]
+  },
+  {
+    "date": "2026-03-13",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LLM 서빙 3대장(vLLM·TGI·Ollama) 2026년 3월판 배포 가이드: 로컬부터 프로덕션까지 “성능 곡선”으로 결정하기",
+    "slug": "llm-3vllmtgiollama-2026-3-2",
+    "keywords": [
+      "ai",
+      "mlops",
+      "llm",
+      "ollama",
+      "tgi",
+      "vllm"
+    ]
+  },
+  {
+    "date": "2026-03-14",
+    "type": "tech",
+    "domain": "AI",
+    "title": "도구를 “잘 쓰는” 에이전트 만들기: Function Calling 구현 심층 분석",
+    "slug": "2026-3-function-calling-2",
+    "keywords": [
+      "ai",
+      "agent",
+      "calling",
+      "function"
+    ]
+  },
+  {
+    "date": "2026-03-14",
+    "type": "news",
+    "domain": "AI",
+    "title": "3월(2026) AI 스타트업 투자·M&A, ‘모델’보다 ‘인프라/워크플로우’로 돈이 몰린다",
+    "slug": "32026-ai-ma-1",
+    "keywords": [
+      "ai"
+    ]
+  },
+  {
+    "date": "2026-03-15",
+    "type": "news",
+    "domain": "AI",
+    "title": "빅테크 AI “발표”보다 더 무서운 건 API/정책의 조용한 변경이다",
+    "slug": "2026-3-ai-api-1",
+    "keywords": [
+      "ai",
+      "api"
+    ]
+  },
+  {
+    "date": "2026-03-15",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Chain of Thought(CoT)를 “잘 쓰는” 법이 바뀌었다: 숨겨진 추론 시대의 프롬프트 최적화",
+    "slug": "2026-3-chain-of-thoughtcot-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "chain",
+      "cot",
+      "thought"
+    ]
+  },
+  {
+    "date": "2026-03-16",
+    "type": "news",
+    "domain": "AI",
+    "title": "EU는 ‘AI Act’ 손질(산업용 완화 vs sexual deepfakes 금지), 미국은 연방 대신 ‘소송·주(州) 법안’이 규칙을 만들고, 영국은 통신 분야 AI 사용을 공론화하는 등 AI 규제는 “단일 법”보다 “영역별 안전·투명성·윤리”로 빠르게 재편되고 있습니다.",
+    "slug": "eu-ai-act-vs-sexual-deepfakes-ai-2026-3--1",
+    "keywords": [
+      "ai",
+      "act",
+      "deepfakes",
+      "sexual"
+    ]
+  },
+  {
+    "date": "2026-03-16",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "FastAPI로 LLM API “진짜 스트리밍” 서버 만들기: SSE/StreamingResponse 함정과 설계 해법",
+    "slug": "fastapi-llm-api-2026-3-ssestreamingrespo-2",
+    "keywords": [
+      "backend",
+      "api",
+      "fastapi",
+      "llm",
+      "sse",
+      "streamingresponse"
+    ]
+  },
+  {
+    "date": "2026-03-17",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Cursor·Copilot·Windsurf로 “에이전트처럼” 코딩하기: 생산성 워크플로우 심층 가이드",
+    "slug": "cursorcopilotwindsurf-2026-3-2",
+    "keywords": [
+      "ai",
+      "coding",
+      "copilot",
+      "cursor",
+      "windsurf"
+    ]
+  },
+  {
+    "date": "2026-03-17",
+    "type": "news",
+    "domain": "AI",
+    "title": "GPT·Claude·Gemini, ‘신규 LLM’ 러시: 성능보다 중요한 건 “제품화 속도”다",
+    "slug": "gptclaudegemini-2026-3-llm-1",
+    "keywords": [
+      "ai",
+      "claude",
+      "gemini",
+      "gpt",
+      "llm"
+    ]
+  },
+  {
+    "date": "2026-03-18",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 에이전트 전쟁과 ‘거버넌스’의 부상: AI 스타트업 투자·인수합병 핵심만 정리",
+    "slug": "ai-2026-3-ai-1",
+    "keywords": [
+      "ai"
+    ]
+  },
+  {
+    "date": "2026-03-18",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LangSmith vs Langfuse: 2026년 3월, LLM 앱 모니터링/디버깅/비용 추적을 “Trace 표준(OTel)”로 통합하는 법",
+    "slug": "langsmith-vs-langfuse-2026-3-llm-trace-o-2",
+    "keywords": [
+      "ai",
+      "mlops",
+      "langfuse",
+      "langsmith",
+      "llm",
+      "otel",
+      "trace"
+    ]
+  },
+  {
+    "date": "2026-03-19",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Agentic RAG 자율 에이전트, “검색을 스스로 설계·검증하는” 구현 패턴",
+    "slug": "agentic-rag-2026-3-2",
+    "keywords": [
+      "ai",
+      "agent",
+      "agentic",
+      "rag"
+    ]
+  },
+  {
+    "date": "2026-03-19",
+    "type": "news",
+    "domain": "AI",
+    "title": "Codex Security·RSP 3.0·Gemini in Chrome: 2026년 3월, “모델 성능”보다 “운영·정책·보안”이 승부를 가른다",
+    "slug": "codex-securityrsp-30gemini-in-chrome-202-1",
+    "keywords": [
+      "ai",
+      "3.0",
+      "chrome",
+      "codex",
+      "gemini",
+      "rsp",
+      "security"
+    ]
+  },
+  {
+    "date": "2026-03-20",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 규제는 “법”보다 “시행 디테일”에서 갈린다: EU 라벨링 Code 초안·중국 정교 규제·미국은 주(州) 중심 실험",
+    "slug": "2026-3-ai-eu-code-1",
+    "keywords": [
+      "ai",
+      "code"
+    ]
+  },
+  {
+    "date": "2026-03-20",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LoRA/QLoRA로 LLM Fine-tuning을 “싸고 빠르게” 끝내는 실전 튜토리얼 (원리까지)",
+    "slug": "2026-3-loraqlora-llm-fine-tuning-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "fine-tuning",
+      "lora",
+      "qlora"
+    ]
+  },
+  {
+    "date": "2026-03-21",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "확장 가능한 AI 앱 아키텍처 설계 패턴: “단발성 Prompt”에서 “Durable Agent Runtime”으로",
+    "slug": "2026-3-ai-prompt-durable-agent-runtime-2",
+    "keywords": [
+      "backend",
+      "architecture",
+      "agent",
+      "durable",
+      "prompt",
+      "runtime"
+    ]
+  },
+  {
+    "date": "2026-03-21",
+    "type": "news",
+    "domain": "AI",
+    "title": "GPT·Claude·Gemini, “신규 모델 전쟁”의 초점은 성능이 아니라 **제품화**다",
+    "slug": "gptclaudegemini-2026-3-1",
+    "keywords": [
+      "ai",
+      "claude",
+      "gemini",
+      "gpt"
+    ]
+  },
+  {
+    "date": "2026-03-22",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 투자·M&A가 ‘에이전트’와 ‘컴퓨트’로 수렴하는 중: AI 스타트업 판도 변화",
+    "slug": "ai-ma-2026-3-ai-1",
+    "keywords": [
+      "ai"
+    ]
+  },
+  {
+    "date": "2026-03-22",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Vibe Coding 2026: AI로 “오늘 아이디어 → 내일 MVP” 만드는 초고속 프로토타이핑 레시피",
+    "slug": "vibe-coding-2026-ai-mvp-2",
+    "keywords": [
+      "ai",
+      "coding",
+      "mvp",
+      "vibe"
+    ]
+  },
+  {
+    "date": "2026-03-23",
+    "type": "news",
+    "domain": "AI",
+    "title": "OpenAI·Anthropic·Google, “API/정책/제품”이 동시에 흔들린 한 달",
+    "slug": "openaianthropicgoogle-2026-3-api-1",
+    "keywords": [
+      "ai",
+      "anthropic",
+      "api",
+      "google",
+      "openai"
+    ]
+  },
+  {
+    "date": "2026-03-23",
+    "type": "tech",
+    "domain": "AI",
+    "title": "멀티모달 VLM 실전 활용법: “이미지 이해 + Structured Output + Grounding”으로 제품에 붙이는 방법",
+    "slug": "vlm-2026-3-structured-output-grounding-2",
+    "keywords": [
+      "ai",
+      "multimodal",
+      "grounding",
+      "output",
+      "structured",
+      "vlm"
+    ]
+  },
+  {
+    "date": "2026-03-24",
+    "type": "news",
+    "domain": "AI",
+    "title": "미국은 ‘연방 단일 프레임워크(주(州) 규제 선점)’로, EU는 ‘GPAI 의무·집행 시계’로 간다: AI 규제·정책·윤리 트렌드 정리",
+    "slug": "eu-gpai-2026-3-ai-1",
+    "keywords": [
+      "ai",
+      "gpai"
+    ]
+  },
+  {
+    "date": "2026-03-24",
+    "type": "tech",
+    "domain": "AI",
+    "title": "HyDE + Reranking + Query Expansion: “검색 품질”로 RAG를 역전시키는 고급 최적화 레시피",
+    "slug": "hyde-reranking-query-expansion-2026-3-ra-2",
+    "keywords": [
+      "ai",
+      "rag",
+      "expansion",
+      "hyde",
+      "query",
+      "reranking"
+    ]
+  },
+  {
+    "date": "2026-03-25",
+    "type": "news",
+    "domain": "AI",
+    "title": "GPT·Claude·Gemini, ‘신규 모델 러시’—1M context와 Agent 기능이 전쟁터가 됐다",
+    "slug": "gptclaudegemini-2026-3-1m-context-agent-1",
+    "keywords": [
+      "ai",
+      "agent",
+      "claude",
+      "context",
+      "gemini",
+      "gpt"
+    ]
+  },
+  {
+    "date": "2026-03-25",
+    "type": "tech",
+    "domain": "AI",
+    "title": "MMLU·HumanEval 점수, 이제 그대로 믿으면 안 되는 이유: LLM 평가 벤치마크 심층 해부",
+    "slug": "mmluhumaneval-2026-3-llm-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "humaneval",
+      "mmlu"
+    ]
+  },
+  {
+    "date": "2026-03-26",
+    "type": "news",
+    "domain": "AI",
+    "title": "에이전트 전쟁, 인프라 자본, 그리고 ‘조용한 인수’: AI 스타트업 투자·M&A 3가지 신호",
+    "slug": "2026-3-ai-ma-3-1",
+    "keywords": [
+      "ai"
+    ]
+  },
+  {
+    "date": "2026-03-26",
+    "type": "tech",
+    "domain": "AI",
+    "title": "상태 머신으로 멀티 에이전트를 “운영”하라: 2026년 LangGraph·AutoGen(=MS Agent Framework)·CrewAI 심층 비교와 구현 패턴",
+    "slug": "2026-langgraphautogenms-agent-frameworkc-2",
+    "keywords": [
+      "ai",
+      "agent",
+      "autogen",
+      "crewai",
+      "framework",
+      "langgraph"
+    ]
+  },
+  {
+    "date": "2026-03-27",
+    "type": "news",
+    "domain": "AI",
+    "title": "3월 한 달, OpenAI·Anthropic·Google AI가 동시에 ‘제품+정책+API’ 판을 흔들었다",
+    "slug": "3-openaianthropicgoogle-ai-api-1",
+    "keywords": [
+      "ai",
+      "anthropic",
+      "api",
+      "google",
+      "openai"
+    ]
+  },
+  {
+    "date": "2026-03-27",
+    "type": "tech",
+    "domain": "AI",
+    "title": "AI가 UI를 “복붙 가능한 코드”로 뽑아주는 시대: v0 + bolt.new로 프론트엔드 자동화 워크플로우",
+    "slug": "ai-ui-v0-boltnew-2026-3-2",
+    "keywords": [
+      "ai",
+      "coding",
+      "bolt.new"
+    ]
+  },
+  {
+    "date": "2026-03-28",
+    "type": "tech",
+    "domain": "AI",
+    "title": "실시간 음성 에이전트 2026: STT/TTS가 아니라 ‘Audio-to-Audio’ 아키텍처 전쟁이 시작됐다",
+    "slug": "2026-stttts-audio-to-audio-2",
+    "keywords": [
+      "ai",
+      "multimodal",
+      "audio-to-audio",
+      "stt",
+      "tts"
+    ]
+  },
+  {
+    "date": "2026-03-28",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 규제, “원칙”에서 “집행/벌금/책임”으로: 각국 정책·윤리 이슈 총정리",
+    "slug": "ai-2026-3-1",
+    "keywords": [
+      "ai"
+    ]
+  },
+  {
+    "date": "2026-03-29",
+    "type": "tech",
+    "domain": "AI",
+    "title": "벡터DB 4대장(Pinecone·Weaviate·Qdrant·Chroma) 성능/운영 심층 비교: “내 RAG는 무엇을 선택해야 하나?”",
+    "slug": "2026-3-db-4pineconeweaviateqdrantchroma--2",
+    "keywords": [
+      "ai",
+      "rag",
+      "chroma",
+      "pinecone",
+      "qdrant",
+      "weaviate"
+    ]
+  },
+  {
+    "date": "2026-03-29",
+    "type": "news",
+    "domain": "AI",
+    "title": "GPT·Claude·Gemini, ‘LLM 신모델’ 러시 — 무엇이 바뀌었나?",
+    "slug": "gptclaudegemini-2026-3-llm-1",
+    "keywords": [
+      "ai",
+      "claude",
+      "gemini",
+      "gpt",
+      "llm"
+    ]
+  },
+  {
+    "date": "2026-03-30",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 스타트업 투자·M&A ‘3월 러시’: 인프라(merge) vs 크리에이티브(인수) vs Vector DB(대형 라운드)",
+    "slug": "ai-ma-3-merge-vs-vs-vector-db-1",
+    "keywords": [
+      "ai",
+      "merge",
+      "vector"
+    ]
+  },
+  {
+    "date": "2026-03-30",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LLM 서빙 3대장(vLLM·TGI·Ollama) 2026년 3월 배포 레시피: 로컬 인프라 최적화까지 한 번에",
+    "slug": "llm-3vllmtgiollama-2026-3-2",
+    "keywords": [
+      "ai",
+      "mlops",
+      "llm",
+      "ollama",
+      "tgi",
+      "vllm"
+    ]
+  },
+  {
+    "date": "2026-03-31",
+    "type": "tech",
+    "domain": "AI",
+    "title": "AI Agent의 “Tool Use + Function Calling”을 제대로 구현하는 법: 스키마·오케스트레이션·관측성까지",
+    "slug": "2026-3-ai-agent-tool-use-function-callin-2",
+    "keywords": [
+      "ai",
+      "agent",
+      "calling",
+      "function",
+      "tool",
+      "use"
+    ]
+  },
+  {
+    "date": "2026-03-31",
+    "type": "news",
+    "domain": "AI",
+    "title": "OpenAI·Anthropic·Google, ‘API/정책/모델’이 동시에 흔들렸다: 개발자가 체크해야 할 업데이트 지도",
+    "slug": "openaianthropicgoogle-2026-3-api-1",
+    "keywords": [
+      "ai",
+      "anthropic",
+      "api",
+      "google",
+      "openai"
+    ]
+  },
+  {
+    "date": "2026-04-01",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 규제 ‘적용 카운트다운’ 2026년 4월: EU AI Act 이행, 미국의 ‘연방 선점’ 기조, 그리고 투명성·저작권 전선",
+    "slug": "ai-2026-4-eu-ai-act-1",
+    "keywords": [
+      "ai",
+      "act"
+    ]
+  },
+  {
+    "date": "2026-04-01",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Chain-of-Thought(CoT) 프롬프트, 2026년식으로 다시 쓰기: “생각을 시키는” 대신 “생각이 잘 나오게” 설계하는 고급 프롬프트 최적화",
+    "slug": "chain-of-thoughtcot-2026-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "chain-of-thought",
+      "cot"
+    ]
+  },
+  {
+    "date": "2026-04-02",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "FastAPI로 LLM API 서버 “진짜 스트리밍” 만들기: SSE, Cancel, 프록시 버퍼링까지 한 번에 정리",
+    "slug": "fastapi-llm-api-2026-4-sse-cancel-2",
+    "keywords": [
+      "backend",
+      "api",
+      "cancel",
+      "fastapi",
+      "llm",
+      "sse"
+    ]
+  },
+  {
+    "date": "2026-04-02",
+    "type": "news",
+    "domain": "AI",
+    "title": "LLM 3강의 전초전: GPT‑5.4·Claude 4.6·Gemini 3.1이 만든 “개발자 체감” 경쟁",
+    "slug": "llm-3-2026-4-gpt54claude-46gemini-31-1",
+    "keywords": [
+      "ai",
+      "3.1",
+      "4.6",
+      "5.4",
+      "claude",
+      "gemini",
+      "gpt",
+      "llm"
+    ]
+  },
+  {
+    "date": "2026-04-03",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Cursor·Copilot·Windsurf로 “AI와 함께 코딩”을 설계하는 법: 실전 워크플로우",
+    "slug": "cursorcopilotwindsurf-ai-2026-4-2",
+    "keywords": [
+      "ai",
+      "coding",
+      "copilot",
+      "cursor",
+      "windsurf"
+    ]
+  },
+  {
+    "date": "2026-04-03",
+    "type": "news",
+    "domain": "AI",
+    "title": "OpenAI의 ‘미디어 인수’부터 Rebellions의 6,400억 프리IPO까지: AI 스타트업 투자·M&A 신호 읽기",
+    "slug": "openai-rebellions-6400-ipo-2026-4-ai-ma-1",
+    "keywords": [
+      "ai",
+      "ipo",
+      "openai",
+      "rebellions"
+    ]
+  },
+  {
+    "date": "2026-04-04",
+    "type": "news",
+    "domain": "AI",
+    "title": "빅테크 AI 업데이트가 ‘기능’보다 ‘운영·정책·비용’으로 넘어간 이유",
+    "slug": "2026-4-ai-1",
+    "keywords": [
+      "ai"
+    ]
+  },
+  {
+    "date": "2026-04-04",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LLM 앱 모니터링의 “진짜” 2026 스택: LangSmith vs Langfuse, 디버깅·품질·비용을 한 번에 잡는 법",
+    "slug": "llm-2026-langsmith-vs-langfuse-2",
+    "keywords": [
+      "ai",
+      "mlops",
+      "langfuse",
+      "langsmith",
+      "llm"
+    ]
+  },
+  {
+    "date": "2026-04-05",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 규제는 ‘국가별 파편화’로 가나: EU 집행 카운트다운 vs 미국 주(州) 중심 입법 전쟁",
+    "slug": "2026-4-ai-eu-vs-1",
+    "keywords": [
+      "ai"
+    ]
+  },
+  {
+    "date": "2026-04-05",
+    "type": "tech",
+    "domain": "AI",
+    "title": "에이전트가 “스스로 검색하고, 검증하고, 다시 검색하는” Agentic RAG 구현 가이드",
+    "slug": "agentic-rag-2026-4-2",
+    "keywords": [
+      "ai",
+      "agent",
+      "agentic",
+      "rag"
+    ]
+  },
+  {
+    "date": "2026-04-06",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LoRA·QLoRA로 LLM 파인튜닝을 “가볍게” 끝내는 법 (원리부터 TRL/PEFT 코드까지)",
+    "slug": "2026-4-loraqlora-llm-trlpeft-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "lora",
+      "peft",
+      "qlora",
+      "trl"
+    ]
+  },
+  {
+    "date": "2026-04-06",
+    "type": "news",
+    "domain": "AI",
+    "title": "GPT·Claude·Gemini, “신규 모델 레이스”의 진짜 포인트: 성능보다 중요한 건 출시 방식이다",
+    "slug": "gptclaudegemini-2026-4-1",
+    "keywords": [
+      "ai",
+      "claude",
+      "gemini",
+      "gpt"
+    ]
+  },
+  {
+    "date": "2026-04-07",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "AI 앱 아키텍처, 2026년 4월의 정답은 “분리(Decouple) + 상태(State) + 거버넌스(Governance)”다",
+    "slug": "ai-2026-4-decouple-state-governance-2",
+    "keywords": [
+      "backend",
+      "architecture",
+      "decouple",
+      "governance",
+      "state"
+    ]
+  },
+  {
+    "date": "2026-04-07",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 스타트업 투자·M&A, 2026년 4월에 “인프라·보안·바이오”로 돈이 몰린 이유",
+    "slug": "ai-ma-2026-4-1",
+    "keywords": [
+      "ai"
+    ]
+  },
+  {
+    "date": "2026-04-08",
+    "type": "news",
+    "domain": "AI",
+    "title": "OpenAI·Anthropic·Google의 “개발자 과금/정책/플랫폼” 전쟁이 시작됐다",
+    "slug": "2026-4-openaianthropicgoogle-1",
+    "keywords": [
+      "ai",
+      "anthropic",
+      "google",
+      "openai"
+    ]
+  },
+  {
+    "date": "2026-04-08",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Vibe Coding 2026: AI로 “감”을 코드로 바꾸는 초고속 프로토타이핑/MVP 개발 플레이북",
+    "slug": "vibe-coding-2026-ai-mvp-2",
+    "keywords": [
+      "ai",
+      "coding",
+      "mvp",
+      "vibe"
+    ]
+  },
+  {
+    "date": "2026-04-09",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 규제 “2차전”이 시작됐다: 2026년 4월, EU·미국(주정부)·한국이 동시에 흔든 정책/윤리 지형",
+    "slug": "ai-2-2026-4-eu-1",
+    "keywords": [
+      "ai"
+    ]
+  },
+  {
+    "date": "2026-04-09",
+    "type": "tech",
+    "domain": "AI",
+    "title": "멀티모달 Vision-Language Model 실전 활용법: “그림을 읽고, 근거를 뽑고, 구조화해 자동화까지”",
+    "slug": "vision-language-model-2026-4-2",
+    "keywords": [
+      "ai",
+      "multimodal",
+      "model",
+      "vision-language"
+    ]
+  },
+  {
+    "date": "2026-04-10",
+    "type": "news",
+    "domain": "AI",
+    "title": "GPT·Claude·Gemini, ‘신규 모델’의 키워드는 성능이 아니라 “통제된 배포”였다",
+    "slug": "gptclaudegemini-2026-4-1",
+    "keywords": [
+      "ai",
+      "claude",
+      "gemini",
+      "gpt"
+    ]
+  },
+  {
+    "date": "2026-04-10",
+    "type": "tech",
+    "domain": "AI",
+    "title": "HyDE·Reranking·Query Expansion 3종 세트로 RAG 정확도 끌어올리기: 고급 최적화 설계",
+    "slug": "hydererankingquery-expansion-3-rag-2026--2",
+    "keywords": [
+      "ai",
+      "rag",
+      "expansion",
+      "hyde",
+      "query",
+      "reranking"
+    ]
+  },
+  {
+    "date": "2026-04-11",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 스타트업 투자·인수합병, 2026년 4월에만 3가지 흐름이 갈라졌다: “Chip Design Automation”·“Bio/Healthcare”·“AI 미디어/평가”",
+    "slug": "ai-2026-4-3-chip-design-automationbiohea-1",
+    "keywords": [
+      "ai",
+      "automation",
+      "bio",
+      "chip",
+      "design",
+      "healthcare"
+    ]
+  },
+  {
+    "date": "2026-04-11",
+    "type": "tech",
+    "domain": "AI",
+    "title": "MMLU·HumanEval 점수, 이제 그대로 믿으면 위험한 이유 — 2026년 4월 기준 LLM 벤치마크 해석법",
+    "slug": "mmluhumaneval-2026-4-llm-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "humaneval",
+      "mmlu"
+    ]
+  },
+  {
+    "date": "2026-04-11",
+    "type": "news",
+    "domain": "AI",
+    "title": "OpenAI의 ‘미디어 인수’부터 Anthropic의 ‘AI‑바이오 M&A’까지: AI 스타트업 투자·인수합병 흐름 정리",
+    "slug": "openai-anthropic-ai-ma-2026-4-ai-1",
+    "keywords": [
+      "ai",
+      "anthropic",
+      "openai"
+    ]
+  },
+  {
+    "date": "2026-04-12",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LangGraph vs AutoGen vs CrewAI로 “멀티 에이전트”를 제대로 만드는 법 (프레임워크 비교 + 구현 패턴)",
+    "slug": "2026-4-langgraph-vs-autogen-vs-crewai-2",
+    "keywords": [
+      "ai",
+      "agent",
+      "autogen",
+      "crewai",
+      "langgraph"
+    ]
+  },
+  {
+    "date": "2026-04-12",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 빅테크 3사( OpenAI·Anthropic·Google ) 2026년 4월 업데이트 총정리: “API는 더 강해지고, 과금/정책은 더 촘촘해졌다”",
+    "slug": "ai-3-openaianthropicgoogle-2026-4-api-1",
+    "keywords": [
+      "ai",
+      "anthropic",
+      "api",
+      "google",
+      "openai"
+    ]
+  },
+  {
+    "date": "2026-04-13",
+    "type": "news",
+    "domain": "AI",
+    "title": "4월 한 달, AI 규제는 “EU는 시행 카운트다운, 미국은 연방 선점, 한국은 세계 최초 전면 시행”으로 갈라졌다",
+    "slug": "4-ai-eu-1",
+    "keywords": [
+      "ai"
+    ]
+  },
+  {
+    "date": "2026-04-13",
+    "type": "tech",
+    "domain": "AI",
+    "title": "UI를 “말로” 만들고, “코드로” 굳히는 시대: v0 + bolt.new로 프론트엔드 자동화 실전 가이드",
+    "slug": "ui-2026-4-v0-boltnew-2",
+    "keywords": [
+      "ai",
+      "coding",
+      "bolt.new"
+    ]
+  },
+  {
+    "date": "2026-04-14",
+    "type": "tech",
+    "domain": "AI",
+    "title": "멈칫(awkward pause) 없는 2026 실시간 Voice Agent: Streaming STT/TTS vs Speech-to-Speech Realtime의 승부처",
+    "slug": "awkward-pause-2026-voice-agent-streaming-2",
+    "keywords": [
+      "ai",
+      "multimodal",
+      "agent",
+      "awkward",
+      "pause",
+      "realtime",
+      "speech-to-speech",
+      "streaming"
+    ]
+  },
+  {
+    "date": "2026-04-14",
+    "type": "news",
+    "domain": "AI",
+    "title": "LLM “봄 신제품” 전쟁: GPT‑5.4, Claude Mythos(비공개), Gemini 3.1·Gemma 4가 바꾼 판도",
+    "slug": "llm-gpt54-claude-mythos-gemini-31gemma-4-1",
+    "keywords": [
+      "ai",
+      "3.1",
+      "5.4",
+      "claude",
+      "gemini",
+      "gemma",
+      "gpt",
+      "llm"
+    ]
+  },
+  {
+    "date": "2026-04-15",
+    "type": "tech",
+    "domain": "AI",
+    "title": "벡터DB 선택의 정답: Pinecone·Weaviate·Qdrant·Chroma “성능/비용/운영” 심층 비교",
+    "slug": "2026-4-db-pineconeweaviateqdrantchroma-2",
+    "keywords": [
+      "ai",
+      "rag",
+      "chroma",
+      "pinecone",
+      "qdrant",
+      "weaviate"
+    ]
+  },
+  {
+    "date": "2026-04-15",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 투자·M&A가 ‘제품’에서 ‘워크플로우’로 옮겨간다: AI 스타트업 딜 5가지 신호",
+    "slug": "ai-ma-2026-4-ai-5-1",
+    "keywords": [
+      "ai"
+    ]
+  },
+  {
+    "date": "2026-04-16",
+    "type": "news",
+    "domain": "AI",
+    "title": "4월 2026 빅테크 AI 업데이트 총정리: OpenAI는 “Responses/Batch 중심”, Anthropic은 “모델 세대교체+제한 강화”, Google은 “API·플랫폼 키 관리 리스크”가 핵심",
+    "slug": "4-2026-ai-openai-responsesbatch-anthropi-1",
+    "keywords": [
+      "ai",
+      "anthropic",
+      "api",
+      "batch",
+      "google",
+      "openai",
+      "responses"
+    ]
+  },
+  {
+    "date": "2026-04-16",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LLM 서빙 3대장(vLLM·TGI·Ollama) 2026년 4월 배포 가이드: 로컬/서버/쿠버네티스 최적화까지",
+    "slug": "llm-3vllmtgiollama-2026-4-2",
+    "keywords": [
+      "ai",
+      "mlops",
+      "llm",
+      "ollama",
+      "tgi",
+      "vllm"
+    ]
+  },
+  {
+    "date": "2026-04-17",
+    "type": "tech",
+    "domain": "AI",
+    "title": "AI Agent의 “Tool Use + Function Calling” 구현 패턴: 신뢰성/보안/확장성까지 한 번에 잡는 법",
+    "slug": "2026-4-ai-agent-tool-use-function-callin-2",
+    "keywords": [
+      "ai",
+      "agent",
+      "calling",
+      "function",
+      "tool",
+      "use"
+    ]
+  },
+  {
+    "date": "2026-04-17",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 규제, ‘강화’만 있는 게 아니다: 각국 정책·윤리 이슈 총정리",
+    "slug": "ai-2026-4-1",
+    "keywords": [
+      "ai"
+    ]
+  },
+  {
+    "date": "2026-04-18",
+    "type": "tech",
+    "domain": "AI",
+    "title": "AI PR 봇이 “리뷰 + 테스트 생성 + CI 검증”까지 끝내는 시대: 무엇을 자동화하고, 어디서 멈춰야 하나",
+    "slug": "ai-pr-ci-2026-4-2",
+    "keywords": [
+      "ai",
+      "coding"
+    ]
+  },
+  {
+    "date": "2026-04-18",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "LLM 백엔드 “Queued Forever”를 끝내는 법: Celery + Redis 비동기 워커 아키텍처 심층 분석",
+    "slug": "llm-queued-forever-celery-redis-2026-4-1",
+    "keywords": [
+      "backend",
+      "architecture",
+      "celery",
+      "forever",
+      "llm",
+      "queued",
+      "redis"
+    ]
+  },
+  {
+    "date": "2026-04-19",
+    "type": "tech",
+    "domain": "AI",
+    "title": "중복이 “학습 비용”을 태운다: 데이터 큐레이션 Dedup + Dataset Quality 전처리 실전 설계",
+    "slug": "2026-4-dedup-dataset-quality-1",
+    "keywords": [
+      "ai",
+      "data",
+      "dataset",
+      "dedup",
+      "quality"
+    ]
+  },
+  {
+    "date": "2026-04-19",
+    "type": "tech",
+    "domain": "AI",
+    "title": "토큰을 “덜 쓰고, 더 싸게” 쓰는 LLM Routing 설계 (비용 최적화 심층 가이드)",
+    "slug": "2026-4-llm-routing-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "routing"
+    ]
+  },
+  {
+    "date": "2026-04-20",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI IDE/CLI ‘에이전트’ 전쟁, 2026년 4월에 실무가 바뀌는 지점들",
+    "slug": "ai-idecli-2026-4-1",
+    "keywords": [
+      "ai",
+      "cli",
+      "ide"
+    ]
+  },
+  {
+    "date": "2026-04-20",
+    "type": "tech",
+    "domain": "AI",
+    "title": "RAG 성능을 바꾸는 건 “모델”이 아니라 “Chunk”다: Document Splitting/Overlap/Semantic Chunking 실전 전략",
+    "slug": "rag-chunk-2026-4-document-splittingoverl-2",
+    "keywords": [
+      "ai",
+      "rag",
+      "chunk",
+      "chunking",
+      "document",
+      "overlap",
+      "semantic",
+      "splitting"
+    ]
+  },
+  {
+    "date": "2026-04-21",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Embedding Model 3파전: OpenAI vs Cohere vs BGE, “우리 도메인”에서 이기는 선택법",
+    "slug": "2026-4-embedding-model-3-openai-vs-coher-1",
+    "keywords": [
+      "ai",
+      "rag",
+      "bge",
+      "cohere",
+      "embedding",
+      "model",
+      "openai"
+    ]
+  },
+  {
+    "date": "2026-04-21",
+    "type": "tech",
+    "domain": "AI",
+    "title": "벡터 RAG를 넘어: GraphRAG(지식 그래프 기반 RAG) 구현 실전 가이드",
+    "slug": "rag-2026-graphrag-rag-2",
+    "keywords": [
+      "ai",
+      "rag",
+      "graphrag"
+    ]
+  },
+  {
+    "date": "2026-04-22",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Claude용 MCP 서버를 “에이전트 확장 서버”로 제대로 구현하는 법: Streamable HTTP, 버전 호환, 그리고 보안까지",
+    "slug": "2026-4-claude-mcp-streamable-http-1",
+    "keywords": [
+      "ai",
+      "agent",
+      "claude",
+      "http",
+      "mcp",
+      "streamable"
+    ]
+  },
+  {
+    "date": "2026-04-22",
+    "type": "tech",
+    "domain": "AI",
+    "title": "컨텍스트 윈도우 이후의 세계: AI Agent 장기 메모리 + 상태 관리 구현 가이드",
+    "slug": "2026-ai-agent-2",
+    "keywords": [
+      "ai",
+      "agent"
+    ]
+  },
+  {
+    "date": "2026-04-23",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "429 한 번에 무너지지 않는 LLM API: rate limit retry/backoff 패턴 실전 설계",
+    "slug": "429-llm-api-2026-4-rate-limit-retrybacko-2",
+    "keywords": [
+      "backend",
+      "api",
+      "backoff",
+      "limit",
+      "llm",
+      "rate",
+      "retry"
+    ]
+  },
+  {
+    "date": "2026-04-23",
+    "type": "news",
+    "domain": "AI",
+    "title": "NVIDIA ‘Rubin’ 로드맵과 한국 NPU 실전 투입(리벨리온·퓨리오사AI) — 2026년 4월 AI 가속기 공급망의 진짜 변화",
+    "slug": "nvidia-rubin-npu-ai-2026-4-ai-1",
+    "keywords": [
+      "ai",
+      "npu",
+      "nvidia",
+      "rubin"
+    ]
+  },
+  {
+    "date": "2026-04-24",
+    "type": "tech",
+    "domain": "AI",
+    "title": "실무에서 바로 쓰는 Agentic RAG: “자율적 정보 검색 에이전트”를 LangGraph로 구현하는 설계/코드/함정 총정리",
+    "slug": "agentic-rag-langgraph-1",
+    "keywords": [
+      "ai",
+      "agent",
+      "agentic",
+      "langgraph",
+      "rag"
+    ]
+  },
+  {
+    "date": "2026-04-24",
+    "type": "tech",
+    "domain": "AI",
+    "title": "합성 데이터로 LLM 파인튜닝을 “공장화”하는 법: Synthetic Data Pipeline 심층 분석",
+    "slug": "llm-2026-synthetic-data-pipeline-2",
+    "keywords": [
+      "ai",
+      "data",
+      "llm",
+      "pipeline",
+      "synthetic"
+    ]
+  },
+  {
+    "date": "2026-04-25",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Chain of Thought(CoT) “강제”는 끝났다: 고급 프롬프트 최적화(숨은 추론·Self-Consistency·ReAct까지)",
+    "slug": "chain-of-thoughtcot-2026-self-consistenc-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "chain",
+      "cot",
+      "react",
+      "self-consistency",
+      "thought"
+    ]
+  },
+  {
+    "date": "2026-04-25",
+    "type": "tech",
+    "domain": "Infrastructure",
+    "title": "Kubernetes에서 LLM 서빙을 “GPU 기준”으로 오토스케일링하기: KServe(vLLM) + KEDA + DCGM, 그리고 노드까지 따라오는 설계",
+    "slug": "kubernetes-llm-gpu-kservevllm-keda-dcgm--1",
+    "keywords": [
+      "infra",
+      "kubernetes",
+      "dcgm",
+      "gpu",
+      "keda",
+      "kserve",
+      "llm",
+      "vllm"
+    ]
+  },
+  {
+    "date": "2026-04-26",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LoRA/QLoRA 파인튜닝: “VRAM 한계”를 설계로 이기는 실전 튜토리얼",
+    "slug": "2026-4-loraqlora-vram-1",
+    "keywords": [
+      "ai",
+      "llm",
+      "lora",
+      "qlora",
+      "vram"
+    ]
+  },
+  {
+    "date": "2026-04-26",
+    "type": "tech",
+    "domain": "AI",
+    "title": "FP8 KV-Cache부터 NVFP4까지: GPU LLM 서빙 최적화(quantization + 추론 가속) 실전 가이드",
+    "slug": "fp8-kv-cache-nvfp4-2026-4-gpu-llm-quanti-2",
+    "keywords": [
+      "ai",
+      "mlops",
+      "fp8",
+      "gpu",
+      "kv-cache",
+      "llm",
+      "nvfp4",
+      "quantization"
+    ]
+  },
+  {
+    "date": "2026-04-27",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 규제, “원칙”에서 “집행 일정”으로: 각국 정책·법안·윤리 이슈 총정리",
+    "slug": "ai-2026-4-1",
+    "keywords": [
+      "ai"
+    ]
+  },
+  {
+    "date": "2026-04-27",
+    "type": "tech",
+    "domain": "AI",
+    "title": "MMLU·HumanEval 점수, 그대로 믿으면 망합니다: LLM 벤치마크 “해석법” 심층 가이드",
+    "slug": "mmluhumaneval-2026-4-llm-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "humaneval",
+      "mmlu"
+    ]
+  },
+  {
+    "date": "2026-04-28",
+    "type": "tech",
+    "domain": "AI",
+    "title": "프레임을 “그냥 샘플링”하던 시대는 끝났다: 비디오 AI(understanding+generation) 파이프라인 설계 가이드",
+    "slug": "2026-4-aiunderstandinggeneration-2",
+    "keywords": [
+      "ai",
+      "multimodal",
+      "understanding+generation"
+    ]
+  },
+  {
+    "date": "2026-04-28",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LLM 앱은 왜 “느린지”가 아니라 “왜 그런 선택을 했는지”를 추적해야 한다: OpenTelemetry GenAI Tracing 심층 적용기",
+    "slug": "llm-2026-opentelemetry-genai-tracing-1",
+    "keywords": [
+      "ai",
+      "mlops",
+      "genai",
+      "llm",
+      "opentelemetry",
+      "tracing"
+    ]
+  },
+  {
+    "date": "2026-04-29",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Claude Code × Codex CLI 에이전트, “터미널 자동화 워크플로”로 써먹는 법",
+    "slug": "claude-code-codex-cli-2026-4-2",
+    "keywords": [
+      "ai",
+      "coding",
+      "claude",
+      "cli",
+      "code",
+      "codex"
+    ]
+  },
+  {
+    "date": "2026-04-29",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Cursor·Copilot·Windsurf(=Cascade)로 “진짜로” 생산성 올리는 법: 실전 워크플로우 심층 분석",
+    "slug": "cursorcopilotwindsurfcascade-2026-4-1",
+    "keywords": [
+      "ai",
+      "coding",
+      "cascade",
+      "copilot",
+      "cursor",
+      "windsurf"
+    ]
+  },
+  {
+    "date": "2026-04-30",
+    "type": "tech",
+    "domain": "AI",
+    "title": "vLLM·TGI·Ollama로 LLM 서빙 “진짜” 배포하기 (로컬/프로덕션/최적화까지)",
+    "slug": "2026-4-vllmtgiollama-llm-2",
+    "keywords": [
+      "ai",
+      "mlops",
+      "llm",
+      "ollama",
+      "tgi",
+      "vllm"
+    ]
+  },
+  {
+    "date": "2026-04-30",
+    "type": "news",
+    "domain": "AI",
+    "title": "PR 제목 하나로 CI의 API key가 새나간다: ‘prompt injection/jailbreak’이 “에이전트 런타임” 문제로 굳어진 이유",
+    "slug": "pr-ci-api-key-2026-4-prompt-injectionjai-1",
+    "keywords": [
+      "ai",
+      "api",
+      "injection",
+      "jailbreak",
+      "key",
+      "prompt"
+    ]
+  },
+  {
+    "date": "2026-05-01",
+    "type": "tech",
+    "domain": "AI",
+    "title": "컨텍스트는 길어졌는데 정답은 왜 가운데서 사라질까? — 2026년 LLM Long Context Compaction 실전 설계서",
+    "slug": "2026-llm-long-context-compaction-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "compaction",
+      "context",
+      "long"
+    ]
+  },
+  {
+    "date": "2026-05-01",
+    "type": "tech",
+    "domain": "AI",
+    "title": "프롬프트 캐싱으로 LLM 비용 70~90% 줄이는 법 (2026년 5월 기준: Anthropic vs OpenAI 실전 설계)",
+    "slug": "llm-7090-2026-5-anthropic-vs-openai-1",
+    "keywords": [
+      "ai",
+      "llm",
+      "anthropic",
+      "openai"
+    ]
+  },
+  {
+    "date": "2026-05-02",
+    "type": "tech",
+    "domain": "AI",
+    "title": "“AI Agent의 Tool Use/Function Calling”을 프로덕션에 넣는 법: Responses API + Agents SDK 패턴 정리",
+    "slug": "2026-5-ai-agent-tool-usefunction-calling-2",
+    "keywords": [
+      "ai",
+      "agent",
+      "agents",
+      "api",
+      "calling",
+      "function",
+      "responses",
+      "sdk"
+    ]
+  },
+  {
+    "date": "2026-05-02",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Supervisor/Worker 패턴으로 멀티 에이전트 오케스트레이션 “운영 가능”하게 만들기",
+    "slug": "supervisorworker-2026-5-1",
+    "keywords": [
+      "ai",
+      "agent",
+      "supervisor",
+      "worker"
+    ]
+  },
+  {
+    "date": "2026-05-03",
+    "type": "tech",
+    "domain": "AI",
+    "title": "BM25와 Vector를 “그냥 섞지 말자”: Hybrid Search 랭킹 병합(RRF/정규화/가중치) 실전 가이드",
+    "slug": "bm25-vector-2026-hybrid-search-rrf-2",
+    "keywords": [
+      "ai",
+      "rag",
+      "bm25",
+      "hybrid",
+      "rrf",
+      "search",
+      "vector"
+    ]
+  },
+  {
+    "date": "2026-05-03",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Vibe Coding 2026년 5월: “AI로 MVP를 빨리 만든다”를 실제로 **성공**시키는 프로토타이핑 아키텍처",
+    "slug": "vibe-coding-2026-5-ai-mvp-1",
+    "keywords": [
+      "ai",
+      "coding",
+      "mvp",
+      "vibe"
+    ]
+  },
+  {
+    "date": "2026-05-04",
+    "type": "tech",
+    "domain": "AI",
+    "title": "HyDE × Reranking × Query Expansion: RAG 성능 최적화 “3단 부스터” 설계 가이드",
+    "slug": "hyde-reranking-query-expansion-2026-rag--2",
+    "keywords": [
+      "ai",
+      "rag",
+      "expansion",
+      "hyde",
+      "query",
+      "reranking"
+    ]
+  },
+  {
+    "date": "2026-05-04",
+    "type": "news",
+    "domain": "AI",
+    "title": "파일럿은 넘치는데 P&L은 조용하다: 2026년 5월, 엔터프라이즈 AI 도입의 ‘ROI 격차’와 멀티에이전트 확산",
+    "slug": "pl-2026-5-ai-roi-1",
+    "keywords": [
+      "ai",
+      "roi"
+    ]
+  },
+  {
+    "date": "2026-05-05",
+    "type": "tech",
+    "domain": "AI",
+    "title": "임베딩 모델 3파전: OpenAI vs Cohere vs BGE-M3, “내 도메인”에 맞게 고르는 법",
+    "slug": "2026-5-3-openai-vs-cohere-vs-bge-m3-2",
+    "keywords": [
+      "ai",
+      "rag",
+      "bge-m3",
+      "cohere",
+      "openai"
+    ]
+  },
+  {
+    "date": "2026-05-05",
+    "type": "tech",
+    "domain": "AI",
+    "title": "5월 2026 벡터DB 선택 가이드: Pinecone vs Weaviate vs Qdrant vs Chroma, “성능”을 제대로 비교하는 법",
+    "slug": "5-2026-db-pinecone-vs-weaviate-vs-qdrant-1",
+    "keywords": [
+      "ai",
+      "rag",
+      "chroma",
+      "pinecone",
+      "qdrant",
+      "weaviate"
+    ]
+  },
+  {
+    "date": "2026-05-06",
+    "type": "tech",
+    "domain": "AI",
+    "title": "컨텍스트 윈도우를 넘어서: AI Agent 장·단기 메모리와 Long-term 상태 관리 구현 패턴",
+    "slug": "2026-ai-agent-long-term-1",
+    "keywords": [
+      "ai",
+      "agent",
+      "long-term"
+    ]
+  },
+  {
+    "date": "2026-05-06",
+    "type": "tech",
+    "domain": "AI",
+    "title": "RAG 성능을 갈라버리는 2026년형 Chunking 설계: overlap vs semantic chunking, 그리고 “문서 구조”를 이기는 방법",
+    "slug": "rag-2026-chunking-overlap-vs-semantic-ch-2",
+    "keywords": [
+      "ai",
+      "rag",
+      "chunking",
+      "overlap",
+      "semantic"
+    ]
+  },
+  {
+    "date": "2026-05-07",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "프롬프트 인젝션이 “절대 안 뚫리는” 시대는 오지 않는다 — 2026년 5월 기준 LLM Guardrail 설계 실전 가이드",
+    "slug": "2026-5-llm-guardrail-2",
+    "keywords": [
+      "backend",
+      "security",
+      "guardrail",
+      "llm"
+    ]
+  },
+  {
+    "date": "2026-05-07",
+    "type": "news",
+    "domain": "AI",
+    "title": "5월(2026) 빅테크 AI API 업데이트 총정리: “모델 성능”보다 더 큰 변화는 운영(Ops)과 한도, 그리고 비동기",
+    "slug": "52026-ai-api-ops-1",
+    "keywords": [
+      "ai",
+      "api",
+      "ops"
+    ]
+  },
+  {
+    "date": "2026-05-08",
+    "type": "tech",
+    "domain": "AI",
+    "title": "합성 데이터로 LLM을 “가르칠” 것인가: 2026년식 Synthetic Data 파이프라인(생성→검증→선별→파인튜닝) 심층 가이드",
+    "slug": "llm-2026-synthetic-data-2",
+    "keywords": [
+      "ai",
+      "data",
+      "llm",
+      "synthetic"
+    ]
+  },
+  {
+    "date": "2026-05-08",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Streamlit vs Gradio: “하루 만에 AI 데모 UI”를 제대로 만드는 선택과 설계",
+    "slug": "streamlit-vs-gradio-2026-5-ai-ui-1",
+    "keywords": [
+      "ai",
+      "prototyping",
+      "gradio",
+      "streamlit"
+    ]
+  },
+  {
+    "date": "2026-05-09",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "LLM API 429 지옥에서 살아남기: Rate Limit Retry/Backoff “정답 패턴” 심층 분석",
+    "slug": "llm-api-429-2026-5-rate-limit-retrybacko-1",
+    "keywords": [
+      "backend",
+      "api",
+      "backoff",
+      "limit",
+      "llm",
+      "rate",
+      "retry"
+    ]
+  },
+  {
+    "date": "2026-05-09",
+    "type": "tech",
+    "domain": "AI",
+    "title": "MCP 서버로 Claude를 “내 인프라에 붙이는” 방법: 구현 패턴과 함정 총정리",
+    "slug": "mcp-claude-2026-5-2",
+    "keywords": [
+      "ai",
+      "agent",
+      "claude",
+      "mcp"
+    ]
+  },
+  {
+    "date": "2026-05-10",
+    "type": "tech",
+    "domain": "Infrastructure",
+    "title": "GPU 오토스케일링, “정답”은 GPU%가 아니라 KV Cache·Queue·SLO다",
+    "slug": "gpu-2026-5-gpu-kv-cachequeueslo-1",
+    "keywords": [
+      "infra",
+      "kubernetes",
+      "cache",
+      "gpu",
+      "queue",
+      "slo"
+    ]
+  },
+  {
+    "date": "2026-05-10",
+    "type": "tech",
+    "domain": "AI",
+    "title": "v0와 bolt.new로 “UI 생산라인” 만들기: 프론트엔드 자동화 심층 튜토리얼",
+    "slug": "v0-boltnew-ui-2026-5-2",
+    "keywords": [
+      "ai",
+      "coding",
+      "bolt.new"
+    ]
+  },
+  {
+    "date": "2026-05-11",
+    "type": "news",
+    "domain": "AI",
+    "title": "에이전트가 IDE를 집어삼키는 2026년 5월: Kiro·Copilot·Codex·Cursor가 바꾼 개발자 도구 전쟁",
+    "slug": "ide-2026-5-kirocopilotcodexcursor-1",
+    "keywords": [
+      "ai",
+      "codex",
+      "copilot",
+      "cursor",
+      "ide",
+      "kiro"
+    ]
+  },
+  {
+    "date": "2026-05-11",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "LLM 백엔드 비동기 처리, “Celery + Redis”로 끝내도 될까? (2026년 5월 기준 Queue/Worker 아키텍처 심층 분석)",
+    "slug": "llm-celery-redis-2026-5-queueworker-2",
+    "keywords": [
+      "backend",
+      "architecture",
+      "celery",
+      "llm",
+      "queue",
+      "redis",
+      "worker"
+    ]
+  },
+  {
+    "date": "2026-05-12",
+    "type": "tech",
+    "domain": "AI",
+    "title": "프로젝트에 “눈”을 달아주는 VLM(Vision-Language Model) 활용법: 문서·스크린샷·차트 분석을 프로덕션에 넣는 방법",
+    "slug": "2026-5-vlmvision-language-model-2",
+    "keywords": [
+      "ai",
+      "multimodal",
+      "model",
+      "vision-language",
+      "vlm"
+    ]
+  },
+  {
+    "date": "2026-05-12",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LLM 앱이 ‘왜/어디서’ 무너지는지 한 번에 추적하기: 2026년 OpenTelemetry GenAI Tracing 실전 가이드",
+    "slug": "llm-2026-opentelemetry-genai-tracing-1",
+    "keywords": [
+      "ai",
+      "mlops",
+      "genai",
+      "llm",
+      "opentelemetry",
+      "tracing"
+    ]
+  },
+  {
+    "date": "2026-05-13",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "“확장 가능한 AI 앱”을 만드는 6가지 아키텍처 설계 패턴: MCP·Durable Execution·Observability까지",
+    "slug": "2026-5-ai-6-mcpdurable-executionobservab-2",
+    "keywords": [
+      "backend",
+      "architecture",
+      "durable",
+      "execution",
+      "mcp",
+      "observability"
+    ]
+  },
+  {
+    "date": "2026-05-13",
+    "type": "tech",
+    "domain": "AI",
+    "title": "배치 추론으로 LLM 비용 50% 줄이기: “Batch Inference API” 대량 처리 비용 설계 가이드",
+    "slug": "llm-50-2026-5-batch-inference-api-1",
+    "keywords": [
+      "ai",
+      "mlops",
+      "api",
+      "batch",
+      "inference",
+      "llm"
+    ]
+  },
+  {
+    "date": "2026-05-14",
+    "type": "news",
+    "domain": "AI",
+    "title": "5월(2026) 오픈소스 모델 전쟁: Llama·Mistral·Qwen “공개”의 의미가 갈라지기 시작했다",
+    "slug": "52026-llamamistralqwen-1",
+    "keywords": [
+      "ai",
+      "llama",
+      "mistral",
+      "qwen"
+    ]
+  },
+  {
+    "date": "2026-05-14",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LLM으로 “에러를 디버깅하는 법”: 기준, Trace 기반 Error Analysis 워크플로 실전 설계",
+    "slug": "llm-2026-5-trace-error-analysis-2",
+    "keywords": [
+      "ai",
+      "coding",
+      "analysis",
+      "error",
+      "llm",
+      "trace"
+    ]
+  },
+  {
+    "date": "2026-05-15",
+    "type": "tech",
+    "domain": "AI",
+    "title": "프레임을 “샘플링”하던 시대는 끝났다: 비디오 AI(Understanding/Generation)와 프레임 분석 파이프라인 설계법",
+    "slug": "2026-5-aiunderstandinggeneration-2",
+    "keywords": [
+      "ai",
+      "multimodal",
+      "generation",
+      "understanding"
+    ]
+  },
+  {
+    "date": "2026-05-15",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Claude Code + Codex CLI 에이전트로 “터미널에서 끝나는” 자동화 코딩 워크플로 만들기",
+    "slug": "claude-code-codex-cli-2026-5-1",
+    "keywords": [
+      "ai",
+      "coding",
+      "claude",
+      "cli",
+      "code",
+      "codex"
+    ]
+  },
+  {
+    "date": "2026-05-16",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "FastAPI로 LLM API 서버를 “진짜 스트리밍”으로 만들기: SSE/백프레셔/취소까지",
+    "slug": "fastapi-llm-api-sse-2026-5-1",
+    "keywords": [
+      "backend",
+      "api",
+      "fastapi",
+      "llm",
+      "sse"
+    ]
+  },
+  {
+    "date": "2026-05-16",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Function Calling으로 “에이전트답게” 만들기: Tool Use 구현 패턴과 실전 설계",
+    "slug": "function-calling-2026-5-tool-use-2",
+    "keywords": [
+      "ai",
+      "agent",
+      "calling",
+      "function",
+      "tool",
+      "use"
+    ]
+  },
+  {
+    "date": "2026-05-17",
+    "type": "tech",
+    "domain": "AI",
+    "title": "MMLU·HumanEval 점수에 속지 마라: LLM 벤치마크를 “내 프로젝트 관점”으로 해석하는 법",
+    "slug": "mmluhumaneval-2026-5-llm-1",
+    "keywords": [
+      "ai",
+      "llm",
+      "humaneval",
+      "mmlu"
+    ]
+  },
+  {
+    "date": "2026-05-17",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Next.js + Vercel AI SDK로 “진짜” Fullstack AI 앱 만드는 법: streaming, tool calling, agent loop까지 한 번에",
+    "slug": "nextjs-vercel-ai-sdk-fullstack-ai-2026-5-2",
+    "keywords": [
+      "ai",
+      "prototyping",
+      "agent",
+      "calling",
+      "fullstack",
+      "loop",
+      "next.js",
+      "sdk"
+    ]
+  },
+  {
+    "date": "2026-05-18",
+    "type": "news",
+    "domain": "AI",
+    "title": "“Prompt Injection은 이론”이 끝났다: AI Agent/코딩봇 탈옥이 실무 보안을 흔드는 방식",
+    "slug": "2026-5-prompt-injection-ai-agent-1",
+    "keywords": [
+      "ai",
+      "agent",
+      "injection",
+      "prompt"
+    ]
+  },
+  {
+    "date": "2026-05-18",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Cursor·Copilot·Windsurf를 “내 레포에 붙여서” 생산성 2배 뽑는 법",
+    "slug": "cursorcopilotwindsurf-2-2026-5-2",
+    "keywords": [
+      "ai",
+      "coding",
+      "copilot",
+      "cursor",
+      "windsurf"
+    ]
+  },
+  {
+    "date": "2026-05-19",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Embedding 모델 3파전(OpenAI vs Cohere vs BGE-M3): “우리 도메인”에서 이기는 선택법",
+    "slug": "2026-5-embedding-3openai-vs-cohere-vs-bg-1",
+    "keywords": [
+      "ai",
+      "rag",
+      "bge-m3",
+      "cohere",
+      "embedding",
+      "openai"
+    ]
+  },
+  {
+    "date": "2026-05-19",
+    "type": "tech",
+    "domain": "AI",
+    "title": "토큰을 “덜 쓰는” 게 아니라 “비싼 토큰을 안 쓰는” 법: LLM API 비용 최적화 Routing 심층 가이드",
+    "slug": "2026-5-llm-api-routing-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "api",
+      "routing"
+    ]
+  },
+  {
+    "date": "2026-05-20",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LLM 앱이 “조용히” 망가질 때: LangSmith vs Langfuse로 모니터링·디버깅·비용 추적까지 설계하기",
+    "slug": "llm-2026-5-langsmith-vs-langfuse-1",
+    "keywords": [
+      "ai",
+      "mlops",
+      "langfuse",
+      "langsmith",
+      "llm"
+    ]
+  },
+  {
+    "date": "2026-05-20",
+    "type": "tech",
+    "domain": "AI",
+    "title": "프롬프트 캐싱으로 LLM 비용 30~80% 줄이기: OpenAI vs Anthropic (2026년 5월 실전 최적화)",
+    "slug": "llm-3080-openai-vs-anthropic-2026-5-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "anthropic",
+      "openai"
+    ]
+  },
+  {
+    "date": "2026-05-21",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 스타트업 투자·M&A가 “모델”에서 “Inference/보안/플랫폼”으로 이동 중 (2026년 5월 결산)",
+    "slug": "ai-ma-inference-2026-5-1",
+    "keywords": [
+      "ai",
+      "inference"
+    ]
+  },
+  {
+    "date": "2026-05-21",
+    "type": "tech",
+    "domain": "AI",
+    "title": "FP8 KV Cache부터 INT4 Weight-Only까지: GPU LLM 서빙 최적화(Quantization·추론 가속) 실전 가이드",
+    "slug": "fp8-kv-cache-int4-weight-only-2026-5-gpu-2",
+    "keywords": [
+      "ai",
+      "mlops",
+      "cache",
+      "fp8",
+      "gpu",
+      "int4",
+      "llm",
+      "quantization"
+    ]
+  },
+  {
+    "date": "2026-05-22",
+    "type": "tech",
+    "domain": "AI",
+    "title": "vLLM·TGI·Ollama 배포 실전 가이드: “로컬→프로덕션” 서빙 인프라/최적화 의사결정까지",
+    "slug": "2026-5-vllmtgiollama-2",
+    "keywords": [
+      "ai",
+      "mlops",
+      "ollama",
+      "tgi",
+      "vllm"
+    ]
+  },
+  {
+    "date": "2026-05-22",
+    "type": "tech",
+    "domain": "AI",
+    "title": "중복 제거(dedup)가 LLM 학습 데이터 품질을 “결정”하는 이유: 2026년식 데이터 큐레이션 파이프라인 실전 가이드",
+    "slug": "dedup-llm-2026-1",
+    "keywords": [
+      "ai",
+      "data",
+      "dedup",
+      "llm"
+    ]
+  },
+  {
+    "date": "2026-05-23",
+    "type": "tech",
+    "domain": "AI",
+    "title": "AI PR 봇이 “리뷰 + 테스트 생성”까지 맡는 시대: 바로 도입 가능한 아키텍처와 함정들",
+    "slug": "ai-pr-2026-5-2",
+    "keywords": [
+      "ai",
+      "coding"
+    ]
+  },
+  {
+    "date": "2026-05-23",
+    "type": "tech",
+    "domain": "AI",
+    "title": "MCP 서버 구현, “Claude용 에이전트 확장 서버”를 프로덕션에 올리는 법",
+    "slug": "mcp-2026-5-claude-1",
+    "keywords": [
+      "ai",
+      "agent",
+      "claude",
+      "mcp"
+    ]
+  },
+  {
+    "date": "2026-05-24",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Chain of Thought를 “드러내지 않고” 성능만 끌어올리기: 고급 프롬프트 최적화 실전 패턴",
+    "slug": "chain-of-thought-2026-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "chain",
+      "thought"
+    ]
+  },
+  {
+    "date": "2026-05-24",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Vibe Coding으로 2주짜리 MVP를 2일로 줄이는 법: AI 프로토타이핑 “진짜” 빠른 개발 루프",
+    "slug": "vibe-coding-2-mvp-2-2026-5-ai-1",
+    "keywords": [
+      "ai",
+      "coding",
+      "mvp",
+      "vibe"
+    ]
+  },
+  {
+    "date": "2026-05-25",
+    "type": "news",
+    "domain": "AI",
+    "title": "EU·미국·주(州)정부까지… 2026년 5월, “AI 규제”가 개발 프로세스를 바꾸기 시작했다",
+    "slug": "eu-2026-5-ai-1",
+    "keywords": [
+      "ai"
+    ]
+  },
+  {
+    "date": "2026-05-25",
+    "type": "tech",
+    "domain": "AI",
+    "title": "RAG 성능의 천장을 결정하는 2026년식 Chunking/Document Splitting 전략 (Overlap vs Semantic Chunking 실전 가이드)",
+    "slug": "rag-2026-chunkingdocument-splitting-over-2",
+    "keywords": [
+      "ai",
+      "rag",
+      "chunking",
+      "document",
+      "overlap",
+      "semantic",
+      "splitting"
+    ]
+  },
+  {
+    "date": "2026-05-26",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Agentic RAG 자율 에이전트 구현, “프로덕션”에 올리는 법 (LangGraph 중심)",
+    "slug": "agentic-rag-2026-5-langgraph-1",
+    "keywords": [
+      "ai",
+      "agent",
+      "agentic",
+      "langgraph",
+      "rag"
+    ]
+  },
+  {
+    "date": "2026-05-26",
+    "type": "tech",
+    "domain": "AI",
+    "title": "BM25+Vector 하이브리드 검색, 2026년 RAG의 “마지막 20%”를 채우는 랭킹 병합 전략 (RRF vs Weighted)",
+    "slug": "bm25vector-2026-rag-20-rrf-vs-weighted-2",
+    "keywords": [
+      "ai",
+      "rag",
+      "bm25+vector",
+      "rrf",
+      "weighted"
+    ]
+  },
+  {
+    "date": "2026-05-27",
+    "type": "tech",
+    "domain": "AI",
+    "title": "컨텍스트가 1M 토큰이어도 망한다: 2026년식 LLM Long Context Compaction으로 “Lost in the Middle” 잡는 법",
+    "slug": "1m-2026-llm-long-context-compaction-lost-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "compaction",
+      "context",
+      "long",
+      "lost",
+      "middle"
+    ]
+  },
+  {
+    "date": "2026-05-27",
+    "type": "tech",
+    "domain": "Infrastructure",
+    "title": "GPU 오토스케일링 2026: Kubernetes에서 LLM 서빙을 “GPU 기준”으로 제대로 스케일하는 법 (HPA/KEDA/DCGM/DRA/MIG 실전 조합)",
+    "slug": "gpu-2026-kubernetes-llm-gpu-hpakedadcgmd-1",
+    "keywords": [
+      "infra",
+      "kubernetes",
+      "dcgm",
+      "dra",
+      "gpu",
+      "hpa",
+      "keda",
+      "llm"
+    ]
+  },
+  {
+    "date": "2026-05-28",
+    "type": "news",
+    "domain": "AI",
+    "title": "arXiv가 말해준 현실: “모델 성능”보다 “평가·검색·커널”이 더 중요해졌다",
+    "slug": "2026-5-arxiv-1",
+    "keywords": [
+      "ai",
+      "arxiv"
+    ]
+  },
+  {
+    "date": "2026-05-28",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LLM Structured Output에서 “JSON mode + JSON Schema 강제”를 제대로 쓰려면 알아야 할 제약들",
+    "slug": "2026-5-llm-structured-output-json-mode-j-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "json",
+      "mode",
+      "output",
+      "schema",
+      "structured"
+    ]
+  },
+  {
+    "date": "2026-05-29",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Claude Code × Codex CLI 에이전트로 “터미널에서 끝내는” 자동화 워크플로",
+    "slug": "claude-code-codex-cli-2026-5-2",
+    "keywords": [
+      "ai",
+      "coding",
+      "claude",
+      "cli",
+      "code",
+      "codex"
+    ]
+  },
+  {
+    "date": "2026-05-29",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LLM 시대의 OCR Document AI: “레이아웃 + 스키마 + 검증”으로 표·PDF를 구조화 추출하는 법",
+    "slug": "llm-2026-5-ocr-document-ai-pdf-1",
+    "keywords": [
+      "ai",
+      "multimodal",
+      "document",
+      "llm",
+      "ocr",
+      "pdf"
+    ]
+  },
+  {
+    "date": "2026-05-30",
+    "type": "tech",
+    "domain": "AI",
+    "title": "AI Agent “Tool Use + Function Calling”을 프로덕션에 넣는 구현 패턴 (Responses API · Agents SDK · MCP)",
+    "slug": "2026-5-ai-agent-tool-use-function-callin-1",
+    "keywords": [
+      "ai",
+      "agent",
+      "agents",
+      "api",
+      "calling",
+      "function",
+      "mcp",
+      "responses"
+    ]
+  },
+  {
+    "date": "2026-05-30",
+    "type": "tech",
+    "domain": "AI",
+    "title": "합성 데이터로 LLM 파인튜닝 “진짜 성능” 뽑는 법: Synthetic Data 파이프라인 설계 가이드",
+    "slug": "llm-2026-5-synthetic-data-2",
+    "keywords": [
+      "ai",
+      "data",
+      "llm",
+      "synthetic"
+    ]
+  },
+  {
+    "date": "2026-05-31",
+    "type": "tech",
+    "domain": "AI",
+    "title": "벡터DB, “진짜” 선택 가이드: Pinecone vs Weaviate vs Qdrant vs Chroma 성능/비용/운영 트레이드오프",
+    "slug": "db-2026-5-pinecone-vs-weaviate-vs-qdrant-2",
+    "keywords": [
+      "ai",
+      "rag",
+      "chroma",
+      "pinecone",
+      "qdrant",
+      "weaviate"
+    ]
+  },
+  {
+    "date": "2026-05-31",
+    "type": "tech",
+    "domain": "Infrastructure",
+    "title": "서버리스 LLM 배포: Modal vs Runpod vs AWS Lambda, 그리고 Cold Start를 “설계로” 이기는 법",
+    "slug": "llm-2026-5-modal-vs-runpod-vs-aws-lambda-1",
+    "keywords": [
+      "infra",
+      "serverless",
+      "aws",
+      "cold",
+      "lambda",
+      "llm",
+      "modal",
+      "runpod"
+    ]
+  },
+  {
+    "date": "2026-06-01",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Next.js + Vercel AI SDK로 “진짜” Fullstack AI 앱을 만드는 법 (스트리밍/툴콜/운영 함정까지)",
+    "slug": "2026-6-nextjs-vercel-ai-sdk-fullstack-ai-2",
+    "keywords": [
+      "ai",
+      "prototyping",
+      "fullstack",
+      "next.js",
+      "sdk",
+      "vercel"
+    ]
+  },
+  {
+    "date": "2026-06-01",
+    "type": "news",
+    "domain": "AI",
+    "title": "OpenAI·Anthropic·Google “API 전쟁”의 초점이 모델이 아니라 **DX·정책·비용**으로 옮겨갔다",
+    "slug": "2026-6-openaianthropicgoogle-api-dx-1",
+    "keywords": [
+      "ai",
+      "anthropic",
+      "api",
+      "google",
+      "openai"
+    ]
+  },
+  {
+    "date": "2026-06-02",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "“돌아가는 데모”를 “확장 가능한 AI 앱”으로 바꾸는 아키텍처 설계 패턴 7가지",
+    "slug": "2026-6-ai-7-2",
+    "keywords": [
+      "backend",
+      "architecture"
+    ]
+  },
+  {
+    "date": "2026-06-02",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "프롬프트 인젝션은 “막는 기술”이 아니라 “신뢰 경계(trust boundary)를 설계”하는 문제다: LLM Guardrail 심층 분석",
+    "slug": "trust-boundary-2026-6-llm-guardrail-1",
+    "keywords": [
+      "backend",
+      "security",
+      "boundary",
+      "guardrail",
+      "llm",
+      "trust"
+    ]
+  },
+  {
+    "date": "2026-06-03",
+    "type": "tech",
+    "domain": "AI",
+    "title": "v0.dev + bolt.new로 “프론트엔드 v0(=0→1 UI)”를 뽑아내는 2026년 6월형 워크플로우: 자동화의 이득과 부채를 동시에 설계하기",
+    "slug": "v0dev-boltnew-v001-ui-2026-6-2",
+    "keywords": [
+      "ai",
+      "coding",
+      "bolt.new",
+      "v0.dev"
+    ]
+  },
+  {
+    "date": "2026-06-03",
+    "type": "tech",
+    "domain": "AI",
+    "title": "멀티모달 Vision-Language Model, 2026년 6월에 “프로덕션에 넣는” 활용법: Structured Outputs + Vision 파이프라인 설계",
+    "slug": "vision-language-model-2026-6-structured--1",
+    "keywords": [
+      "ai",
+      "multimodal",
+      "model",
+      "outputs",
+      "structured",
+      "vision",
+      "vision-language"
+    ]
+  },
+  {
+    "date": "2026-06-04",
+    "type": "tech",
+    "domain": "AI",
+    "title": "토큰을 70% 줄이는 2026년식 LLM 비용 최적화: **Prompt Caching + 모델 Routing** 실전 설계",
+    "slug": "70-2026-llm-prompt-caching-routing-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "caching",
+      "prompt",
+      "routing"
+    ]
+  },
+  {
+    "date": "2026-06-04",
+    "type": "news",
+    "domain": "AI",
+    "title": "Blackwell 이후의 판이 바뀐다: AI 반도체(GPU/NPU) 뉴스로 읽는 공급망·개발자 전략",
+    "slug": "blackwell-2026-6-ai-gpunpu-1",
+    "keywords": [
+      "ai",
+      "blackwell",
+      "gpu",
+      "npu"
+    ]
+  },
+  {
+    "date": "2026-06-05",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Cursor·Copilot·Windsurf를 “팀 생산성 파이프라인”으로 쓰는 법: 컨텍스트(AGENTS.md)·규칙(Rules)·에이전트 모드 실전 운영",
+    "slug": "2026-6-cursorcopilotwindsurf-agentsmdrul-1",
+    "keywords": [
+      "ai",
+      "coding",
+      "agents.md",
+      "copilot",
+      "cursor",
+      "rules",
+      "windsurf"
+    ]
+  },
+  {
+    "date": "2026-06-05",
+    "type": "tech",
+    "domain": "AI",
+    "title": "말 끊김 없이 “대화가 되는” 2026년형 실시간 음성 에이전트: STT/TTS 파이프라인 vs Speech-to-Speech, WebRTC로 끝내기",
+    "slug": "2026-stttts-vs-speech-to-speech-webrtc-2",
+    "keywords": [
+      "ai",
+      "multimodal",
+      "speech-to-speech",
+      "stt",
+      "tts",
+      "webrtc"
+    ]
+  },
+  {
+    "date": "2026-06-06",
+    "type": "tech",
+    "domain": "AI",
+    "title": "vLLM·TGI·Ollama로 “진짜 운영 가능한” LLM 서빙 스택 짜는 법 (로컬/온프렘 최적화까지)",
+    "slug": "2026-6-vllmtgiollama-llm-1",
+    "keywords": [
+      "ai",
+      "mlops",
+      "llm",
+      "ollama",
+      "tgi",
+      "vllm"
+    ]
+  },
+  {
+    "date": "2026-06-06",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Streamlit vs Gradio, “빠른 AI 데모 UI”를 기준으로 제대로 굴리는 법",
+    "slug": "streamlit-vs-gradio-ai-ui-2026-6-2",
+    "keywords": [
+      "ai",
+      "prototyping",
+      "gradio",
+      "streamlit"
+    ]
+  },
+  {
+    "date": "2026-06-07",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LoRA vs QLoRA, “내 GPU/데이터/품질 목표”에 맞춰 고르는 실전 파인튜닝 튜토리얼",
+    "slug": "lora-vs-qlora-2026-6-gpu-1",
+    "keywords": [
+      "ai",
+      "llm",
+      "gpu",
+      "lora",
+      "qlora"
+    ]
+  },
+  {
+    "date": "2026-06-07",
+    "type": "tech",
+    "domain": "AI",
+    "title": "MMLU·HumanEval 점수에 속지 않는 법: LLM 평가를 “프로덕션 의사결정”으로 바꾸는 해석 프레임",
+    "slug": "mmluhumaneval-2026-6-llm-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "humaneval",
+      "mmlu"
+    ]
+  },
+  {
+    "date": "2026-06-08",
+    "type": "news",
+    "domain": "AI",
+    "title": "6월 2026 오픈소스 LLM/VLM 판도: Llama는 ‘멈춤’, Mistral은 ‘정리’, Qwen은 ‘가속’—그리고 라이선스가 승패를 가른다",
+    "slug": "6-2026-llmvlm-llama-mistral-qwen-1",
+    "keywords": [
+      "ai",
+      "llama",
+      "llm",
+      "mistral",
+      "qwen",
+      "vlm"
+    ]
+  },
+  {
+    "date": "2026-06-08",
+    "type": "tech",
+    "domain": "AI",
+    "title": "프롬프트 캐싱으로 LLM 비용 50~90% 줄이기: OpenAI·Anthropic 실전 설계와 히트율 최적화",
+    "slug": "llm-5090-2026-6-openaianthropic-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "anthropic",
+      "openai"
+    ]
+  },
+  {
+    "date": "2026-06-09",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "LLM 요청을 “안전하게” 비동기화하기: Celery + Redis queue/worker 아키텍처 심층 분석",
+    "slug": "llm-celery-redis-queueworker-2026-6-1",
+    "keywords": [
+      "backend",
+      "architecture",
+      "celery",
+      "llm",
+      "queue",
+      "redis",
+      "worker"
+    ]
+  },
+  {
+    "date": "2026-06-09",
+    "type": "tech",
+    "domain": "AI",
+    "title": "OpenAI vs Cohere vs BGE(BAAI) 임베딩, “진짜” 선택 가이드: 성능·비용·도메인 적합성까지",
+    "slug": "openai-vs-cohere-vs-bgebaai-2026-6-2",
+    "keywords": [
+      "ai",
+      "rag",
+      "baai",
+      "bge",
+      "cohere",
+      "openai"
+    ]
+  },
+  {
+    "date": "2026-06-10",
+    "type": "tech",
+    "domain": "AI",
+    "title": "BM25+Vector 하이브리드 검색, “점수 합산”은 버리고 RRF로 가라: RAG 랭킹 병합 실전 가이드",
+    "slug": "bm25vector-rrf-2026-rag-1",
+    "keywords": [
+      "ai",
+      "rag",
+      "bm25+vector",
+      "rrf"
+    ]
+  },
+  {
+    "date": "2026-06-10",
+    "type": "tech",
+    "domain": "AI",
+    "title": "RAG가 “거의 맞는데” 마지막 10%가 안 오를 때: HyDE × Reranking × Query Expansion 실전 최적화 가이드",
+    "slug": "rag-10-hyde-reranking-query-expansion-20-2",
+    "keywords": [
+      "ai",
+      "rag",
+      "expansion",
+      "hyde",
+      "query",
+      "reranking"
+    ]
+  },
+  {
+    "date": "2026-06-11",
+    "type": "tech",
+    "domain": "AI",
+    "title": "컨텍스트가 길어질수록 성능이 나빠진다: 2026년 LLM Long Context에서 “Compaction”으로 이기는 법",
+    "slug": "2026-llm-long-context-compaction-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "compaction",
+      "context",
+      "long"
+    ]
+  },
+  {
+    "date": "2026-06-11",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 스타트업 머니무브: “Agentic Workflow”가 투자·M&A의 공통 언어가 됐다",
+    "slug": "ai-2026-6-agentic-workflow-ma-1",
+    "keywords": [
+      "ai",
+      "agentic",
+      "workflow"
+    ]
+  },
+  {
+    "date": "2026-06-12",
+    "type": "tech",
+    "domain": "AI",
+    "title": "멀티 에이전트 “진짜로” 굴리려면: LangGraph vs AutoGen vs CrewAI 심층 비교 & 구현 가이드",
+    "slug": "2026-6-langgraph-vs-autogen-vs-crewai-1",
+    "keywords": [
+      "ai",
+      "agent",
+      "autogen",
+      "crewai",
+      "langgraph"
+    ]
+  },
+  {
+    "date": "2026-06-12",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Chain-of-Thought(CoT) 2026 고급 프롬프팅: “생각을 더 쓰게”가 아니라 “생각을 제품화”하는 프롬프트 최적화 전략",
+    "slug": "chain-of-thoughtcot-2026-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "chain-of-thought",
+      "cot"
+    ]
+  },
+  {
+    "date": "2026-06-13",
+    "type": "tech",
+    "domain": "AI",
+    "title": "중복이 성능을 갉아먹는다: 2026년식 데이터 큐레이션 Dedup + Dataset Quality 전처리 실전 설계",
+    "slug": "2026-dedup-dataset-quality-2",
+    "keywords": [
+      "ai",
+      "data",
+      "dataset",
+      "dedup",
+      "quality"
+    ]
+  },
+  {
+    "date": "2026-06-13",
+    "type": "tech",
+    "domain": "AI",
+    "title": "MCP 서버로 Claude 에이전트를 “프로젝트에 안전하게 붙이는” 방법 (2026년 6월 기준: Streamable HTTP, 보안 함정, 확장 패턴)",
+    "slug": "mcp-claude-2026-6-streamable-http-1",
+    "keywords": [
+      "ai",
+      "agent",
+      "claude",
+      "http",
+      "mcp",
+      "streamable"
+    ]
+  },
+  {
+    "date": "2026-06-14",
+    "type": "tech",
+    "domain": "AI",
+    "title": "“Agent tool use + Function Calling”을 프로덕션에 넣는 법: Agents SDK/Responses API 패턴 심층 분석",
+    "slug": "2026-6-agent-tool-use-function-calling-a-1",
+    "keywords": [
+      "ai",
+      "agent",
+      "agents",
+      "api",
+      "calling",
+      "function",
+      "responses",
+      "sdk"
+    ]
+  },
+  {
+    "date": "2026-06-14",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Vibe Coding으로 48시간 안에 MVP를 “작동하게” 만드는 2026년식 AI 프로토타이핑 플레이북",
+    "slug": "vibe-coding-48-mvp-2026-ai-2",
+    "keywords": [
+      "ai",
+      "coding",
+      "mvp",
+      "vibe"
+    ]
+  },
+  {
+    "date": "2026-06-15",
+    "type": "news",
+    "domain": "AI",
+    "title": "6월의 엔터프라이즈 AI 도입, “Copilot/Agent 확산” vs “ROI 회의론”이 동시에 커진 이유",
+    "slug": "6-ai-copilotagent-vs-roi-1",
+    "keywords": [
+      "ai",
+      "agent",
+      "copilot",
+      "roi"
+    ]
+  },
+  {
+    "date": "2026-06-15",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Next.js + Vercel AI SDK로 “진짜” Fullstack AI 앱 만들기: 스트리밍·툴콜·런타임 선택까지",
+    "slug": "nextjs-vercel-ai-sdk-fullstack-ai-2026-6-2",
+    "keywords": [
+      "ai",
+      "prototyping",
+      "fullstack",
+      "next.js",
+      "sdk",
+      "vercel"
+    ]
+  },
+  {
+    "date": "2026-06-16",
+    "type": "tech",
+    "domain": "AI",
+    "title": "배치로 50% 깎고도 폭탄 청구서가 나오는 이유: LLM Batch Inference API 비용/파이프라인 심층 분석",
+    "slug": "50-2026-6-llm-batch-inference-api-2",
+    "keywords": [
+      "ai",
+      "mlops",
+      "api",
+      "batch",
+      "inference",
+      "llm"
+    ]
+  },
+  {
+    "date": "2026-06-16",
+    "type": "tech",
+    "domain": "AI",
+    "title": "터미널에서 “코드 리뷰→수정 PR→릴리즈 노트”까지: Claude Code × Codex CLI 에이전트 자동화 워크플로 심층 가이드",
+    "slug": "pr-2026-6-claude-code-codex-cli-1",
+    "keywords": [
+      "ai",
+      "coding",
+      "claude",
+      "cli",
+      "code",
+      "codex"
+    ]
+  },
+  {
+    "date": "2026-06-17",
+    "type": "tech",
+    "domain": "AI",
+    "title": "프레임을 “어떻게 볼지”가 성능을 갈라먹는다: Video AI(Understanding/Generation) 프레임 분석 파이프라인 심층 분석",
+    "slug": "2026-6-video-aiunderstandinggeneration-1",
+    "keywords": [
+      "ai",
+      "multimodal",
+      "generation",
+      "understanding",
+      "video"
+    ]
+  },
+  {
+    "date": "2026-06-17",
+    "type": "tech",
+    "domain": "Infrastructure",
+    "title": "GPU가 병목인 LLM 서빙, Kubernetes에서 “제대로” 오토스케일링하는 법",
+    "slug": "gpu-llm-kubernetes-2026-6-2",
+    "keywords": [
+      "infra",
+      "kubernetes",
+      "gpu",
+      "llm"
+    ]
+  },
+  {
+    "date": "2026-06-18",
+    "type": "news",
+    "domain": "AI",
+    "title": "6월, LLM 전쟁이 “성능 경쟁”에서 “통제·배포 경쟁”으로 넘어갔다: GPT·Claude·Gemini 최신 출시/중단 정리와 개발자 영향",
+    "slug": "6-llm-gptclaudegemini-1",
+    "keywords": [
+      "ai",
+      "claude",
+      "gemini",
+      "gpt",
+      "llm"
+    ]
+  },
+  {
+    "date": "2026-06-18",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LLM API 비용 70% 줄이는 2026년식 Routing 설계: Prompt Caching + Budget-Aware Model Router",
+    "slug": "llm-api-70-2026-routing-prompt-caching-b-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "api",
+      "budget-aware",
+      "caching",
+      "model",
+      "prompt",
+      "router"
+    ]
+  },
+  {
+    "date": "2026-06-19",
+    "type": "tech",
+    "domain": "AI",
+    "title": "실시간 음성 에이전트, “STT+LLM+TTS”를 넘어선 설계 체크리스트",
+    "slug": "2026-6-sttllmtts-2",
+    "keywords": [
+      "ai",
+      "multimodal",
+      "stt+llm+tts"
+    ]
+  },
+  {
+    "date": "2026-06-19",
+    "type": "tech",
+    "domain": "AI",
+    "title": "v0 + bolt.new로 “UI를 코드로” 끝내는 2026년식 프론트엔드 자동화 워크플로우 (현업 적용 기준까지)",
+    "slug": "v0-boltnew-ui-2026-1",
+    "keywords": [
+      "ai",
+      "coding",
+      "bolt.new"
+    ]
+  },
+  {
+    "date": "2026-06-20",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Supervisor가 “팀장(Planner/Router)”, Worker가 “전문가(Executor)”인 순간부터, Multi‑Agent는 **프롬프트 기교가 아니라 런타임 설계 문제**가 됩니다 — 2026년형 Supervisor/Worker 오케스트레이션 심층 분석",
+    "slug": "supervisor-plannerrouter-worker-executor-1",
+    "keywords": [
+      "ai",
+      "agent",
+      "executor",
+      "multi",
+      "planner",
+      "router",
+      "supervisor",
+      "worker"
+    ]
+  },
+  {
+    "date": "2026-06-20",
+    "type": "tech",
+    "domain": "AI",
+    "title": "vLLM·TGI·Ollama로 “내 GPU를 실제로 일하게” 만드는 LLM 서빙 배포 가이드",
+    "slug": "vllmtgiollama-gpu-2026-6-llm-2",
+    "keywords": [
+      "ai",
+      "mlops",
+      "gpu",
+      "llm",
+      "ollama",
+      "tgi",
+      "vllm"
+    ]
+  },
+  {
+    "date": "2026-06-21",
+    "type": "tech",
+    "domain": "AI",
+    "title": "자율적으로 “찾고-검증하고-다시 찾는” Agentic RAG 구현법 (2026년 6월 실전 패턴)",
+    "slug": "agentic-rag-2026-6-1",
+    "keywords": [
+      "ai",
+      "agent",
+      "agentic",
+      "rag"
+    ]
+  },
+  {
+    "date": "2026-06-21",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Streamlit vs Gradio로 “이번 주 안에” AI 데모 UI 뽑아내는 법 (2026년 6월 기준 심층 가이드)",
+    "slug": "streamlit-vs-gradio-ai-ui-2026-6-2",
+    "keywords": [
+      "ai",
+      "prototyping",
+      "gradio",
+      "streamlit"
+    ]
+  },
+  {
+    "date": "2026-06-22",
+    "type": "news",
+    "domain": "AI",
+    "title": "Prompt Injection이 “챗봇 해킹”을 넘어 **에이전트 공급망 리스크**가 된 이유",
+    "slug": "2026-6-prompt-injection-1",
+    "keywords": [
+      "ai",
+      "injection",
+      "prompt"
+    ]
+  },
+  {
+    "date": "2026-06-22",
+    "type": "tech",
+    "domain": "AI",
+    "title": "RAG 성능의 80%는 Chunking에서 결정된다: Document Splitting/Overlap/Semantic Chunking 실전 전략",
+    "slug": "rag-80-chunking-2026-6-document-splittin-2",
+    "keywords": [
+      "ai",
+      "rag",
+      "chunking",
+      "document",
+      "overlap",
+      "semantic",
+      "splitting"
+    ]
+  },
+  {
+    "date": "2026-06-23",
+    "type": "tech",
+    "domain": "Infrastructure",
+    "title": "서버리스 LLM 배포의 현실: Modal·RunPod·AWS Lambda에서 cold start를 “구조적으로” 없애는 방법",
+    "slug": "llm-2026-6-modalrunpodaws-lambda-cold-st-2",
+    "keywords": [
+      "infra",
+      "serverless",
+      "aws",
+      "cold",
+      "lambda",
+      "llm",
+      "modal",
+      "runpod"
+    ]
+  },
+  {
+    "date": "2026-06-23",
+    "type": "tech",
+    "domain": "AI",
+    "title": "합성 데이터(Synthetic Data)로 LLM 파인튜닝을 “공급망”처럼 굴리는 법 — 2026년 6월 기준 실전 파이프라인",
+    "slug": "synthetic-data-llm-2026-6-1",
+    "keywords": [
+      "ai",
+      "data",
+      "llm",
+      "synthetic"
+    ]
+  },
+  {
+    "date": "2026-06-24",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LLM으로 “에러를 재현 → 원인 규명 → 수정”까지: AI 디버깅/에러 분석 워크플로 심층 가이드",
+    "slug": "llm-2026-ai-2",
+    "keywords": [
+      "ai",
+      "coding",
+      "llm"
+    ]
+  },
+  {
+    "date": "2026-06-24",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "LLM API 429에 지지 않는 법: Retry/Backoff 패턴(Headers 기반 + Jitter + 큐/동시성 제어)",
+    "slug": "llm-api-429-2026-retrybackoff-headers-ji-1",
+    "keywords": [
+      "backend",
+      "api",
+      "backoff",
+      "headers",
+      "jitter",
+      "llm",
+      "retry"
+    ]
+  },
+  {
+    "date": "2026-06-25",
+    "type": "news",
+    "domain": "AI",
+    "title": "OpenAI·Anthropic·Google AI API에 무슨 일이? “모델”보다 무서운 건 “키·정책·운영” 변화다",
+    "slug": "2026-6-openaianthropicgoogle-ai-api-1",
+    "keywords": [
+      "ai",
+      "anthropic",
+      "api",
+      "google",
+      "openai"
+    ]
+  },
+  {
+    "date": "2026-06-25",
+    "type": "tech",
+    "domain": "AI",
+    "title": "BM25+Vector+RRF로 “안정적으로” 이기는 법: Hybrid Search 랭킹 병합 실전 가이드",
+    "slug": "bm25vectorrrf-2026-hybrid-search-2",
+    "keywords": [
+      "ai",
+      "rag",
+      "bm25+vector+rrf",
+      "hybrid",
+      "search"
+    ]
+  },
+  {
+    "date": "2026-06-26",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LangGraph·AutoGen·CrewAI로 “멀티 에이전트”를 프로덕션에 올리는 법 (비교 + 구현 패턴)",
+    "slug": "2026-6-langgraphautogencrewai-1",
+    "keywords": [
+      "ai",
+      "agent",
+      "autogen",
+      "crewai",
+      "langgraph"
+    ]
+  },
+  {
+    "date": "2026-06-26",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LLM Structured Output “JSON mode + Schema 강제”의 진짜 제약들 (그리고 함수 호출까지 안전하게 붙이는 법)",
+    "slug": "2026-6-llm-structured-output-json-mode-s-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "json",
+      "mode",
+      "output",
+      "schema",
+      "structured"
+    ]
+  },
+  {
+    "date": "2026-06-27",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "LLM 백엔드 “응답 대기열” 설계 2026: Celery+Redis로 비동기 처리의 병목·중복·유실을 없애는 법",
+    "slug": "llm-2026-celeryredis-1",
+    "keywords": [
+      "backend",
+      "architecture",
+      "celery+redis",
+      "llm"
+    ]
+  },
+  {
+    "date": "2026-06-27",
+    "type": "tech",
+    "domain": "AI",
+    "title": "프롬프트 캐싱으로 LLM 비용 70~90% 깎는 법: OpenAI/Anthropic 2026년 6월 기준 실전 설계",
+    "slug": "llm-7090-openaianthropic-2026-6-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "anthropic",
+      "openai"
+    ]
+  },
+  {
+    "date": "2026-06-28",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Cursor·Copilot·Windsurf로 “AI를 팀원처럼” 쓰는 법: Rules/MCP/Agent를 프로젝트에 안전하게 붙이는 실전 튜토리얼",
+    "slug": "cursorcopilotwindsurf-ai-2026-6-rulesmcp-2",
+    "keywords": [
+      "ai",
+      "coding",
+      "agent",
+      "copilot",
+      "cursor",
+      "mcp",
+      "rules",
+      "windsurf"
+    ]
+  },
+  {
+    "date": "2026-06-28",
+    "type": "tech",
+    "domain": "AI",
+    "title": "HyDE + Reranking + Query Expansion: “진짜” RAG 성능을 끌어올리는 고급 검색 스택",
+    "slug": "hyde-reranking-query-expansion-2026-6-ra-1",
+    "keywords": [
+      "ai",
+      "rag",
+      "expansion",
+      "hyde",
+      "query",
+      "reranking"
+    ]
+  },
+  {
+    "date": "2026-06-29",
+    "type": "news",
+    "domain": "AI",
+    "title": "Blackwell 공급망이 흔들고, 한국 NPU가 틈을 파고든다: AI 가속기/GPU/NPU 핵심 뉴스 정리",
+    "slug": "blackwell-npu-2026-6-ai-gpunpu-1",
+    "keywords": [
+      "ai",
+      "blackwell",
+      "gpu",
+      "npu"
+    ]
+  },
+  {
+    "date": "2026-06-29",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Chain-of-Thought(CoT) 2026 고급 프롬프트 엔지니어링: “생각을 시키는” 시대는 끝났고, “생각을 설계하는” 시대로 갔다",
+    "slug": "chain-of-thoughtcot-2026-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "chain-of-thought",
+      "cot"
+    ]
+  },
+  {
+    "date": "2026-06-30",
+    "type": "tech",
+    "domain": "AI",
+    "title": "AI Agent의 “Tool Use + Function Calling”을 프로덕션에 올리는 구현 패턴 (Agents SDK/Responses API 중심)",
+    "slug": "2026-6-ai-agent-tool-use-function-callin-1",
+    "keywords": [
+      "ai",
+      "agent",
+      "agents",
+      "api",
+      "calling",
+      "function",
+      "responses",
+      "sdk"
+    ]
+  },
+  {
+    "date": "2026-06-30",
+    "type": "tech",
+    "domain": "AI",
+    "title": "MCP 서버를 “에이전트 확장 레이어”로 쓰는 법: Claude 연동까지 끝내는 구현 가이드",
+    "slug": "mcp-2026-6-claude-2",
+    "keywords": [
+      "ai",
+      "agent",
+      "claude",
+      "mcp"
+    ]
+  },
+  {
+    "date": "2026-07-01",
+    "type": "tech",
+    "domain": "AI",
+    "title": "중복을 “지우는” 순간, 데이터 품질이 “결정”된다: 2026년식 Dedup + Dataset Quality 전처리 실전 설계",
+    "slug": "2026-dedup-dataset-quality-2",
+    "keywords": [
+      "ai",
+      "data",
+      "dataset",
+      "dedup",
+      "quality"
+    ]
+  },
+  {
+    "date": "2026-07-01",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Next.js + Vercel AI SDK로 “프로덕션급 Fullstack AI 앱”을 만드는 2026년 7월식 설계도",
+    "slug": "nextjs-vercel-ai-sdk-fullstack-ai-2026-7-1",
+    "keywords": [
+      "ai",
+      "prototyping",
+      "fullstack",
+      "next.js",
+      "sdk",
+      "vercel"
+    ]
+  },
+  {
+    "date": "2026-07-02",
+    "type": "tech",
+    "domain": "AI",
+    "title": "컨텍스트 윈도우로는 부족하다: AI Agent Long‑Term Memory & 상태 관리 구현 실전 가이드",
+    "slug": "2026-ai-agent-longterm-memory-2",
+    "keywords": [
+      "ai",
+      "agent",
+      "long",
+      "memory",
+      "term"
+    ]
+  },
+  {
+    "date": "2026-07-02",
+    "type": "news",
+    "domain": "AI",
+    "title": "규제가 만든 ‘7월 LLM 신작’ 풍경: GPT‑5.6·Claude Fable 5·Gemini, 무엇이 바뀌었나",
+    "slug": "7-llm-gpt56claude-fable-5gemini-1",
+    "keywords": [
+      "ai",
+      "5.6",
+      "claude",
+      "fable",
+      "gemini",
+      "gpt",
+      "llm"
+    ]
+  },
+  {
+    "date": "2026-07-03",
+    "type": "tech",
+    "domain": "Infrastructure",
+    "title": "Kubernetes에서 LLM 서빙을 “GPU 오토스케일”로 굴리는 현실적인 방법: KEDA + (Queue Depth / KV Cache) + DCGM/NVML",
+    "slug": "2026-7-kubernetes-llm-gpu-keda-queue-dep-1",
+    "keywords": [
+      "infra",
+      "kubernetes",
+      "cache",
+      "dcgm",
+      "depth",
+      "gpu",
+      "keda",
+      "llm"
+    ]
+  },
+  {
+    "date": "2026-07-03",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LoRA/QLoRA 파인튜닝 실전 튜토리얼: “내 GPU로 어디까지 가능할까?”",
+    "slug": "2026-7-loraqlora-gpu-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "gpu",
+      "lora",
+      "qlora"
+    ]
+  },
+  {
+    "date": "2026-07-04",
+    "type": "tech",
+    "domain": "AI",
+    "title": "vLLM vs TGI vs Ollama: “내 서비스”에 맞는 LLM 서빙 인프라/로컬 배포/최적화 결정 가이드",
+    "slug": "2026-7-vllm-vs-tgi-vs-ollama-llm-2",
+    "keywords": [
+      "ai",
+      "mlops",
+      "llm",
+      "ollama",
+      "tgi",
+      "vllm"
+    ]
+  },
+  {
+    "date": "2026-07-04",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "FastAPI로 LLM API “진짜” 스트리밍 서버 만들기: SSE 파이프라인 심층 분석",
+    "slug": "fastapi-llm-api-2026-7-sse-1",
+    "keywords": [
+      "backend",
+      "api",
+      "fastapi",
+      "llm",
+      "sse"
+    ]
+  },
+  {
+    "date": "2026-07-05",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "**서버리스 챗봇은 끝났다: 2026년 7월, “Stateful Agent + Control/Data Plane 분리”로 가는 AI 앱 아키텍처 패턴 지도**",
+    "slug": "2026-7-stateful-agent-controldata-plane--1",
+    "keywords": [
+      "backend",
+      "architecture",
+      "agent",
+      "control",
+      "data",
+      "plane",
+      "stateful"
+    ]
+  },
+  {
+    "date": "2026-07-05",
+    "type": "tech",
+    "domain": "AI",
+    "title": "배치 추론으로 LLM 비용을 “반값”으로 만드는 법: Batch Inference API 비용·파이프라인 심층 가이드",
+    "slug": "llm-2026-7-batch-inference-api-2",
+    "keywords": [
+      "ai",
+      "mlops",
+      "api",
+      "batch",
+      "inference",
+      "llm"
+    ]
+  },
+  {
+    "date": "2026-07-06",
+    "type": "tech",
+    "domain": "AI",
+    "title": "임베딩 3파전: OpenAI vs Cohere Embed 4 vs BGE-M3, 내 도메인에 맞는 “정답” 고르는 법",
+    "slug": "2026-7-3-openai-vs-cohere-embed-4-vs-bge-2",
+    "keywords": [
+      "ai",
+      "rag",
+      "bge-m3",
+      "cohere",
+      "embed",
+      "openai"
+    ]
+  },
+  {
+    "date": "2026-07-06",
+    "type": "news",
+    "domain": "AI",
+    "title": "arXiv가 던진 신호: “Agents/RAG는 이제 모델보다 **평가·데이터·실행 인프라** 싸움이다”",
+    "slug": "2026-7-arxiv-agentsrag-1",
+    "keywords": [
+      "ai",
+      "agents",
+      "arxiv",
+      "rag"
+    ]
+  },
+  {
+    "date": "2026-07-07",
+    "type": "tech",
+    "domain": "AI",
+    "title": "250ms 안에 “말 끊고-대답하는” 2026 실시간 Voice Agent 아키텍처: Realtime API vs Streaming STT→LLM→TTS, 무엇을 언제 쓰나",
+    "slug": "250ms---2026-voice-agent-realtime-api-vs-1",
+    "keywords": [
+      "ai",
+      "multimodal",
+      "250ms",
+      "agent",
+      "api",
+      "llm",
+      "realtime",
+      "streaming"
+    ]
+  },
+  {
+    "date": "2026-07-07",
+    "type": "tech",
+    "domain": "AI",
+    "title": "RAG 성능을 2배로 끌어올리는 2026년형 Chunking 전략: Overlap을 “줄이고”, Semantic을 “구조화”하라",
+    "slug": "rag-2-2026-chunking-overlap-semantic-2",
+    "keywords": [
+      "ai",
+      "rag",
+      "chunking",
+      "overlap",
+      "semantic"
+    ]
+  },
+  {
+    "date": "2026-07-10",
+    "type": "tech",
+    "domain": "AI",
+    "title": "GraphRAG(2026.7)로 Knowledge Graph RAG를 “프로덕션급”으로 구현하는 법: 인덱싱 비용, Local/Global/DRIFT 설계, Neo4j 연동까지",
+    "slug": "graphrag20267-knowledge-graph-rag-localg-2",
+    "keywords": [
+      "ai",
+      "rag",
+      "2026.7",
+      "drift",
+      "global",
+      "graph",
+      "graphrag",
+      "knowledge"
+    ]
+  },
+  {
+    "date": "2026-07-10",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LLM 시대의 OCR Document AI: “문서 이해→구조화 추출”을 프로덕션에 넣는 설계 가이드",
+    "slug": "llm-ocr-document-ai-2026-7-1",
+    "keywords": [
+      "ai",
+      "multimodal",
+      "document",
+      "llm",
+      "ocr"
+    ]
+  },
+  {
+    "date": "2026-07-11",
+    "type": "tech",
+    "domain": "AI",
+    "title": "AI PR 봇이 “리뷰만” 하던 시대는 끝났다: 기준, 코드 리뷰 자동화 + 테스트 생성까지 연결하는 현실적인 설계",
+    "slug": "ai-pr-2026-7-1",
+    "keywords": [
+      "ai",
+      "coding"
+    ]
+  },
+  {
+    "date": "2026-07-11",
+    "type": "tech",
+    "domain": "AI",
+    "title": "BM25+Vector 하이브리드 검색, “랭킹 병합”이 승부처인 이유 (RRF/정규화/리랭킹 실전 설계)",
+    "slug": "bm25vector-2026-7-rrf-2",
+    "keywords": [
+      "ai",
+      "rag",
+      "bm25+vector",
+      "rrf"
+    ]
+  },
+  {
+    "date": "2026-07-12",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Cursor·Copilot·Windsurf를 “프로젝트에 바로 붙여서” 쓰는 2026년 7월형 실전 운영법: Rules/Agents/MCP로 생산성 올리기",
+    "slug": "cursorcopilotwindsurf-2026-7-rulesagents-1",
+    "keywords": [
+      "ai",
+      "coding",
+      "agents",
+      "copilot",
+      "cursor",
+      "mcp",
+      "rules",
+      "windsurf"
+    ]
+  },
+  {
+    "date": "2026-07-12",
+    "type": "tech",
+    "domain": "AI",
+    "title": "v0 vs bolt.new: “AI 코드 생성 프론트엔드”를 실전에 꽂아 넣는 법 (UI 생성·자동화 심층 분석)",
+    "slug": "v0-vs-boltnew-2026-7-ai-ui-2",
+    "keywords": [
+      "ai",
+      "coding",
+      "bolt.new"
+    ]
+  },
+  {
+    "date": "2026-07-13",
+    "type": "news",
+    "domain": "AI",
+    "title": "OpenAI·Anthropic·Google AI API 업데이트가 말해주는 것: “모델 경쟁”에서 “운영·거버넌스 경쟁”으로",
+    "slug": "2026-7-openaianthropicgoogle-ai-api-1",
+    "keywords": [
+      "ai",
+      "anthropic",
+      "api",
+      "google",
+      "openai"
+    ]
+  },
+  {
+    "date": "2026-07-13",
+    "type": "tech",
+    "domain": "AI",
+    "title": "RAG 고급 최적화: HyDE + Reranking + Query Expansion “3단 부스터”를 프로덕션에 제대로 꽂는 법",
+    "slug": "2026-7-rag-hyde-reranking-query-expansio-2",
+    "keywords": [
+      "ai",
+      "rag",
+      "expansion",
+      "hyde",
+      "query",
+      "reranking"
+    ]
+  },
+  {
+    "date": "2026-07-14",
+    "type": "tech",
+    "domain": "AI",
+    "title": "토큰 예산이 병목인 시대: Video AI(understanding+generation)에서 “Frame Analysis Pipeline”이 승부를 가른다",
+    "slug": "2026-7-video-aiunderstandinggeneration-f-2",
+    "keywords": [
+      "ai",
+      "multimodal",
+      "analysis",
+      "frame",
+      "pipeline",
+      "understanding+generation",
+      "video"
+    ]
+  },
+  {
+    "date": "2026-07-14",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Claude Code × Codex CLI 에이전트: “터미널 자동화 워크플로”로 진짜 생산성 뽑는 법",
+    "slug": "claude-code-codex-cli-2026-7-1",
+    "keywords": [
+      "ai",
+      "coding",
+      "claude",
+      "cli",
+      "code",
+      "codex"
+    ]
+  },
+  {
+    "date": "2026-07-15",
+    "type": "tech",
+    "domain": "AI",
+    "title": "컨텍스트 윈도우가 길어질수록 더 위험해진다: LLM Long Context Compaction/Summary 설계 가이드",
+    "slug": "2026-llm-long-context-compactionsummary-1",
+    "keywords": [
+      "ai",
+      "llm",
+      "compaction",
+      "context",
+      "long",
+      "summary"
+    ]
+  },
+  {
+    "date": "2026-07-15",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "LLM 요청이 30초를 넘기기 시작하면: Celery+Redis로 “비동기 추론 파이프라인”을 안전하게 굴리는 법",
+    "slug": "llm-30-celeryredis-2026-7-2",
+    "keywords": [
+      "backend",
+      "architecture",
+      "celery+redis",
+      "llm"
+    ]
+  },
+  {
+    "date": "2026-07-16",
+    "type": "news",
+    "domain": "AI",
+    "title": "GPT-5.6·Claude Sonnet 5·Gemini “Agentic” 전쟁: LLM 신모델이 바꿀 실무 선택지",
+    "slug": "gpt-56claude-sonnet-5gemini-agentic-2026-1",
+    "keywords": [
+      "ai",
+      "agentic",
+      "claude",
+      "gemini",
+      "gpt-5.6",
+      "llm",
+      "sonnet"
+    ]
+  },
+  {
+    "date": "2026-07-16",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LLM 호출 내부까지 “끝까지” 보이게: OpenTelemetry GenAI Tracing으로 LLM Observability 구축하기",
+    "slug": "llm-2026-7-opentelemetry-genai-tracing-l-2",
+    "keywords": [
+      "ai",
+      "mlops",
+      "genai",
+      "llm",
+      "observability",
+      "opentelemetry",
+      "tracing"
+    ]
+  },
+  {
+    "date": "2026-07-17",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Chain-of-Thought(고급 프롬프트 최적화): “생각을 길게 쓰게”가 아니라 “추론을 설계”하는 2026 실전 패턴",
+    "slug": "chain-of-thought-2026-1",
+    "keywords": [
+      "ai",
+      "llm",
+      "chain-of-thought"
+    ]
+  },
+  {
+    "date": "2026-07-17",
+    "type": "tech",
+    "domain": "Infrastructure",
+    "title": "서버리스 LLM 배포: Modal vs Runpod vs AWS Lambda, 그리고 “cold start를 설계로 이기는” 방법",
+    "slug": "llm-2026-7-modal-vs-runpod-vs-aws-lambda-2",
+    "keywords": [
+      "infra",
+      "serverless",
+      "aws",
+      "cold",
+      "lambda",
+      "llm",
+      "modal",
+      "runpod"
+    ]
+  },
+  {
+    "date": "2026-07-18",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Dedup + Dataset Quality 전처리 “현업형” 설계도 (MinHash→Semantic→Contamination Gate)",
+    "slug": "2026-7-dedup-dataset-quality-minhashsema-1",
+    "keywords": [
+      "ai",
+      "data",
+      "contamination",
+      "dataset",
+      "dedup",
+      "gate",
+      "minhash",
+      "quality"
+    ]
+  },
+  {
+    "date": "2026-07-18",
+    "type": "tech",
+    "domain": "AI",
+    "title": "프롬프트 캐싱으로 LLM 비용 10배 줄이기: OpenAI·Anthropic “캐시 히트율” 실전 최적화",
+    "slug": "llm-10-2026-7-openaianthropic-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "anthropic",
+      "openai"
+    ]
+  },
+  {
+    "date": "2026-07-19",
+    "type": "tech",
+    "domain": "AI",
+    "title": "**2026년 7월, AI Agent의 “Tool Use + Function Calling”을 프로덕션에 넣는 법: 루프·계약·오케스트레이션 패턴 총정리**",
+    "slug": "2026-7-ai-agent-tool-use-function-callin-2",
+    "keywords": [
+      "ai",
+      "agent",
+      "calling",
+      "function",
+      "tool",
+      "use"
+    ]
+  },
+  {
+    "date": "2026-07-19",
+    "type": "tech",
+    "domain": "AI",
+    "title": "“멀티 에이전트”를 진짜로 출시하려면: LangGraph vs AutoGen(AG2) vs CrewAI 심층 비교 + 구현 가이드",
+    "slug": "2026-7-langgraph-vs-autogenag2-vs-crewai-1",
+    "keywords": [
+      "ai",
+      "agent",
+      "ag2",
+      "autogen",
+      "crewai",
+      "langgraph"
+    ]
+  },
+  {
+    "date": "2026-07-20",
+    "type": "tech",
+    "domain": "AI",
+    "title": "24GB GPU 한 장으로 “내 도메인 전용 LLM” 만들기: LoRA/QLoRA Fine-tuning 실전 튜토리얼",
+    "slug": "24gb-gpu-llm-2026-7-loraqlora-fine-tunin-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "24gb",
+      "fine-tuning",
+      "gpu",
+      "lora",
+      "qlora"
+    ]
+  },
+  {
+    "date": "2026-07-20",
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 스타트업 투자·인수합병 ‘7월 러시’ — 에이전트/RevOps로 쏠리는 돈, 빅테크는 “워크플로우 흡수”로 답했다",
+    "slug": "ai-7-revops-1",
+    "keywords": [
+      "ai",
+      "revops"
+    ]
+  },
+  {
+    "date": "2026-07-21",
+    "type": "tech",
+    "domain": "AI",
+    "title": "0.9초 안에 말이 돌아오는 실시간 Voice Agent: STT·TTS·Realtime 모델 선택과 구현 포인트",
+    "slug": "09-voice-agent-2026-7-sttttsrealtime-2",
+    "keywords": [
+      "ai",
+      "multimodal",
+      "0.9",
+      "agent",
+      "realtime",
+      "stt",
+      "tts",
+      "voice"
+    ]
+  },
+  {
+    "date": "2026-07-21",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "429가 “가끔”이 아니라 “구조적으로” 터지는 시대: LLM API Rate Limit 대응 Retry/Backoff 패턴 심층 분석",
+    "slug": "429-2026-7-llm-api-rate-limit-retrybacko-1",
+    "keywords": [
+      "backend",
+      "api",
+      "backoff",
+      "limit",
+      "llm",
+      "rate",
+      "retry"
+    ]
+  },
+  {
+    "date": "2026-07-22",
+    "type": "tech",
+    "domain": "AI",
+    "title": "합성 데이터로 파인튜닝 성능을 “올리는” 게 아니라 “망치지 않는” 2026년식 LLM Synthetic Data 파이프라인",
+    "slug": "2026-llm-synthetic-data-1",
+    "keywords": [
+      "ai",
+      "data",
+      "llm",
+      "synthetic"
+    ]
+  },
+  {
+    "date": "2026-07-22",
+    "type": "tech",
+    "domain": "AI",
+    "title": "GPU를 “갈아넣지 않고” LLM 서빙 성능 뽑는 법: Quantization + KV cache + 커널/런타임 최적화 실전 가이드",
+    "slug": "gpu-llm-2026-7-quantization-kv-cache-2",
+    "keywords": [
+      "ai",
+      "mlops",
+      "cache",
+      "gpu",
+      "llm",
+      "quantization"
+    ]
+  },
+  {
+    "date": "2026-07-23",
+    "type": "news",
+    "domain": "AI",
+    "title": "EU AI Act “투명성”이 2026-08-02부터 현실이 된다: 각국 규제·윤리 이슈가 개발자 업무를 바꾸는 방식",
+    "slug": "eu-ai-act-2026-08-02-1",
+    "keywords": [
+      "ai",
+      "2026-08-02",
+      "act"
+    ]
+  },
+  {
+    "date": "2026-07-23",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Pinecone vs Weaviate vs Qdrant vs Chroma (2026.7) — “우리 팀 RAG”에 맞는 VectorDB 고르는 실전 기준과 성능 함정",
+    "slug": "pinecone-vs-weaviate-vs-qdrant-vs-chroma-2",
+    "keywords": [
+      "ai",
+      "rag",
+      "2026.7",
+      "chroma",
+      "pinecone",
+      "qdrant",
+      "vectordb",
+      "weaviate"
+    ]
+  },
+  {
+    "date": "2026-07-24",
+    "type": "tech",
+    "domain": "AI",
+    "title": "에러 로그만 던지지 말고 “실험 가능한 디버깅 파이프라인”을 만들자: LLM 기반 에러 분석 워크플로 심층 분석",
+    "slug": "2026-7-llm-2",
+    "keywords": [
+      "ai",
+      "coding",
+      "llm"
+    ]
+  },
+  {
+    "date": "2026-07-24",
+    "type": "tech",
+    "domain": "AI",
+    "title": "“OCR → Document AI → LLM 구조화 추출” 스택이 재정의됐다: 표·PDF를 프로덕션에 넣는 현실적인 기준",
+    "slug": "2026-7-ocr-document-ai-llm-pdf-1",
+    "keywords": [
+      "ai",
+      "multimodal",
+      "document",
+      "llm",
+      "ocr",
+      "pdf"
+    ]
   },
   {
     "date": "2026-07-25",
-    "id": "tech-coding-review"
+    "type": "tech",
+    "domain": "AI",
+    "title": "AI PR 봇이 “리뷰+테스트”까지 끝내는 시대: 코드 리뷰 자동화·테스트 생성 심층 적용 가이드",
+    "slug": "ai-pr-2026-7-2",
+    "keywords": [
+      "ai",
+      "coding"
+    ]
+  },
+  {
+    "date": "2026-07-25",
+    "type": "tech",
+    "domain": "AI",
+    "title": "LLM Batch Inference API “대량 처리 비용” 실전 가이드: 50% 할인만 믿었다가 망하는 지점들",
+    "slug": "llm-batch-inference-api-2026-7-50-1",
+    "keywords": [
+      "ai",
+      "mlops",
+      "api",
+      "batch",
+      "inference",
+      "llm"
+    ]
   },
   {
     "date": "2026-07-26",
-    "id": "tech-agent-memory"
+    "type": "tech",
+    "domain": "AI",
+    "title": "컨텍스트 윈도우로는 부족하다: AI Agent 장단기 메모리 & Long-term 상태 관리 구현 가이드",
+    "slug": "2026-ai-agent-long-term-1",
+    "keywords": [
+      "ai",
+      "agent",
+      "long-term"
+    ]
   },
   {
     "date": "2026-07-26",
-    "id": "tech-coding-assist"
+    "type": "tech",
+    "domain": "AI",
+    "title": "Cursor·Copilot·Windsurf, “에이전트 코딩” 실전 운영법: 규칙(Rules)·스킬(Skills)·브라우저·MCP로 생산성 올리기",
+    "slug": "cursorcopilotwindsurf-2026-7-rulesskills-2",
+    "keywords": [
+      "ai",
+      "coding",
+      "copilot",
+      "cursor",
+      "mcp",
+      "rules",
+      "skills",
+      "windsurf"
+    ]
   },
   {
     "date": "2026-07-27",
-    "id": "news-opensource"
+    "type": "tech",
+    "domain": "AI",
+    "title": "에이전트가 “검색→검증→재검색”을 반복하게 만드는 Agentic RAG 구현 패턴 (2026년 7월 업데이트)",
+    "slug": "agentic-rag-2026-7-2",
+    "keywords": [
+      "ai",
+      "agent",
+      "agentic",
+      "rag"
+    ]
   },
   {
     "date": "2026-07-27",
-    "id": "tech-agent-agentic-rag"
+    "type": "news",
+    "domain": "AI",
+    "title": "오픈소스 LLM/VLM 2026년 7월 판도: “가중치 공개”는 늘었는데, **라이선스가 더 중요해졌다**",
+    "slug": "llmvlm-2026-7-1",
+    "keywords": [
+      "ai",
+      "llm",
+      "vlm"
+    ]
   },
   {
     "date": "2026-07-28",
-    "id": "tech-llm-structured"
+    "type": "tech",
+    "domain": "Backend",
+    "title": "FastAPI로 LLM API 서버 “진짜” 스트리밍(SSE) 구축하기 — 끊김/버퍼링/취소까지 엔드투엔드로 잡는 법",
+    "slug": "2026-7-fastapi-llm-api-sse-2",
+    "keywords": [
+      "backend",
+      "api",
+      "fastapi",
+      "llm",
+      "sse"
+    ]
   },
   {
     "date": "2026-07-28",
-    "id": "tech-backend-api"
+    "type": "tech",
+    "domain": "AI",
+    "title": "LLM Structured Output: JSON mode만으론 부족한 “Schema 강제”의 현실적 제약과 함수 호출 설계법",
+    "slug": "llm-structured-output-2026-7-json-mode-s-1",
+    "keywords": [
+      "ai",
+      "llm",
+      "json",
+      "mode",
+      "output",
+      "schema",
+      "structured"
+    ]
   },
   {
     "date": "2026-07-29",
-    "id": "tech-agent-orchestration"
+    "type": "tech",
+    "domain": "AI",
+    "title": "MMLU·HumanEval 점수에 속지 않는 법: LLM 벤치마크 해석과 “내 서비스에 맞는 평가” 설계",
+    "slug": "mmluhumaneval-2026-llm-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "humaneval",
+      "mmlu"
+    ]
   },
   {
     "date": "2026-07-29",
-    "id": "tech-llm-eval"
+    "type": "tech",
+    "domain": "AI",
+    "title": "Supervisor가 팀장이고 Worker가 실무자라면, 2026년형 Multi‑Agent Orchestration은 “대화형 LLM을 분산 시스템처럼 운영”하는 문제를 다룹니다",
+    "slug": "supervisor-worker-2026-multiagent-orches-1",
+    "keywords": [
+      "ai",
+      "agent",
+      "llm",
+      "multi",
+      "orchestration",
+      "supervisor",
+      "worker"
+    ]
   },
   {
     "date": "2026-07-30",
-    "id": "news-ai-research"
+    "type": "news",
+    "domain": "AI",
+    "title": "arXiv가 던진 경고: “에이전트는 똑똑해졌지만, 아직 믿고 맡길 단계는 아니다”",
+    "slug": "2026-7-arxiv-1",
+    "keywords": [
+      "ai",
+      "arxiv"
+    ]
   },
   {
     "date": "2026-07-30",
-    "id": "tech-rag-chunking"
+    "type": "tech",
+    "domain": "AI",
+    "title": "문서 청킹(Chunking)으로 RAG 성능을 2배 올리는 법: 2026년 기준 Overlap vs Semantic Chunking 실전 분해 전략",
+    "slug": "chunking-rag-2-2026-overlap-vs-semantic--2",
+    "keywords": [
+      "ai",
+      "rag",
+      "chunking",
+      "overlap",
+      "semantic"
+    ]
   },
   {
     "date": "2026-07-31",
-    "id": "tech-coding-cli-agents"
+    "type": "tech",
+    "domain": "AI",
+    "title": "임베딩 모델 3파전(OpenAI vs Cohere vs BGE): “우리 서비스”에 맞는 선택 기준",
+    "slug": "2026-7-3openai-vs-cohere-vs-bge-2",
+    "keywords": [
+      "ai",
+      "rag",
+      "bge",
+      "cohere",
+      "openai"
+    ]
   },
   {
     "date": "2026-07-31",
-    "id": "tech-rag-embedding"
+    "type": "tech",
+    "domain": "AI",
+    "title": "Claude Code × Codex CLI 에이전트, “터미널 자동화 워크플로”로 굴리는 법",
+    "slug": "claude-code-codex-cli-2026-7-1",
+    "keywords": [
+      "ai",
+      "coding",
+      "claude",
+      "cli",
+      "code",
+      "codex"
+    ]
   },
   {
     "date": "2026-08-01",
-    "id": "tech-backend-queue"
+    "type": "tech",
+    "domain": "Infrastructure",
+    "title": "Modal·Runpod·AWS Lambda로 “서버리스 LLM”을 굴릴 때 cold start를 이기는 실전 설계",
+    "slug": "2026-8-modalrunpodaws-lambda-llm-cold-st-2",
+    "keywords": [
+      "infra",
+      "serverless",
+      "aws",
+      "cold",
+      "lambda",
+      "llm",
+      "modal",
+      "runpod"
+    ]
   },
   {
     "date": "2026-08-01",
-    "id": "tech-infra-serverless"
+    "type": "tech",
+    "domain": "Backend",
+    "title": "LLM 백엔드에서 “Celery + Redis 큐 워커”를 2026년식으로 다시 설계하기: 비동기 처리, 중복 실행, 가시성(visibility)까지",
+    "slug": "llm-celery-redis-2026-visibility-1",
+    "keywords": [
+      "backend",
+      "architecture",
+      "celery",
+      "llm",
+      "redis",
+      "visibility"
+    ]
   },
   {
     "date": "2026-08-02",
-    "id": "tech-infra-k8s"
+    "type": "tech",
+    "domain": "AI",
+    "title": "“멀티 에이전트”를 진짜로 프로덕션에 올리는 법: LangGraph vs AutoGen vs CrewAI 심층 비교 & 구현 가이드",
+    "slug": "2026-8-langgraph-vs-autogen-vs-crewai-2",
+    "keywords": [
+      "ai",
+      "agent",
+      "autogen",
+      "crewai",
+      "langgraph"
+    ]
   },
   {
     "date": "2026-08-02",
-    "id": "tech-agent-frameworks"
+    "type": "tech",
+    "domain": "Infrastructure",
+    "title": "GPU 오토스케일링으로 LLM 서빙 비용을 ‘진짜로’ 줄이는 법: Kubernetes 최신 패턴(DRA·KEDA·vLLM·llm-d)",
+    "slug": "gpu-llm-2026-8-kubernetes-drakedavllmllm-1",
+    "keywords": [
+      "infra",
+      "kubernetes",
+      "dra",
+      "gpu",
+      "keda",
+      "llm",
+      "llm-d",
+      "vllm"
+    ]
   },
   {
     "date": "2026-08-03",
-    "id": "news-ai-hardware"
+    "type": "news",
+    "domain": "AI",
+    "title": "“GPU 다음”을 노리는 한국 NPU와 공급망 병목: NVIDIA vs Rebellions vs FuriosaAI 트렌드 체크",
+    "slug": "2026-8-gpu-npu-nvidia-vs-rebellions-vs-f-1",
+    "keywords": [
+      "ai",
+      "furiosaai",
+      "gpu",
+      "npu",
+      "nvidia",
+      "rebellions"
+    ]
   },
   {
     "date": "2026-08-03",
-    "id": "tech-agent-mcp"
+    "type": "tech",
+    "domain": "AI",
+    "title": "Claude + MCP 서버 구현: “에이전트 확장 서버”를 프로덕션에 올리는 설계/코드/함정 총정리",
+    "slug": "claude-mcp-2026-8-2",
+    "keywords": [
+      "ai",
+      "agent",
+      "claude",
+      "mcp"
+    ]
   },
   {
     "date": "2026-08-04",
-    "id": "tech-prototype-rapid-ui"
+    "type": "tech",
+    "domain": "AI",
+    "title": "BM25+Vector 하이브리드 검색, 2026년형 “랭킹 병합” 실전 가이드: RRF vs Score Fusion, 그리고 RAG에 먹이는 법",
+    "slug": "bm25vector-2026-rrf-vs-score-fusion-rag-2",
+    "keywords": [
+      "ai",
+      "rag",
+      "bm25+vector",
+      "fusion",
+      "rrf",
+      "score"
+    ]
   },
   {
     "date": "2026-08-04",
-    "id": "tech-rag-hybrid"
+    "type": "tech",
+    "domain": "AI",
+    "title": "Streamlit vs Gradio로 “하루 만에” AI 데모 UI를 만드는 법: 실전 설계/성능/배포까지",
+    "slug": "streamlit-vs-gradio-ai-ui-2026-8-1",
+    "keywords": [
+      "ai",
+      "prototyping",
+      "gradio",
+      "streamlit"
+    ]
   },
   {
     "date": "2026-08-05",
-    "id": "tech-coding-vibe"
+    "type": "tech",
+    "domain": "AI",
+    "title": "“Vibe Coding”으로 AI 프로토타이핑/MVP를 3일 안에 끝내는 설계-검증 루프",
+    "slug": "2026-8-vibe-coding-ai-mvp-3-1",
+    "keywords": [
+      "ai",
+      "coding",
+      "mvp",
+      "vibe"
+    ]
   },
   {
     "date": "2026-08-05",
-    "id": "tech-mlops-serving"
+    "type": "tech",
+    "domain": "AI",
+    "title": "8월 2026 기준: vLLM vs TGI vs Ollama — “로컬/사내 LLM 서빙” 배포 전략과 성능 튜닝의 현실적인 선택 기준",
+    "slug": "8-2026-vllm-vs-tgi-vs-ollama-llm-2",
+    "keywords": [
+      "ai",
+      "mlops",
+      "llm",
+      "ollama",
+      "tgi",
+      "vllm"
+    ]
   },
   {
     "date": "2026-08-06",
-    "id": "news-llm-models"
+    "type": "tech",
+    "domain": "AI",
+    "title": "컨텍스트 1M 시대에도 “기억”은 부족하다: LLM Long Context Compaction 설계 가이드 (Lost-in-the-Middle 대응 포함)",
+    "slug": "1m-2026-8-llm-long-context-compaction-lo-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "compaction",
+      "context",
+      "long",
+      "lost-in-the-middle"
+    ]
   },
   {
     "date": "2026-08-06",
-    "id": "tech-llm-context"
+    "type": "news",
+    "domain": "AI",
+    "title": "GPT·Claude·Gemini “신규 모델 경쟁”이 개발자 스택을 다시 흔든다",
+    "slug": "2026-8-gptclaudegemini-1",
+    "keywords": [
+      "ai",
+      "claude",
+      "gemini",
+      "gpt"
+    ]
   },
   {
     "date": "2026-08-07",
-    "id": "tech-rag-vectordb"
+    "type": "tech",
+    "domain": "AI",
+    "title": "Pinecone·Weaviate·Qdrant·Chroma 벡터DB 선택 가이드: “성능”은 결국 **메모리/필터/운영모델** 싸움이다",
+    "slug": "2026-8-pineconeweaviateqdrantchroma-db-1",
+    "keywords": [
+      "ai",
+      "rag",
+      "chroma",
+      "pinecone",
+      "qdrant",
+      "weaviate"
+    ]
   },
   {
     "date": "2026-08-07",
-    "id": "tech-llm-cost"
+    "type": "tech",
+    "domain": "AI",
+    "title": "LLM API 비용을 “반으로” 줄이는 2026년식 Routing: Prompt Caching + Semantic Cache + Cascade로 토큰을 아껴라",
+    "slug": "llm-api-2026-routing-prompt-caching-sema-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "api",
+      "cache",
+      "caching",
+      "cascade",
+      "prompt",
+      "routing"
+    ]
   },
   {
     "date": "2026-08-08",
-    "id": "tech-multimodal-voice"
+    "type": "tech",
+    "domain": "AI",
+    "title": "도구를 “호출”이 아니라 “실행”하게 만들기: AI Agent Tool Use & Function Calling 구현 심층 가이드",
+    "slug": "2026-8-ai-agent-tool-use-function-callin-2",
+    "keywords": [
+      "ai",
+      "agent",
+      "calling",
+      "function",
+      "tool",
+      "use"
+    ]
   },
   {
     "date": "2026-08-08",
-    "id": "tech-agent-tool-use"
+    "type": "tech",
+    "domain": "AI",
+    "title": "“실시간 음성 에이전트” 구현의 승부처는 모델이 아니라 **파이프라인과 전송(WebRTC)** 이다",
+    "slug": "2026-8-webrtc-1",
+    "keywords": [
+      "ai",
+      "multimodal",
+      "webrtc"
+    ]
   },
   {
     "date": "2026-08-09",
-    "id": "tech-prototype-fullstack"
+    "type": "tech",
+    "domain": "AI",
+    "title": "Next.js + Vercel AI SDK로 “운영 가능한” Fullstack AI 앱을 만드는 법 (스트리밍·Tool Calling·모델 라우팅·비용 통제)",
+    "slug": "2026-8-nextjs-vercel-ai-sdk-fullstack-ai-1",
+    "keywords": [
+      "ai",
+      "prototyping",
+      "calling",
+      "fullstack",
+      "next.js",
+      "sdk",
+      "tool",
+      "vercel"
+    ]
   },
   {
     "date": "2026-08-09",
-    "id": "tech-rag-advanced"
+    "type": "tech",
+    "domain": "AI",
+    "title": "HyDE + Reranking + Query Expansion: RAG 성능을 “끝까지” 끌어올리는 검색 스택 설계 가이드",
+    "slug": "hyde-reranking-query-expansion-2026-rag-2",
+    "keywords": [
+      "ai",
+      "rag",
+      "expansion",
+      "hyde",
+      "query",
+      "reranking"
+    ]
   },
   {
     "date": "2026-08-10",
-    "id": "news-bigtech-updates"
+    "type": "tech",
+    "domain": "AI",
+    "title": "프레임 예산 32장으로 2시간짜리 영상을 “이해/생성”하기: Video AI 파이프라인 설계 가이드",
+    "slug": "32-2-2026-8-video-ai-2",
+    "keywords": [
+      "ai",
+      "multimodal",
+      "video"
+    ]
   },
   {
     "date": "2026-08-10",
-    "id": "tech-multimodal-video"
+    "type": "news",
+    "domain": "AI",
+    "title": "8월(그리고 6~7월 연장선) 빅테크 AI API 업데이트 총정리: “모델 경쟁”보다 더 큰 변화는 **에이전트 표준화 + 운영/보안 강제**",
+    "slug": "8-67-ai-api-1",
+    "keywords": [
+      "ai",
+      "api"
+    ]
   },
   {
     "date": "2026-08-11",
-    "id": "tech-llm-finetune"
+    "type": "tech",
+    "domain": "Backend",
+    "title": "FastAPI로 LLM API 서버를 “진짜로” 스트리밍하기: SSE/StreamingResponse 설계와 함정 정리",
+    "slug": "fastapi-llm-api-2026-8-ssestreamingrespo-2",
+    "keywords": [
+      "backend",
+      "api",
+      "fastapi",
+      "llm",
+      "sse",
+      "streamingresponse"
+    ]
   },
   {
     "date": "2026-08-11",
-    "id": "tech-backend-api"
+    "type": "tech",
+    "domain": "AI",
+    "title": "LoRA vs QLoRA: “내 GPU(16~24GB)로 LLM 파인튜닝을 끝내는” 실전 튜토리얼",
+    "slug": "lora-vs-qlora-2026-8-gpu1624gb-llm-1",
+    "keywords": [
+      "ai",
+      "llm",
+      "24gb",
+      "gpu",
+      "lora",
+      "qlora"
+    ]
   },
   {
     "date": "2026-08-12",
-    "id": "tech-data-curation"
+    "type": "tech",
+    "domain": "AI",
+    "title": "8월 2026 기준: 학습 데이터 큐레이션에서 Dedup이 ‘품질’로 이어지게 만드는 전처리 설계",
+    "slug": "8-2026-dedup-1",
+    "keywords": [
+      "ai",
+      "data",
+      "dedup"
+    ]
   },
   {
     "date": "2026-08-12",
-    "id": "tech-llm-eval"
+    "type": "tech",
+    "domain": "AI",
+    "title": "MMLU·HumanEval 점수, 이제 그대로 믿으면 안 된다: LLM 벤치마크 해석과 실무 적용 가이드",
+    "slug": "mmluhumaneval-2026-8-llm-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "humaneval",
+      "mmlu"
+    ]
   },
   {
     "date": "2026-08-13",
-    "id": "news-ai-security"
+    "type": "news",
+    "domain": "AI",
+    "title": "프롬프트 인젝션·jailbreak, 2026년 8월엔 “모델”이 아니라 “에이전트 경계”가 뚫린다",
+    "slug": "jailbreak-2026-8-1",
+    "keywords": [
+      "ai",
+      "jailbreak"
+    ]
   },
   {
     "date": "2026-08-13",
-    "id": "tech-coding-ui-gen"
+    "type": "tech",
+    "domain": "AI",
+    "title": "v0 + bolt.new로 “AI UI 생성 → 코드베이스 정착”까지: 프론트엔드 자동화 실전 가이드",
+    "slug": "v0-boltnew-ai-ui-2026-8-2",
+    "keywords": [
+      "ai",
+      "coding",
+      "bolt.new"
+    ]
   },
   {
     "date": "2026-08-14",
-    "id": "tech-coding-assist"
+    "type": "tech",
+    "domain": "AI",
+    "title": "Claude Code × Codex CLI: 2026년 8월, “터미널 에이전트 2개”로 자동화 워크플로를 설계하는 법",
+    "slug": "claude-code-codex-cli-2026-8-2-2",
+    "keywords": [
+      "ai",
+      "coding",
+      "claude",
+      "cli",
+      "code",
+      "codex"
+    ]
   },
   {
     "date": "2026-08-14",
-    "id": "tech-coding-cli-agents"
+    "type": "tech",
+    "domain": "AI",
+    "title": "Cursor·Copilot·Windsurf로 “에이전트가 일하는 저장소” 만드는 법 (2026년 8월 실전 가이드)",
+    "slug": "cursorcopilotwindsurf-2026-8-1",
+    "keywords": [
+      "ai",
+      "coding",
+      "copilot",
+      "cursor",
+      "windsurf"
+    ]
   },
   {
     "date": "2026-08-15",
-    "id": "tech-agent-memory"
+    "type": "tech",
+    "domain": "AI",
+    "title": "LLM Structured Output의 진짜 난관: “JSON은 맞는데 스키마는 왜 안 맞지?”를 끝내는 Schema 제약 실전 가이드",
+    "slug": "2026-8-llm-structured-output-json-schema-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "json",
+      "output",
+      "schema",
+      "structured"
+    ]
   },
   {
     "date": "2026-08-15",
-    "id": "tech-llm-structured"
+    "type": "tech",
+    "domain": "AI",
+    "title": "AI Agent “Long-term Memory + 상태 관리”를 2026년에 제대로 구현하는 법: RAG를 넘어 실행 상태(State)로 다루기",
+    "slug": "ai-agent-long-term-memory-2026-rag-state-1",
+    "keywords": [
+      "ai",
+      "agent",
+      "long-term",
+      "memory",
+      "rag",
+      "state"
+    ]
   },
   {
     "date": "2026-08-16",
-    "id": "tech-infra-serverless"
+    "type": "tech",
+    "domain": "AI",
+    "title": "멀티 에이전트는 “대화”가 아니라 “오케스트레이션”이다: LangGraph vs AutoGen vs CrewAI 실전 비교와 구현 가이드",
+    "slug": "2026-8-langgraph-vs-autogen-vs-crewai-2",
+    "keywords": [
+      "ai",
+      "agent",
+      "autogen",
+      "crewai",
+      "langgraph"
+    ]
   },
   {
     "date": "2026-08-16",
-    "id": "tech-agent-frameworks"
+    "type": "tech",
+    "domain": "Infrastructure",
+    "title": "Modal vs Runpod vs AWS Lambda: “서버리스 LLM 배포”에서 cold start를 이기는 현실적인 설계",
+    "slug": "modal-vs-runpod-vs-aws-lambda-2026-8-llm-1",
+    "keywords": [
+      "infra",
+      "serverless",
+      "aws",
+      "cold",
+      "lambda",
+      "llm",
+      "modal",
+      "runpod"
+    ]
   },
   {
     "date": "2026-08-17",
-    "id": "news-ai-regulation"
+    "type": "tech",
+    "domain": "AI",
+    "title": "LLM 비용을 “반으로” 줄이는 Prompt Caching 실전 설계 (Anthropic Claude + OpenAI)",
+    "slug": "2026-8-llm-prompt-caching-anthropic-clau-2",
+    "keywords": [
+      "ai",
+      "llm",
+      "anthropic",
+      "caching",
+      "claude",
+      "openai",
+      "prompt"
+    ]
   },
   {
     "date": "2026-08-17",
-    "id": "tech-llm-caching"
+    "type": "news",
+    "domain": "AI",
+    "title": "8월 2일 ‘집행’이 시작됐다: AI 규제·정책·윤리 뉴스가 개발자에게 던지는 메시지",
+    "slug": "8-2-2026-8-ai-1",
+    "keywords": [
+      "ai"
+    ]
   },
   {
     "date": "2026-08-18",
-    "id": "tech-mlops-gpu"
+    "type": "tech",
+    "domain": "AI",
+    "title": "“GPU를 더 사기 전에” LLM 서빙을 2배 뽑아내는 Quantization & Inference Acceleration 실전 가이드",
+    "slug": "2026-8-gpu-llm-2-quantization-inference--1",
+    "keywords": [
+      "ai",
+      "mlops",
+      "acceleration",
+      "gpu",
+      "inference",
+      "llm",
+      "quantization"
+    ]
   },
   {
     "date": "2026-08-18",
-    "id": "tech-coding-review"
+    "type": "tech",
+    "domain": "AI",
+    "title": "리뷰가 막히는 시대: AI PR Bot + 자동 테스트 생성으로 “품질 게이트” 다시 세우기",
+    "slug": "2026-ai-pr-bot-2",
+    "keywords": [
+      "ai",
+      "coding",
+      "bot"
+    ]
   },
   {
     "date": "2026-08-19",
-    "id": "tech-llm-prompt-cot"
+    "type": "tech",
+    "domain": "AI",
+    "title": "Chain of Thought(CoT) “고급 기법”은 이제 프롬프트가 아니라 **추론 예산 + 구조 + 검증 루프**로 설계한다",
+    "slug": "chain-of-thoughtcot-1",
+    "keywords": [
+      "ai",
+      "llm",
+      "chain",
+      "cot",
+      "thought"
+    ]
   },
   {
     "date": "2026-08-19",
-    "id": "tech-data-synth"
+    "type": "tech",
+    "domain": "AI",
+    "title": "합성 데이터로 LLM을 ‘내 도메인 전문가’로 만드는 법: 2026년식 Synthetic Data 생성·정제·파인튜닝 실전 레시피",
+    "slug": "llm-2026-synthetic-data-2",
+    "keywords": [
+      "ai",
+      "data",
+      "llm",
+      "synthetic"
+    ]
   },
   {
     "date": "2026-08-20",
-    "id": "news-ai-research"
+    "type": "tech",
+    "domain": "AI",
+    "title": "임베딩 모델 3파전: OpenAI vs Cohere vs BGE — “내 도메인”에서 이기는 선택 가이드",
+    "slug": "2026-8-3-openai-vs-cohere-vs-bge-2",
+    "keywords": [
+      "ai",
+      "rag",
+      "bge",
+      "cohere",
+      "openai"
+    ]
   },
   {
     "date": "2026-08-20",
-    "id": "tech-rag-embedding"
+    "type": "news",
+    "domain": "AI",
+    "title": "arXiv AI 논문 핵심 트렌드: “기법 혁신”보다 “평가·런타임·신뢰”가 승부를 가른다",
+    "slug": "2026-8-arxiv-ai-1",
+    "keywords": [
+      "ai",
+      "arxiv"
+    ]
   },
   {
     "date": "2026-08-21",
-    "id": "tech-backend-rate-limit"
+    "type": "tech",
+    "domain": "Backend",
+    "title": "429 한 번에 서비스가 무너진다: LLM API rate limit 안정화(retry/backoff) 패턴 심층 분석",
+    "slug": "429-2026-llm-api-rate-limit-retrybackoff-1",
+    "keywords": [
+      "backend",
+      "api",
+      "backoff",
+      "limit",
+      "llm",
+      "rate",
+      "retry"
+    ]
   },
   {
     "date": "2026-08-21",
-    "id": "tech-rag-chunking"
+    "type": "tech",
+    "domain": "AI",
+    "title": "RAG 성능을 좌우하는 Chunking 전략: “Overlap vs Semantic Chunking” 실전 선택 가이드",
+    "slug": "rag-chunking-2026-8-overlap-vs-semantic--2",
+    "keywords": [
+      "ai",
+      "rag",
+      "chunking",
+      "overlap",
+      "semantic"
+    ]
   },
   {
     "date": "2026-08-22",
-    "id": "tech-llm-context"
+    "type": "tech",
+    "domain": "AI",
+    "title": "긴 컨텍스트(200k~1M+)가 ‘쓸 수 있게’ 되는 법: 2026년식 LLM compaction/summary 설계와 lost-in-the-middle 대응",
+    "slug": "200k1m-2026-llm-compactionsummary-lost-i-1",
+    "keywords": [
+      "ai",
+      "llm",
+      "1m+",
+      "200k",
+      "compaction",
+      "lost-in-the-middle",
+      "summary"
+    ]
   },
   {
     "date": "2026-08-22",
-    "id": "tech-mlops-monitor"
+    "type": "tech",
+    "domain": "AI",
+    "title": "LLM 앱 모니터링의 현실: LangSmith vs Langfuse로 “디버깅·비용·품질”을 한 번에 잡는 설계",
+    "slug": "2026-8-llm-langsmith-vs-langfuse-2",
+    "keywords": [
+      "ai",
+      "mlops",
+      "langfuse",
+      "langsmith",
+      "llm"
+    ]
   },
   {
     "date": "2026-08-23",
-    "id": "tech-rag-vectordb"
+    "type": "tech",
+    "domain": "AI",
+    "title": "OCR + Document AI + LLM으로 “문서 이해/구조화 추출/표·PDF”를 끝내는 현실적인 설계도",
+    "slug": "2026-8-ocr-document-ai-llm-pdf-2",
+    "keywords": [
+      "ai",
+      "multimodal",
+      "document",
+      "llm",
+      "ocr",
+      "pdf"
+    ]
   },
   {
     "date": "2026-08-23",
-    "id": "tech-multimodal-ocr"
+    "type": "tech",
+    "domain": "AI",
+    "title": "Pinecone vs Weaviate vs Qdrant vs Chroma: “RAG 성능”이 아니라 “운영 난이도/필터/지연 꼬리”로 고르는 벡터DB 가이드",
+    "slug": "2026-8-pinecone-vs-weaviate-vs-qdrant-vs-1",
+    "keywords": [
+      "ai",
+      "rag",
+      "chroma",
+      "pinecone",
+      "qdrant",
+      "weaviate"
+    ]
   },
   {
     "date": "2026-08-24",
-    "id": "news-bigtech-updates"
+    "type": "tech",
+    "domain": "Backend",
+    "title": "“에이전트가 운영되는” AI 앱 아키텍처 패턴 7가지: MCP·A2A·Durable Graph로 확장성과 안정성을 동시에 잡는 법",
+    "slug": "2026-8-ai-7-mcpa2adurable-graph-2",
+    "keywords": [
+      "backend",
+      "architecture",
+      "a2a",
+      "durable",
+      "graph",
+      "mcp"
+    ]
   },
   {
     "date": "2026-08-24",
-    "id": "tech-backend-arch"
+    "type": "news",
+    "domain": "AI",
+    "title": "8월 한 달, OpenAI·Anthropic·Google API가 동시에 ‘에이전트 운영’으로 기울었다: 무엇을 바꿔야 하나",
+    "slug": "8-openaianthropicgoogle-api-1",
+    "keywords": [
+      "ai",
+      "anthropic",
+      "api",
+      "google",
+      "openai"
+    ]
   },
   {
     "date": "2026-08-25",
-    "id": "tech-agent-tool-use"
+    "type": "tech",
+    "domain": "AI",
+    "title": "도구 호출이 “대충 되는 데”서 “운영 가능한 수준”으로 바뀌는 2026년식 Function Calling 구현 패턴",
+    "slug": "2026-function-calling-1",
+    "keywords": [
+      "ai",
+      "agent",
+      "calling",
+      "function"
+    ]
   },
   {
     "date": "2026-08-25",
-    "id": "tech-agent-orchestration"
+    "type": "tech",
+    "domain": "AI",
+    "title": "컨텍스트 폭발을 이기는 2026 Supervisor/Worker 멀티‑에이전트 오케스트레이션 실전 설계",
+    "slug": "2026-supervisorworker-2",
+    "keywords": [
+      "ai",
+      "agent",
+      "supervisor",
+      "worker"
+    ]
   },
   {
     "date": "2026-08-26",
-    "id": "tech-multimodal-video"
+    "type": "tech",
+    "domain": "AI",
+    "title": "Streamlit vs Gradio로 “당일” AI 데모 UI를 출고하는 법: 성능·상태·배포까지 실전 심층 분석",
+    "slug": "streamlit-vs-gradio-ai-ui-2026-8-2",
+    "keywords": [
+      "ai",
+      "prototyping",
+      "gradio",
+      "streamlit"
+    ]
   },
   {
     "date": "2026-08-26",
-    "id": "tech-prototype-rapid-ui"
+    "type": "tech",
+    "domain": "AI",
+    "title": "한 번에 끝내는 Video Understanding/Generation: “프레임 분석 파이프라인” 설계 패턴",
+    "slug": "video-understandinggeneration-2026-8-1",
+    "keywords": [
+      "ai",
+      "multimodal",
+      "generation",
+      "understanding",
+      "video"
+    ]
   },
   {
     "date": "2026-08-27",
-    "id": "news-ai-hardware"
+    "type": "tech",
+    "domain": "AI",
+    "title": "vLLM·TGI·Ollama 로컬/온프렘 서빙 배포 완전 정리: “내 서비스엔 뭐가 맞나?”를 성능/운영 관점에서 결정하기",
+    "slug": "2026-8-vllmtgiollama-2",
+    "keywords": [
+      "ai",
+      "mlops",
+      "ollama",
+      "tgi",
+      "vllm"
+    ]
   },
   {
     "date": "2026-08-27",
-    "id": "tech-mlops-serving"
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 칩 전쟁: NVIDIA는 “메모리/패키징”으로 다시 잠그고, Rebellions·FuriosaAI는 “Inference+오픈소스/클라우드 상품화”로 파고든다",
+    "slug": "ai-2026-8-nvidia-rebellionsfuriosaai-inf-1",
+    "keywords": [
+      "ai",
+      "furiosaai",
+      "inference+",
+      "nvidia",
+      "rebellions"
+    ]
   },
   {
     "date": "2026-08-28",
-    "id": "tech-rag-graph"
+    "type": "tech",
+    "domain": "AI",
+    "title": "GraphRAG 구현 가이드: Knowledge Graph로 “멀티홉 질문”을 깨끗하게 푸는 RAG 아키텍처",
+    "slug": "2026-graphrag-knowledge-graph-rag-1",
+    "keywords": [
+      "ai",
+      "rag",
+      "graph",
+      "graphrag",
+      "knowledge"
+    ]
   },
   {
     "date": "2026-08-28",
-    "id": "tech-mlops-tracing"
+    "type": "tech",
+    "domain": "AI",
+    "title": "LLM 앱이 “느려졌는데 왜 느려졌는지”를 OTel Trace로 끝까지 추적하는 법",
+    "slug": "llm-otel-trace-2026-8-2",
+    "keywords": [
+      "ai",
+      "mlops",
+      "llm",
+      "otel",
+      "trace"
+    ]
   },
   {
     "date": "2026-08-29",
-    "id": "tech-rag-advanced"
+    "type": "tech",
+    "domain": "AI",
+    "title": "RAG 성능을 “진짜” 끌어올리는 3종 세트: HyDE + Reranking + Query Expansion 실전 설계",
+    "slug": "2026-8-rag-3-hyde-reranking-query-expans-1",
+    "keywords": [
+      "ai",
+      "rag",
+      "expansion",
+      "hyde",
+      "query",
+      "reranking"
+    ]
   },
   {
     "date": "2026-08-29",
-    "id": "tech-coding-ui-gen"
+    "type": "tech",
+    "domain": "AI",
+    "title": "v0 vs bolt.new: “AI가 프론트엔드를 만들어준다”를 프로젝트에 안전하게 넣는 법",
+    "slug": "v0-vs-boltnew-2026-8-ai-2",
+    "keywords": [
+      "ai",
+      "coding",
+      "bolt.new"
+    ]
   },
   {
     "date": "2026-08-30",
-    "id": "tech-llm-eval"
+    "type": "tech",
+    "domain": "AI",
+    "title": "Agentic RAG로 “스스로 찾고, 평가하고, 다시 찾는” 자율 정보검색 에이전트 만들기",
+    "slug": "2026-8-agentic-rag-2",
+    "keywords": [
+      "ai",
+      "agent",
+      "agentic",
+      "rag"
+    ]
   },
   {
     "date": "2026-08-30",
-    "id": "tech-agent-agentic-rag"
+    "type": "tech",
+    "domain": "AI",
+    "title": "MMLU·HumanEval 점수, 이제 그대로 믿으면 안 된다: LLM 벤치마크 해석 실전 가이드",
+    "slug": "mmluhumaneval-2026-8-llm-1",
+    "keywords": [
+      "ai",
+      "llm",
+      "humaneval",
+      "mmlu"
+    ]
   },
   {
     "date": "2026-08-31",
-    "id": "news-dev-tools"
+    "type": "news",
+    "domain": "AI",
+    "title": "IDE가 “자동완성”을 넘어 “에이전트 OS”로 변한 한 달",
+    "slug": "2026-8-ide-os-1",
+    "keywords": [
+      "ai",
+      "ide"
+    ]
   },
   {
     "date": "2026-08-31",
-    "id": "tech-data-curation"
+    "type": "tech",
+    "domain": "AI",
+    "title": "중복이 성능을 훔친다: 2026년식 학습 데이터 큐레이션 Dedup + Dataset Quality 전처리 실전 설계",
+    "slug": "2026-dedup-dataset-quality-2",
+    "keywords": [
+      "ai",
+      "data",
+      "dataset",
+      "dedup",
+      "quality"
+    ]
   },
   {
     "date": "2026-09-01",
-    "id": "tech-llm-caching"
+    "type": "tech",
+    "domain": "AI",
+    "title": "프롬프트 캐싱으로 LLM 비용 30~80% 줄이기: OpenAI vs Anthropic 실전 설계/히트율 튜닝",
+    "slug": "llm-3080-openai-vs-anthropic2026-9-1",
+    "keywords": [
+      "ai",
+      "llm",
+      "anthropic",
+      "openai"
+    ]
   },
   {
     "date": "2026-09-01",
-    "id": "tech-backend-queue"
+    "type": "tech",
+    "domain": "Backend",
+    "title": "LLM 백엔드에서 “Celery + Redis 비동기 큐/워커”를 2026년에 제대로 쓰는 법: 스트리밍·멱등성·visibility_timeout까지",
+    "slug": "llm-celery-redis-2026-visibilitytimeout-2",
+    "keywords": [
+      "backend",
+      "architecture",
+      "celery",
+      "llm",
+      "redis",
+      "timeout",
+      "visibility"
+    ]
   },
   {
     "date": "2026-09-02",
-    "id": "tech-llm-prompt-cot"
+    "type": "tech",
+    "domain": "AI",
+    "title": "실시간 음성 에이전트: STT→LLM→TTS “스트리밍 파이프라인”으로 1초 체감지연 깨는 구현 가이드",
+    "slug": "2026-9-sttllmtts-1-2",
+    "keywords": [
+      "ai",
+      "multimodal",
+      "llm",
+      "stt",
+      "tts"
+    ]
   },
   {
     "date": "2026-09-02",
-    "id": "tech-multimodal-voice"
+    "type": "tech",
+    "domain": "AI",
+    "title": "Chain-of-Thought(CoT) “고급” 프롬프트 최적화: 기준, 성능·비용·안정성을 동시에 잡는 설계 패턴",
+    "slug": "chain-of-thoughtcot-2026-9-1",
+    "keywords": [
+      "ai",
+      "llm",
+      "chain-of-thought",
+      "cot"
+    ]
   },
   {
     "date": "2026-09-03",
-    "id": "news-ai-invest"
+    "type": "news",
+    "domain": "AI",
+    "title": "AI 스타트업 투자·M&A, 2026년 9월의 키워드는 ‘Agent + Routing + Physical AI’다",
+    "slug": "ai-ma-2026-9-agent-routing-physical-ai-1",
+    "keywords": [
+      "ai",
+      "agent",
+      "physical",
+      "routing"
+    ]
   },
   {
     "date": "2026-09-03",
-    "id": "tech-data-synth"
+    "type": "tech",
+    "domain": "AI",
+    "title": "합성 데이터로 LLM을 “내 도메인에 맞게” 재교육하는 법: SDG→필터링→SFT 파이프라인 심층 가이드",
+    "slug": "llm-2026-9-sdgsft-2",
+    "keywords": [
+      "ai",
+      "data",
+      "llm",
+      "sdg",
+      "sft"
+    ]
   },
   {
     "date": "2026-09-04",
-    "id": "tech-coding-cli-agents"
+    "type": "tech",
+    "domain": "AI",
+    "title": "Claude Code × Codex CLI 에이전트: “터미널에서 끝나는” 자동화 코딩 워크플로 설계 가이드",
+    "slug": "claude-code-codex-cli-2026-9-1",
+    "keywords": [
+      "ai",
+      "coding",
+      "claude",
+      "cli",
+      "code",
+      "codex"
+    ]
   },
   {
     "date": "2026-09-04",
-    "id": "tech-backend-api"
+    "type": "tech",
+    "domain": "Backend",
+    "title": "FastAPI로 “진짜” LLM 스트리밍 API 서버 만들기: SSE, 백프레셔, 끊김/재개까지",
+    "slug": "fastapi-llm-api-2026-9-sse-2",
+    "keywords": [
+      "backend",
+      "api",
+      "fastapi",
+      "llm",
+      "sse"
+    ]
   }
 ]
