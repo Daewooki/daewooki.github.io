@@ -1,12 +1,14 @@
 ---
-title: "2026년 7월, “OCR → Document AI → LLM 구조화 추출” 스택이 재정의됐다: 표·PDF를 프로덕션에 넣는 현실적인 기준"
+title: "“OCR → Document AI → LLM 구조화 추출” 스택이 재정의됐다: 표·PDF를 프로덕션에 넣는 현실적인 기준"
+description: "현업에서 문서 자동화가 막히는 지점은 “텍스트를 읽느냐”가 아니라, (1) 레이아웃(heading/paragraph/reading order) 유지, (2) 표 구조(Table Structure Recognition) 재구성, (3) 최종 스키마에 맞춘 안정적인 structured ex…"
 date: 2026-07-24 03:27:38 +0900
 categories: [AI, Multimodal]
-tags: [ai, multimodal, trend, 2026-07]
+tags: [ai, multimodal]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -16,12 +18,12 @@ tags: [ai, multimodal, trend, 2026-07]
 </script>
 
 ## 들어가며
-현업에서 문서 자동화가 막히는 지점은 “텍스트를 읽느냐”가 아니라, **(1) 레이아웃(heading/paragraph/reading order) 유지**, **(2) 표 구조(Table Structure Recognition) 재구성**, **(3) 최종 스키마에 맞춘 안정적인 structured extraction(JSON)**, 그리고 **(4) 추출 결과를 원문 좌표로 trace/backlink** 하는 “검증 가능성”입니다. 특히 스캔 PDF + 복잡한 표(merged cell, multi-line header, footnote) 조합은 여전히 실패율이 높고, LLM을 얹으면 “그럴듯한 JSON”이 나오지만 **근거(좌표/셀 출처)가 없는 hallucination**이 운영을 망칩니다(커뮤니티에서도 반복적으로 언급). ([reddit.com](https://www.reddit.com/r/computervision/comments/1t9nnba/why_is_pdf_table_extraction_still_hard_even_with/?utm_source=openai))
+현업에서 문서 자동화가 막히는 지점은 “텍스트를 읽느냐”가 아니라, **(1) 레이아웃(heading/paragraph/reading order) 유지**, **(2) 표 구조(Table Structure Recognition) 재구성**, **(3) 최종 스키마에 맞춘 안정적인 structured extraction(JSON)**, 그리고 **(4) 추출 결과를 원문 좌표로 trace/backlink** 하는 “검증 가능성”입니다. 특히 스캔 PDF + 복잡한 표(merged cell, multi-line header, footnote) 조합은 여전히 실패율이 높고, LLM을 얹으면 “그럴듯한 JSON”이 나오지만 **근거(좌표/셀 출처)가 없는 hallucination**이 운영을 망칩니다(커뮤니티에서도 반복적으로 언급).[^1]
 
 **언제 쓰면 좋은가**
 - 대량 문서(수천~수만 페이지/일)에서 **표/폼/계약서/청구서**를 스키마로 적재해야 하고, 사람이 최종 검수하더라도 **검수 비용을 10x 줄이고 싶을 때**
 - OCR 품질이 흔들리는 환경(스캔본, 워터마크, 도장/서명)에서 **layout + 표 + 키값**을 같이 뽑아야 할 때
-- RAG 이전 단계로 **PDF → Markdown/구조화**가 필요하고, downstream QA 성능을 올리고 싶을 때(문서 변환 품질이 RAG 품질을 좌우한다는 평가 연구가 등장). ([arxiv.org](https://arxiv.org/abs/2604.04948?utm_source=openai))
+- RAG 이전 단계로 **PDF → Markdown/구조화**가 필요하고, downstream QA 성능을 올리고 싶을 때(문서 변환 품질이 RAG 품질을 좌우한다는 평가 연구가 등장).[^2]
 
 **언제 쓰면 안 되는가**
 - “정확히 정해진 템플릿”만 다루고 volume이 크지 않다면: 규칙 기반/템플릿 기반이 더 싸고 안정적
@@ -36,18 +38,18 @@ tags: [ai, multimodal, trend, 2026-07]
 
 1. **Layout Parse (문서 구조 복원)**  
    - 페이지를 block 단위(heading, paragraph, header/footer, table, figure 등)로 분해하고 reading order를 잡음  
-   - Google Document AI의 **Gemini 기반 layout parser**는 OCR 모델 + Gemini를 결합해 “정밀한 구조화”를 강조합니다. ([docs.cloud.google.com](https://docs.cloud.google.com/document-ai/docs/layout-parse-chunk?utm_source=openai))  
-   - Microsoft Document Intelligence는 layout 모델 출력에 대해 **Markdown 형태 출력** 및 좌표 정보를 제공하는 샘플들이 존재합니다. ([learn.microsoft.com](https://learn.microsoft.com/en-us/azure/ai-services/document-intelligence/prebuilt/layout?country=us&culture=en-us&view=doc-intel-3.1.0&utm_source=openai))  
-   - Mistral OCR 4는 bounding box, block label, confidence 등을 전면에 내세웁니다. ([docs.mistral.ai](https://docs.mistral.ai/models/model-cards/ocr-4-0?utm_source=openai))
+   - Google Document AI의 **Gemini 기반 layout parser**는 OCR 모델 + Gemini를 결합해 “정밀한 구조화”를 강조합니다.[^3]  
+   - Microsoft Document Intelligence는 layout 모델 출력에 대해 **Markdown 형태 출력** 및 좌표 정보를 제공하는 샘플들이 존재합니다.[^4]  
+   - Mistral OCR 4는 bounding box, block label, confidence 등을 전면에 내세웁니다.[^5]
 
 2. **Table Structure Recognition (TSR) / 표 재구성**
    - 표는 “텍스트”가 아니라 **격자 구조 + header 계층 + merged cell + footnote**의 조합
-   - 흥미로운 포인트: 최신 연구 중에는 딥러닝 대신 **OpenCV 기반 휴리스틱 + OCR**로 고정밀 TSR을 만드는 접근(SPARTAN)이 소개됩니다. GPU 없이도 실무 품질을 얻고, 마지막에 LLM을 “스키마 매핑”에만 제한적으로 사용합니다. 이게 비용/설명가능성 측면에서 꽤 실전적입니다. ([nature.com](https://www.nature.com/articles/s41598-026-44325-7?utm_source=openai))  
-   - AWS Textract도 표에서 merged cell, column header, summary cell 같은 메타를 직접 다루는 쪽으로 문서가 정리되어 있습니다(즉, “표는 별도 객체”로 취급). ([docs.aws.amazon.com](https://docs.aws.amazon.com/textract/latest/dg/how-it-works-tables.html?utm_source=openai))
+   - 흥미로운 포인트: 최신 연구 중에는 딥러닝 대신 **OpenCV 기반 휴리스틱 + OCR**로 고정밀 TSR을 만드는 접근(SPARTAN)이 소개됩니다. GPU 없이도 실무 품질을 얻고, 마지막에 LLM을 “스키마 매핑”에만 제한적으로 사용합니다. 이게 비용/설명가능성 측면에서 꽤 실전적입니다.[^6]  
+   - AWS Textract도 표에서 merged cell, column header, summary cell 같은 메타를 직접 다루는 쪽으로 문서가 정리되어 있습니다(즉, “표는 별도 객체”로 취급).[^7]
 
 3. **LLM Structured Extraction (스키마로의 안정적 매핑)**
    - LLM은 “문서 이해”에 강점이 있지만, 프로덕션에서 필요한 건 **엄격한 JSON schema + 재시도/검증 루프**입니다.
-   - 2026년 문서 이해 서베이에서도 MLLM 기반 접근이 OCR-free/OCR-based로 갈리며, robustness와 hallucination, fine-grained perception이 핵심 과제로 정리됩니다. ([aclanthology.org](https://aclanthology.org/2026.findings-acl.652/?utm_source=openai))  
+   - 2026년 문서 이해 서베이에서도 MLLM 기반 접근이 OCR-free/OCR-based로 갈리며, robustness와 hallucination, fine-grained perception이 핵심 과제로 정리됩니다.[^8]  
    - 결론적으로, 실무에서는 “LLM이 문서를 처음부터 끝까지 읽고 JSON 생성”보다는 **Layout/Tables에서 근거를 뽑고, LLM은 mapping/normalization에 집중**시키는 쪽이 안전합니다.
 
 ### 2) OCR-free vs OCR-based: 무엇이 다른가
@@ -82,7 +84,7 @@ OPENAI_API_KEY=...          # 스키마 매핑용 LLM (예시)
 ```
 
 ### 1) Layout/Table 파싱 (Google Document AI Layout Parser 예시)
-Google은 복잡한 PDF에는 OCR parser 대신 **layout parser**를 권장하고, table annotation을 켤 수 있습니다. ([docs.cloud.google.com](https://docs.cloud.google.com/generative-ai-app-builder/docs/parse-chunk-documents?authuser=19&hl=en&utm_source=openai))  
+Google은 복잡한 PDF에는 OCR parser 대신 **layout parser**를 권장하고, table annotation을 켤 수 있습니다.[^9]  
 (아래 코드는 “실행 가능한 형태”의 뼈대이며, 실제 호출 파라미터/SDK는 환경에 맞게 조정하세요.)
 
 ```python
@@ -246,14 +248,14 @@ if __name__ == "__main__":
 ### Best Practice
 1) **LLM을 “최종 생성자”가 아니라 “정규화/매핑기”로 제한**
 - Layout/Table 단계에서 구조를 최대한 복원하고(표는 셀 단위), LLM은 `schema mapping + normalization`만 담당시키면 hallucination을 크게 줄입니다.
-- 휴리스틱 기반 TSR(SPARTAN) 같은 접근이 다시 주목받는 이유가 “비용/설명가능성/튜닝 용이성”입니다. ([nature.com](https://www.nature.com/articles/s41598-026-44325-7?utm_source=openai))
+- 휴리스틱 기반 TSR(SPARTAN) 같은 접근이 다시 주목받는 이유가 “비용/설명가능성/튜닝 용이성”입니다.[^6]
 
 2) **provenance(근거) 설계를 1순위로**
 - 값마다 `page + bbox + source(table cell/paragraph)`를 붙이세요.
-- 커뮤니티에서 지적하듯 “JSON은 예쁜데 출처 추적이 안 되면” 운영에서 바로 막힙니다. ([reddit.com](https://www.reddit.com/r/computervision/comments/1t9nnba/why_is_pdf_table_extraction_still_hard_even_with/?utm_source=openai))
+- 커뮤니티에서 지적하듯 “JSON은 예쁜데 출처 추적이 안 되면” 운영에서 바로 막힙니다.[^1]
 
 3) **PDF → Markdown 변환을 RAG 품질 관점에서 측정**
-- “텍스트 잘 뽑힘”이 아니라 “downstream QA 정확도”로 평가하는 연구가 나왔고, 변환/청킹/메타데이터 전략의 영향이 큽니다. ([arxiv.org](https://arxiv.org/abs/2604.04948?utm_source=openai))  
+- “텍스트 잘 뽑힘”이 아니라 “downstream QA 정확도”로 평가하는 연구가 나왔고, 변환/청킹/메타데이터 전략의 영향이 큽니다.[^2]  
 - 즉, 추출 파이프라인은 단독 지표(WER)보다 **업무 KPI(정산 검수 시간, QA 정답률)**로 평가하세요.
 
 ### 흔한 함정/안티패턴
@@ -265,14 +267,14 @@ if __name__ == "__main__":
   → 나중에 “이 금액이 표의 어느 셀에서 왔냐” 질문에 답을 못 합니다.
 
 ### 비용/성능/안정성 트레이드오프 (2026년 7월 기준)
-- Google의 Gemini 기반 layout parser처럼 “OCR + LLM 결합”은 구조화 품질을 끌어올리지만, **대량 처리 시 단가/지연**을 반드시 측정해야 합니다. ([docs.cloud.google.com](https://docs.cloud.google.com/document-ai/docs/layout-parse-chunk?utm_source=openai))  
-- Mistral OCR 4는 bounding box/레이블/신뢰도와 멀티언어를 강점으로 내세우고, self-hosted 단일 컨테이너도 언급됩니다(배포/데이터 경계가 중요한 조직에 매력). ([mistral.ai](https://mistral.ai/fr/news/ocr-4/?utm_source=openai))  
-- 반대로, AWS Textract나 Azure Document Intelligence처럼 “문서 전용” 제품은 표/레이아웃 객체가 비교적 명시적이라 **감사/운영 친화적**인 면이 있습니다. ([docs.aws.amazon.com](https://docs.aws.amazon.com/textract/latest/dg/how-it-works-tables.html?utm_source=openai))
+- Google의 Gemini 기반 layout parser처럼 “OCR + LLM 결합”은 구조화 품질을 끌어올리지만, **대량 처리 시 단가/지연**을 반드시 측정해야 합니다.[^3]  
+- Mistral OCR 4는 bounding box/레이블/신뢰도와 멀티언어를 강점으로 내세우고, self-hosted 단일 컨테이너도 언급됩니다(배포/데이터 경계가 중요한 조직에 매력).[^10]  
+- 반대로, AWS Textract나 Azure Document Intelligence처럼 “문서 전용” 제품은 표/레이아웃 객체가 비교적 명시적이라 **감사/운영 친화적**인 면이 있습니다.[^7]
 
 ---
 
 ## 🚀 마무리
-2026년 7월의 결론은 단순합니다. **문서 AI는 ‘LLM으로 읽는다’가 아니라 ‘Layout/Table을 먼저 복원하고, LLM은 스키마 매핑에 제한한다’**가 프로덕션 승률이 높습니다. Google의 Gemini 기반 layout parser 같은 흐름, Mistral OCR 4의 bbox/블록/신뢰도 강조, 그리고 휴리스틱 TSR(SPARTAN) 재부상은 모두 같은 방향을 가리킵니다. ([docs.cloud.google.com](https://docs.cloud.google.com/document-ai/docs/layout-parse-chunk?utm_source=openai))
+2026년 7월의 결론은 단순합니다. **문서 AI는 ‘LLM으로 읽는다’가 아니라 ‘Layout/Table을 먼저 복원하고, LLM은 스키마 매핑에 제한한다’**가 프로덕션 승률이 높습니다. Google의 Gemini 기반 layout parser 같은 흐름, Mistral OCR 4의 bbox/블록/신뢰도 강조, 그리고 휴리스틱 TSR(SPARTAN) 재부상은 모두 같은 방향을 가리킵니다.[^3]
 
 도입 판단 기준(실무 체크리스트):
 - 표가 핵심이면: **TSR 품질 + merged cell 처리 + 좌표/셀 근거 제공 여부**
@@ -280,6 +282,18 @@ if __name__ == "__main__":
 - 비용이면: **페이지당 비용 + chunking 전략 + “LLM 투입 범위 최소화”**
 
 다음 학습 추천:
-- MLLM 기반 문서 이해의 방법/과제 정리(서베이)로 큰 그림 잡기 ([aclanthology.org](https://aclanthology.org/2026.findings-acl.652/?utm_source=openai))  
-- PDF 변환 품질이 RAG에 미치는 영향 평가 프레임워크 참고 ([arxiv.org](https://arxiv.org/abs/2604.04948?utm_source=openai))  
-- “프로덕션 아키텍처” 관점(마이크로서비스/스케일링/재처리) 사례 연구로 운영 설계 보강 ([arxiv.org](https://arxiv.org/abs/2605.18818?utm_source=openai))
+- MLLM 기반 문서 이해의 방법/과제 정리(서베이)로 큰 그림 잡기[^8]  
+- PDF 변환 품질이 RAG에 미치는 영향 평가 프레임워크 참고[^2]  
+- “프로덕션 아키텍처” 관점(마이크로서비스/스케일링/재처리) 사례 연구로 운영 설계 보강[^11]
+
+[^1]: <https://www.reddit.com/r/computervision/comments/1t9nnba/why_is_pdf_table_extraction_still_hard_even_with/>
+[^2]: <https://arxiv.org/abs/2604.04948>
+[^3]: <https://docs.cloud.google.com/document-ai/docs/layout-parse-chunk>
+[^4]: <https://learn.microsoft.com/en-us/azure/ai-services/document-intelligence/prebuilt/layout?country=us&culture=en-us&view=doc-intel-3.1.0>
+[^5]: <https://docs.mistral.ai/models/model-cards/ocr-4-0>
+[^6]: <https://www.nature.com/articles/s41598-026-44325-7>
+[^7]: <https://docs.aws.amazon.com/textract/latest/dg/how-it-works-tables.html>
+[^8]: <https://aclanthology.org/2026.findings-acl.652/>
+[^9]: <https://docs.cloud.google.com/generative-ai-app-builder/docs/parse-chunk-documents?authuser=19&hl=en>
+[^10]: <https://mistral.ai/fr/news/ocr-4/>
+[^11]: <https://arxiv.org/abs/2605.18818>

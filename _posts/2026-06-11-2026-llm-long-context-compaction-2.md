@@ -1,12 +1,14 @@
 ---
 title: "컨텍스트가 길어질수록 성능이 나빠진다: 2026년 LLM Long Context에서 “Compaction”으로 이기는 법"
+description: "2026년의 LLM은 128k~수백 k, 심지어 “백만 토큰”급 컨텍스트를 내세우지만, 긴 컨텍스트를 “그대로 다 넣는 것”이 곧 문제 해결로 이어지진 않습니다. 대표 증상이 두 가지입니다."
 date: 2026-06-11 04:46:59 +0900
 categories: [AI, LLM]
-tags: [ai, llm, trend, 2026-06]
+tags: [ai, llm]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -18,13 +20,13 @@ tags: [ai, llm, trend, 2026-06]
 ## 들어가며
 2026년의 LLM은 128k~수백 k, 심지어 “백만 토큰”급 컨텍스트를 내세우지만, **긴 컨텍스트를 “그대로 다 넣는 것”이 곧 문제 해결**로 이어지진 않습니다. 대표 증상이 두 가지입니다.
 
-- **Lost in the middle**: 중요한 근거가 프롬프트 “중간”에 있으면 정답률이 떨어지는 현상(긴 컨텍스트 모델에서도 관찰). ([arxiv.org](https://arxiv.org/abs/2307.03172?utm_source=openai))  
+- **Lost in the middle**: 중요한 근거가 프롬프트 “중간”에 있으면 정답률이 떨어지는 현상(긴 컨텍스트 모델에서도 관찰).[^1]  
 - **Context bloat → 비용/지연/불안정**: 에이전트나 RAG에서 툴 출력·로그·중복 문서가 누적되며, 토큰 비용과 latency가 급증하고 “제약 조건 상실/환각”이 늘어남.
 
-그래서 2025~2026년 실무 흐름은 “컨텍스트를 늘리는 경쟁”에서 **컨텍스트를 관리(압축/정리/재배치)하는 compaction**으로 무게중심이 이동했습니다. OpenAI는 Responses API에 **native compaction**을 넣어 “요약/상태 유지 시스템을 직접 설계하는 부담을 줄이겠다”고 명시했고, 초과 직전 요청을 compaction으로 흡수하는 동작도 언급합니다. ([openai.com](https://openai.com/index/equip-responses-api-computer-environment?utm_source=openai)) LangChain은 Deep Agents에서 **임계치 기반 요약 + 에이전트가 스스로 압축을 트리거하는 autonomous context compression**까지 제공하기 시작했죠. ([langchain.com](https://www.langchain.com/blog/context-management-for-deepagents?utm_source=openai))
+그래서 2025~2026년 실무 흐름은 “컨텍스트를 늘리는 경쟁”에서 **컨텍스트를 관리(압축/정리/재배치)하는 compaction**으로 무게중심이 이동했습니다. OpenAI는 Responses API에 **native compaction**을 넣어 “요약/상태 유지 시스템을 직접 설계하는 부담을 줄이겠다”고 명시했고, 초과 직전 요청을 compaction으로 흡수하는 동작도 언급합니다.[^2] LangChain은 Deep Agents에서 **임계치 기반 요약 + 에이전트가 스스로 압축을 트리거하는 autonomous context compression**까지 제공하기 시작했죠.[^3]
 
 ### 언제 쓰면 좋은가
-- **Long-running agent**(코드 리팩터링, 멀티파일 편집, 인시던트 대응, 리서치/툴 반복 호출)처럼 “대화가 길어지는 게 정상”인 워크플로우 ([langchain.com](https://www.langchain.com/blog/autonomous-context-compression?utm_source=openai))
+- **Long-running agent**(코드 리팩터링, 멀티파일 편집, 인시던트 대응, 리서치/툴 반복 호출)처럼 “대화가 길어지는 게 정상”인 워크플로우[^4]
 - RAG에서 top-k chunk를 그대로 넣으면 **노이즈가 더 커져** 품질이 떨어지는 경우(특히 multi-doc QA)
 - 팀/프로덕트에서 **토큰 비용 상한**이 확실한 경우(운영 예산/레이트리밋)
 
@@ -36,7 +38,7 @@ tags: [ai, llm, trend, 2026-06]
 ---
 
 ## 🔧 핵심 개념
-긴 컨텍스트 활용을 “많이 넣기”로 생각하면 실패합니다. 2026년의 정답은 **Window(버퍼)와 Memory(내구 저장)를 분리**하고, Window 안에서는 **compaction으로 ‘좋은 형태’의 입력을 유지**하는 것입니다(“compaction is not memory”라는 경고가 반복됨). ([memnode.dev](https://memnode.dev/articles/compaction-is-not-memory-context-window?utm_source=openai))
+긴 컨텍스트 활용을 “많이 넣기”로 생각하면 실패합니다. 2026년의 정답은 **Window(버퍼)와 Memory(내구 저장)를 분리**하고, Window 안에서는 **compaction으로 ‘좋은 형태’의 입력을 유지**하는 것입니다(“compaction is not memory”라는 경고가 반복됨).[^5]
 
 ### 1) Compaction의 정의: “요약”이 아니라 “상태(state) 재구성”
 실무 compaction은 보통 3개 레이어로 나뉩니다.
@@ -49,26 +51,26 @@ tags: [ai, llm, trend, 2026-06]
 - “결론/결정/제약”은 짧게
 - “근거”는 *짧은 인용 + 포인터* (id/경로/오프셋)로 남겨 재확장 가능하게
 
-LangChain Deep Agents는 대화 전체를 “가상 파일시스템”에 보관하고, 임계치에서 요약(compaction)을 수행한다고 설명합니다. 즉, **Window를 줄이되 원문은 밖에 보관**하는 구조가 기본 전제입니다. ([langchain.com](https://www.langchain.com/blog/context-management-for-deepagents?utm_source=openai))
+LangChain Deep Agents는 대화 전체를 “가상 파일시스템”에 보관하고, 임계치에서 요약(compaction)을 수행한다고 설명합니다. 즉, **Window를 줄이되 원문은 밖에 보관**하는 구조가 기본 전제입니다.[^3]
 
 ### 2) Lost in the middle과 Compaction의 연결
-“Lost in the Middle” 연구는 **관련 정보가 문맥의 시작/끝에 있을 때 성능이 높고, 중간에 있을 때 떨어진다**는 실험 결과를 제시합니다. ([arxiv.org](https://arxiv.org/abs/2307.03172?utm_source=openai))  
+“Lost in the Middle” 연구는 **관련 정보가 문맥의 시작/끝에 있을 때 성능이 높고, 중간에 있을 때 떨어진다**는 실험 결과를 제시합니다.[^1]  
 이걸 시스템 설계로 번역하면:
 
 - 컨텍스트가 길어질수록, “중간에 묻힌 핵심 제약/질문/정답 근거”가 무시될 확률이 커진다
 - 따라서 compaction의 목적은 단순 토큰 절감이 아니라  
   **(a) 핵심을 ‘끝부분’으로 재배치하고 (b) 노이즈를 제거해 신호 대 잡음비를 올리는 것**
 
-Anthropic도 long-context 프롬프트에서 “질문/관련 구간의 거리”에 따른 성능 저하를 다루며, 실무적으로는 **질문을 끝에 두거나 재진술**하는 패턴이 자주 쓰입니다. ([anthropic.com](https://www.anthropic.com/news/prompting-long-context?utm_source=openai))
+Anthropic도 long-context 프롬프트에서 “질문/관련 구간의 거리”에 따른 성능 저하를 다루며, 실무적으로는 **질문을 끝에 두거나 재진술**하는 패턴이 자주 쓰입니다.[^6]
 
 ### 3) 접근 방식 비교: “긴 컨텍스트 vs RAG vs Compression”
 - **Long context packing**: 코드베이스/대규모 문서를 통째로 넣고 cross-section reasoning이 필요할 때 유리. 하지만 비용·중간 망각·노이즈에 취약.
 - **RAG**: 필요한 chunk만 넣어 비용/노이즈를 줄이지만, retrieval 오류나 chunk 단절로 논리 일관성이 깨질 수 있음.
-- **Contextual compression / compaction**: RAG와 결합이 특히 강력. “찾은 문서”를 **질문 기준으로 압축해 관련 부분만** 남김. LangChain은 `ContextualCompressionRetriever`로 이를 명시적으로 제공. ([langchain.com](https://www.langchain.com/blog/improving-document-retrieval-with-contextual-compression?utm_source=openai))
-- **Recursive/Tree 요약(MapReduce)**: 문서를 계층적으로 요약/통합해 coherence를 유지하려는 흐름(예: Tree MapReduce reasoning). ([arxiv.org](https://arxiv.org/abs/2511.00489?utm_source=openai))
-- **Multi-scale RAG**(예: MacRAG): “압축 + 슬라이싱 + 스케일”로 다단계 컨텍스트 구성을 최적화해 LongBench 계열에서 개선을 보고. ([arxiv.org](https://arxiv.org/abs/2505.06569?utm_source=openai))
+- **Contextual compression / compaction**: RAG와 결합이 특히 강력. “찾은 문서”를 **질문 기준으로 압축해 관련 부분만** 남김. LangChain은 `ContextualCompressionRetriever`로 이를 명시적으로 제공.[^7]
+- **Recursive/Tree 요약(MapReduce)**: 문서를 계층적으로 요약/통합해 coherence를 유지하려는 흐름(예: Tree MapReduce reasoning).[^8]
+- **Multi-scale RAG**(예: MacRAG): “압축 + 슬라이싱 + 스케일”로 다단계 컨텍스트 구성을 최적화해 LongBench 계열에서 개선을 보고.[^9]
 
-평가 측면에선 LongBench v2처럼 8k~2M words까지 포함하는 벤치마크가 등장하면서, “길게 넣기만 하면 된다”는 환상이 더 빨리 깨지고 있습니다. ([arxiv.org](https://arxiv.org/abs/2412.15204?utm_source=openai))
+평가 측면에선 LongBench v2처럼 8k~2M words까지 포함하는 벤치마크가 등장하면서, “길게 넣기만 하면 된다”는 환상이 더 빨리 깨지고 있습니다.[^10]
 
 ---
 
@@ -227,19 +229,19 @@ if __name__ == "__main__":
 자연어 요약 한 덩어리는 결국 drift가 납니다. `constraints/decisions/open_questions/evidence`처럼 필드를 쪼개고, compaction 결과를 JSON schema로 검증하세요. (LangChain/에이전트 프레임워크를 쓰더라도 이 계층은 별도로 두는 게 안전)
 
 2) **Evidence는 “짧은 snippet + 포인터”로 남겨라**  
-요약이 틀릴 수 있다는 걸 전제로, 원문 재조회가 가능한 형태로 남기는 게 운영 복구에 결정적입니다. Deep Agents가 “대화 기록을 파일시스템에 보관”하는 것도 같은 이유입니다. ([langchain.com](https://www.langchain.com/blog/context-management-for-deepagents?utm_source=openai))
+요약이 틀릴 수 있다는 걸 전제로, 원문 재조회가 가능한 형태로 남기는 게 운영 복구에 결정적입니다. Deep Agents가 “대화 기록을 파일시스템에 보관”하는 것도 같은 이유입니다.[^3]
 
 3) **lost-in-the-middle 완화는 ‘재배치’가 1순위**  
-핵심 지시/질문/제약을 프롬프트 끝에 반복 배치하고, “이번 호출의 목표/성공 조건”을 마지막에 다시 말하게 하세요. 논문이 말하는 현상 자체가 “중간이 약하다”이므로, UX 레벨에서 위치를 바꾸는 게 가장 싸고 강력합니다. ([arxiv.org](https://arxiv.org/abs/2307.03172?utm_source=openai))
+핵심 지시/질문/제약을 프롬프트 끝에 반복 배치하고, “이번 호출의 목표/성공 조건”을 마지막에 다시 말하게 하세요. 논문이 말하는 현상 자체가 “중간이 약하다”이므로, UX 레벨에서 위치를 바꾸는 게 가장 싸고 강력합니다.[^1]
 
 ### 흔한 함정/안티패턴
-- **Rolling summary만 계속 이어붙이기**: 요약 위에 요약을 얹으면 작은 오류가 누적되어 “context rot”가 됩니다. “compaction is not memory” 경고가 여기서 나옵니다. ([memnode.dev](https://memnode.dev/articles/compaction-is-not-memory-context-window?utm_source=openai))  
+- **Rolling summary만 계속 이어붙이기**: 요약 위에 요약을 얹으면 작은 오류가 누적되어 “context rot”가 됩니다. “compaction is not memory” 경고가 여기서 나옵니다.[^5]  
 - **툴 출력(로그/HTML/JSON)을 무조건 대화에 붙이기**: 가장 빨리 컨텍스트를 망치는 패턴. 원문은 외부 저장 + 필요한 부분만 working set으로 올리세요.
-- **Compaction 타이밍을 토큰 임계치로만 결정**: LangChain이 “에이전트가 적절한 순간에 스스로 압축 트리거”를 넣은 이유가 있습니다. 작업 경계(task boundary)나 결론 도출 직후가 더 안전한 경우가 많습니다. ([langchain.com](https://www.langchain.com/blog/autonomous-context-compression?utm_source=openai))
+- **Compaction 타이밍을 토큰 임계치로만 결정**: LangChain이 “에이전트가 적절한 순간에 스스로 압축 트리거”를 넣은 이유가 있습니다. 작업 경계(task boundary)나 결론 도출 직후가 더 안전한 경우가 많습니다.[^4]
 
 ### 비용/성능/안정성 트레이드오프
 - **Compaction 호출 자체가 비용**이며, 큰 모델로 하면 더 비쌉니다. 다만 “컨텍스트 폭발로 매 호출이 비싸지는 것”을 막아 총비용을 줄이는 경우가 많습니다.
-- **Blocking latency**: compaction이 동기적으로 들어가면 에이전트가 멈춥니다. 2026년에는 “parallel context compaction”처럼 serving 관점에서 병렬화/비동기화를 연구하는 흐름도 나왔습니다. ([arxiv.org](https://arxiv.org/abs/2605.23296?utm_source=openai))
+- **Blocking latency**: compaction이 동기적으로 들어가면 에이전트가 멈춥니다. 2026년에는 “parallel context compaction”처럼 serving 관점에서 병렬화/비동기화를 연구하는 흐름도 나왔습니다.[^11]
 - **정확도 vs 압축률**: 압축률을 올릴수록 evidence 손실 위험이 커집니다. 운영 시스템이라면 “state는 보수적으로, working set은 공격적으로”가 보통 더 안전합니다.
 
 ---
@@ -249,7 +251,7 @@ if __name__ == "__main__":
 
 - **Window는 버퍼**로 보고,
 - **Compaction은 상태(state) + 근거 포인터(evidence) + 추적(audit)**을 남기는 “구조화 작업”으로 만들고,
-- **lost-in-the-middle을 전제로 핵심을 프롬프트 끝에 고정**하는 것입니다. ([arxiv.org](https://arxiv.org/abs/2307.03172?utm_source=openai))
+- **lost-in-the-middle을 전제로 핵심을 프롬프트 끝에 고정**하는 것입니다.[^1]
 
 ### 도입 판단 기준(내 프로젝트 체크리스트)
 - 대화/에이전트 세션이 **30분~수시간 이상** 지속되나?
@@ -258,9 +260,19 @@ if __name__ == "__main__":
 - compaction 결과를 **스키마 검증 + 원문 재조회**로 통제할 수 있나?
 
 ### 다음 학습 추천
-- Lost in the Middle 원 논문(평가 프로토콜/현상 이해) ([arxiv.org](https://arxiv.org/abs/2307.03172?utm_source=openai))  
-- LongBench v2로 “내 파이프라인이 긴 컨텍스트에서 어디서 깨지는지” 측정 ([arxiv.org](https://arxiv.org/abs/2412.15204?utm_source=openai))  
-- LangChain Contextual Compression(검색-후-압축의 구현 패턴) ([langchain.com](https://www.langchain.com/blog/improving-document-retrieval-with-contextual-compression?utm_source=openai))  
-- OpenAI Responses API의 native compaction 개념(상용 환경에서의 설계 방향) ([openai.com](https://openai.com/index/equip-responses-api-computer-environment?utm_source=openai))  
+- Lost in the Middle 원 논문(평가 프로토콜/현상 이해)[^1]  
+- LongBench v2로 “내 파이프라인이 긴 컨텍스트에서 어디서 깨지는지” 측정[^10]  
+- LangChain Contextual Compression(검색-후-압축의 구현 패턴)[^7]  
+- OpenAI Responses API의 native compaction 개념(상용 환경에서의 설계 방향)[^2]
 
-원하시면, 위 코드 예제를 **(1) LangChain Deep Agents 기반**, **(2) RAG + ContextualCompressionRetriever 결합**, **(3) “실패 시 역추적(what did we drop?)” 자동 평가 루프**까지 확장한 버전으로 재작성해 드릴게요.
+[^1]: <https://arxiv.org/abs/2307.03172>
+[^2]: <https://openai.com/index/equip-responses-api-computer-environment>
+[^3]: <https://www.langchain.com/blog/context-management-for-deepagents>
+[^4]: <https://www.langchain.com/blog/autonomous-context-compression>
+[^5]: <https://memnode.dev/articles/compaction-is-not-memory-context-window>
+[^6]: <https://www.anthropic.com/news/prompting-long-context>
+[^7]: <https://www.langchain.com/blog/improving-document-retrieval-with-contextual-compression>
+[^8]: <https://arxiv.org/abs/2511.00489>
+[^9]: <https://arxiv.org/abs/2505.06569>
+[^10]: <https://arxiv.org/abs/2412.15204>
+[^11]: <https://arxiv.org/abs/2605.23296>

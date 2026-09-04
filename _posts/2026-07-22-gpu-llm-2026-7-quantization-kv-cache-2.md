@@ -1,12 +1,14 @@
 ---
-title: "GPU를 “갈아넣지 않고” LLM 서빙 성능 뽑는 법: 2026년 7월 기준 Quantization + KV cache + 커널/런타임 최적화 실전 가이드"
+title: "GPU를 “갈아넣지 않고” LLM 서빙 성능 뽑는 법: Quantization + KV cache + 커널/런타임 최적화 실전 가이드"
+description: "LLM 서빙에서 GPU 비용을 폭발시키는 주범은 대개 (1) KV cache 메모리 압박과 (2) decode 단계의 메모리 대역폭 병목입니다."
 date: 2026-07-22 03:27:17 +0900
 categories: [AI, MLOps]
-tags: [ai, mlops, trend, 2026-07]
+tags: [ai, mlops]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -21,7 +23,7 @@ LLM 서빙에서 GPU 비용을 폭발시키는 주범은 대개 **(1) KV cache �
 **언제 쓰면 좋은가**
 - “채팅형”처럼 **prefill 대비 decode 비중이 큰** 워크로드(긴 대화, streaming 출력)
 - RAG/에이전트처럼 **동시 요청이 늘었다 줄었다** 하고, 평균보다 **피크 트래픽**을 버텨야 하는 서비스
-- GPU가 H100/H200/B200/GB200처럼 최신일수록(특히 FP8/FP4 계열 지원) 효과가 큼. Blackwell은 **NVFP4(=FP4 계열) 기반 추론 최적화**가 강하게 밀리고 있음 ([developer.nvidia.com](https://developer.nvidia.com/blog/nvidia-blackwell-sets-stac-ai-record-for-llm-inference-in-finance/?utm_source=openai))
+- GPU가 H100/H200/B200/GB200처럼 최신일수록(특히 FP8/FP4 계열 지원) 효과가 큼. Blackwell은 **NVFP4(=FP4 계열) 기반 추론 최적화**가 강하게 밀리고 있음[^1]
 
 **언제 쓰면 안 되는가**
 - 응답이 짧고 동시성이 낮은 “사내 도구” 수준(최적화 복잡도가 비용 초과)
@@ -42,20 +44,20 @@ LLM 서빙에서 GPU 비용을 폭발시키는 주범은 대개 **(1) KV cache �
 2026년 실전에서 가장 많이 쓰는 축은 아래 3가지입니다.
 
 - **Weight-only quant (INT8/INT4; W8A16, W4A16)**  
-  weight 메모리·대역폭 감소. 다만 decode에서는 KV cache가 더 큰 병목이 될 수 있음. TensorRT-LLM은 INT4/INT8 weight-only를 주요 옵션으로 제공 ([github.com](https://github.com/nyunAI/TensorRT-LLM/blob/main/README.md?utm_source=openai))
+  weight 메모리·대역폭 감소. 다만 decode에서는 KV cache가 더 큰 병목이 될 수 있음. TensorRT-LLM은 INT4/INT8 weight-only를 주요 옵션으로 제공[^2]
 - **FP8 (weights+activations 또는 kernel 경로)**  
-  Hopper에서는 FP8이 “실전 디폴트”가 되었고, Blackwell은 FP8을 넘어 **NVFP4**를 강하게 전면에 둠 ([developer.nvidia.com](https://developer.nvidia.com/blog/nvidia-blackwell-sets-stac-ai-record-for-llm-inference-in-finance/?utm_source=openai))
+  Hopper에서는 FP8이 “실전 디폴트”가 되었고, Blackwell은 FP8을 넘어 **NVFP4**를 강하게 전면에 둠[^1]
 - **KV cache quant (FP8/INT8/INT4 등)**  
-  동시성(=캐시 용량)과 decode throughput의 핵심 레버. TensorRT-LLM은 FP8 KV cache 옵션을 명시적으로 다루며 ([nvidia.github.io](https://nvidia.github.io/TensorRT-LLM/performance/performance-tuning-guide/fp8-quantization.html?utm_source=openai)), KV cache를 INT8로 압축해 **4× 메모리 절감**을 보고한 연구도 있음 ([arxiv.org](https://arxiv.org/abs/2601.04719?utm_source=openai))  
-  또한 “시스템-양자화 공동 설계”로 KV를 INT4로 내리는 계열(QServe 등)도 성능 이점을 보임 ([proceedings.mlsys.org](https://proceedings.mlsys.org/paper_files/paper/2025/file/fbe2b2f74a2ece8070d8fb073717bda6-Paper-Conference.pdf?utm_source=openai))
+  동시성(=캐시 용량)과 decode throughput의 핵심 레버. TensorRT-LLM은 FP8 KV cache 옵션을 명시적으로 다루며[^3], KV cache를 INT8로 압축해 **4× 메모리 절감**을 보고한 연구도 있음[^4]  
+  또한 “시스템-양자화 공동 설계”로 KV를 INT4로 내리는 계열(QServe 등)도 성능 이점을 보임[^5]
 
 핵심은 “더 낮은 bit가 무조건 빠르다”가 아니라:
 - **메모리 대역폭이 병목이면** KV cache 압축이 throughput을 올릴 수 있고
 - **연산/커널 오버헤드가 병목이면** 너무 공격적인 KV quant가 오히려 느려질 수 있다는 점입니다.
 
 ### 3) 2026년 흐름: Blackwell + NVFP4 + (런타임) + (attention 커널)
-Blackwell(B200/GB200) 쪽은 “FP4까지”를 전제로 한 Transformer Engine·TensorRT-LLM 최적화가 계속 누적되고 있습니다. 특히 micro-tensor scaling 같은 동적 범위 관리가 FP4 계열을 성립시키는 기반으로 언급됩니다 ([docs.nvidia.com](https://docs.nvidia.com/multi-node-nvlink-systems/multi-node-tuning-guide/overview.html?utm_source=openai)).  
-또한 “가장 빠른 커널을 자동으로 타게 만드는” 것이 중요해져서, vLLM처럼 다양한 quant/dtype과 attention 커널을 폭넓게 지원하는 런타임이 실무 선택지로 자리잡았습니다 ([docs.vllm.ai](https://docs.vllm.ai/en/latest/index.html?utm_source=openai))
+Blackwell(B200/GB200) 쪽은 “FP4까지”를 전제로 한 Transformer Engine·TensorRT-LLM 최적화가 계속 누적되고 있습니다. 특히 micro-tensor scaling 같은 동적 범위 관리가 FP4 계열을 성립시키는 기반으로 언급됩니다[^6].  
+또한 “가장 빠른 커널을 자동으로 타게 만드는” 것이 중요해져서, vLLM처럼 다양한 quant/dtype과 attention 커널을 폭넓게 지원하는 런타임이 실무 선택지로 자리잡았습니다[^7]
 
 ---
 
@@ -92,7 +94,7 @@ vllm serve /models/Qwen3-32B \
   --tensor-parallel-size 2
 
 # 개선: KV cache를 FP8로 (동시성/긴 context에 특히 영향)
-# vLLM은 FP8 등 다양한 quantization/dtype을 지원한다고 문서에 명시 ([docs.vllm.ai](https://docs.vllm.ai/en/latest/index.html?utm_source=openai))
+# vLLM은 FP8 등 다양한 quantization/dtype을 지원한다고 문서에 명시[^7]
 vllm serve /models/Qwen3-32B \
   --host 0.0.0.0 --port 8000 \
   --dtype bfloat16 \
@@ -176,14 +178,14 @@ python bench_chat.py
 ### Best Practice (2~3개)
 1) **prefill / decode를 분리해 병목을 진단하라**
 - “prefill 빠른데 decode가 느리다”면 KV cache/attention 경로가 핵심이고, KV cache quant(FP8/INT8)가 가장 ROI가 좋습니다.
-- “둘 다 느리다”면 weight/activation FP8 경로, tensor parallel, 커널 선택(FlashAttention 계열)까지 봐야 합니다. vLLM은 다양한 분산/quant 옵션을 제공 ([docs.vllm.ai](https://docs.vllm.ai/en/latest/index.html?utm_source=openai))
+- “둘 다 느리다”면 weight/activation FP8 경로, tensor parallel, 커널 선택(FlashAttention 계열)까지 봐야 합니다. vLLM은 다양한 분산/quant 옵션을 제공[^7]
 
 2) **KV cache quant는 FP8을 1차 디폴트로 두고, INT8/INT4는 ‘조건부’로**
-- TensorRT-LLM은 KV cache quant를 성능 튜닝 축으로 공식 가이드에서 다루며 ([nvidia.github.io](https://nvidia.github.io/TensorRT-LLM/performance/performance-tuning-guide/fp8-quantization.html?utm_source=openai)), KV를 INT8로 압축해 메모리 절감을 얻는 연구도 있지만 ([arxiv.org](https://arxiv.org/abs/2601.04719?utm_source=openai)), 실제 서비스에선 모델 민감도/커널 경로 차이로 품질/성능이 흔들릴 수 있습니다.
-- 특히 INT4 KV는 시스템 공동 설계(QServe 류)처럼 “그걸 전제로 커널을 만든 경우”에 이점이 커서 ([proceedings.mlsys.org](https://proceedings.mlsys.org/paper_files/paper/2025/file/fbe2b2f74a2ece8070d8fb073717bda6-Paper-Conference.pdf?utm_source=openai)), 단순 스위치 온으로 같은 결과를 기대하면 안 됩니다.
+- TensorRT-LLM은 KV cache quant를 성능 튜닝 축으로 공식 가이드에서 다루며[^3], KV를 INT8로 압축해 메모리 절감을 얻는 연구도 있지만[^4], 실제 서비스에선 모델 민감도/커널 경로 차이로 품질/성능이 흔들릴 수 있습니다.
+- 특히 INT4 KV는 시스템 공동 설계(QServe 류)처럼 “그걸 전제로 커널을 만든 경우”에 이점이 커서[^5], 단순 스위치 온으로 같은 결과를 기대하면 안 됩니다.
 
 3) **Blackwell이라면 ‘낮은 precision’ 자체보다 ‘해당 하드웨어에서 최적 커널을 타는지’를 먼저 확인**
-- Blackwell은 NVFP4를 강하게 밀고 있고, FP8→NVFP4로의 진화가 공식 블로그/가이드에서 반복됩니다 ([developer.nvidia.com](https://developer.nvidia.com/blog/nvidia-blackwell-sets-stac-ai-record-for-llm-inference-in-finance/?utm_source=openai))  
+- Blackwell은 NVFP4를 강하게 밀고 있고, FP8→NVFP4로의 진화가 공식 블로그/가이드에서 반복됩니다[^1]  
 - 하지만 스택(드라이버/CUDA/런타임/커널) 불일치면 “이론상 빠른” dtype이 실제로는 fallback 경로를 타서 손해를 볼 수 있습니다.
 
 ### 흔한 함정/안티패턴
@@ -196,8 +198,8 @@ python bench_chat.py
 
 ### 비용/성능/안정성 트레이드오프
 - **FP8 KV cache**: 대체로 “안정적인 1순위” (품질 손실이 상대적으로 작고, 캐시 용량 2× 효과가 큼)
-- **INT8 KV cache**: 메모리 절감은 크지만(연구에선 4×까지 보고) ([arxiv.org](https://arxiv.org/abs/2601.04719?utm_source=openai)), 모델별 민감도·커널 경로·스케일 관리에 따라 튜닝 비용이 증가
-- **NVFP4/FP4 계열**: Blackwell에서 비용 대비 성능 잠재력이 크지만 ([developer.nvidia.com](https://developer.nvidia.com/blog/nvidia-blackwell-sets-stac-ai-record-for-llm-inference-in-finance/?utm_source=openai)), “정확도/회귀 테스트/스택 정합성”까지 포함한 도입 비용이 큼(프로덕션은 단계적 롤아웃 권장)
+- **INT8 KV cache**: 메모리 절감은 크지만(연구에선 4×까지 보고)[^4], 모델별 민감도·커널 경로·스케일 관리에 따라 튜닝 비용이 증가
+- **NVFP4/FP4 계열**: Blackwell에서 비용 대비 성능 잠재력이 크지만[^1], “정확도/회귀 테스트/스택 정합성”까지 포함한 도입 비용이 큼(프로덕션은 단계적 롤아웃 권장)
 
 ---
 
@@ -206,16 +208,23 @@ python bench_chat.py
 
 1) **KV cache부터 줄여 동시성을 안정화**: `KV cache FP8`를 첫 카드로  
 2) 그 다음 **weight quant(W4A16/W8A16, AWQ/GPTQ)**로 VRAM을 더 확보  
-3) Blackwell 환경이면 **NVFP4/FP4 계열**까지 검토하되, “fallback 없는 커널 경로”와 회귀 테스트 체계를 먼저 갖춘다 ([developer.nvidia.com](https://developer.nvidia.com/blog/scaling-nvfp4-inference-for-flux-2-on-nvidia-blackwell-data-center-gpus/?utm_source=openai))
+3) Blackwell 환경이면 **NVFP4/FP4 계열**까지 검토하되, “fallback 없는 커널 경로”와 회귀 테스트 체계를 먼저 갖춘다[^8]
 
 **도입 판단 기준(실무 체크리스트)**
 - 현재 장애/병목이 **OOM/동시성 부족**인가? → KV cache quant 우선
 - 병목이 **decode tokens/s**인가? → KV cache + attention 커널/런타임 튜닝 우선
-- 병목이 **prefill TTFT**인가? → FP8 경로/엔진 빌드(TensorRT-LLM) + 배치/스케줄링(continuous batching) 우선 ([docs.vllm.ai](https://docs.vllm.ai/en/latest/index.html?utm_source=openai))
+- 병목이 **prefill TTFT**인가? → FP8 경로/엔진 빌드(TensorRT-LLM) + 배치/스케줄링(continuous batching) 우선[^7]
 
 **다음 학습 추천**
-- vLLM의 quantization/parallelism 옵션과 스케줄링(continuous batching, chunked prefill) 문서 정독 ([docs.vllm.ai](https://docs.vllm.ai/en/latest/index.html?utm_source=openai))
-- TensorRT-LLM의 FP8/KV cache quant 튜닝 가이드(특히 KV cache quant와 precision 제약) ([nvidia.github.io](https://nvidia.github.io/TensorRT-LLM/performance/performance-tuning-guide/fp8-quantization.html?utm_source=openai))
-- KV cache 압축 연구(서비스 워크로드에서 “품질-성능-안정성”을 어떻게 측정할지) ([arxiv.org](https://arxiv.org/abs/2601.04719?utm_source=openai))
+- vLLM의 quantization/parallelism 옵션과 스케줄링(continuous batching, chunked prefill) 문서 정독[^7]
+- TensorRT-LLM의 FP8/KV cache quant 튜닝 가이드(특히 KV cache quant와 precision 제약)[^3]
+- KV cache 압축 연구(서비스 워크로드에서 “품질-성능-안정성”을 어떻게 측정할지)[^4]
 
-원하면, (1) 사용 중인 GPU(예: H100 vs B200), (2) 모델 크기/컨텍스트, (3) 목표 지표(TTFT/p95/tokens/s/$/MTok)를 알려주시면 그 조건에 맞춰 **권장 quant 조합 + vLLM/TensorRT-LLM 선택 + 벤치마크 설계**까지 더 구체적으로 구성해드릴게요.
+[^1]: <https://developer.nvidia.com/blog/nvidia-blackwell-sets-stac-ai-record-for-llm-inference-in-finance/>
+[^2]: <https://github.com/nyunAI/TensorRT-LLM/blob/main/README.md>
+[^3]: <https://nvidia.github.io/TensorRT-LLM/performance/performance-tuning-guide/fp8-quantization.html>
+[^4]: <https://arxiv.org/abs/2601.04719>
+[^5]: <https://proceedings.mlsys.org/paper_files/paper/2025/file/fbe2b2f74a2ece8070d8fb073717bda6-Paper-Conference.pdf>
+[^6]: <https://docs.nvidia.com/multi-node-nvlink-systems/multi-node-tuning-guide/overview.html>
+[^7]: <https://docs.vllm.ai/en/latest/index.html>
+[^8]: <https://developer.nvidia.com/blog/scaling-nvfp4-inference-for-flux-2-on-nvidia-blackwell-data-center-gpus/>

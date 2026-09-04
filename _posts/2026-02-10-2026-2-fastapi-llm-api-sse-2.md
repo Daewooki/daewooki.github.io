@@ -1,12 +1,14 @@
 ---
 title: "2026년 2월판: FastAPI로 LLM API 서버 스트리밍(SSE) “제대로” 구축하는 법"
+description: "LLM API 서버에서 UX를 좌우하는 건 “정확도”만이 아닙니다. 첫 토큰까지의 지연(TTFT), 생성 중 부분 결과를 얼마나 자연스럽게 전달하는지, 그리고 연결이 끊겼을 때의 복구 전략이 실제 체감 품질을 결정합니다."
 date: 2026-02-10 03:17:50 +0900
 categories: [Backend, API]
-tags: [backend, api, trend, 2026-02]
+tags: [backend, api]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -23,7 +25,7 @@ LLM API 서버에서 UX를 좌우하는 건 “정확도”만이 아닙니다. 
 - 스트리밍은 **HTTP 기반 SSE(Server-Sent Events)** 또는 chunked streaming
 - 업스트림 LLM은 OpenAI **Responses API stream 이벤트** 또는 vLLM 같은 **OpenAI-compatible server의 스트리밍**을 “그대로” 프록시
 
-입니다. OpenAI의 스트리밍은 이벤트 타입이 명확한 **semantic events**로 흘러오고(예: `response.output_text.delta`) ([platform.openai.com](https://platform.openai.com/docs/guides/streaming-responses?utm_source=openai)), vLLM은 OpenAI 호환 HTTP 서버 형태로 띄워 로컬/자가호스팅 모델도 동일한 클라이언트 패턴으로 호출할 수 있습니다. ([docs.vllm.ai](https://docs.vllm.ai/en/latest/serving/openai_compatible_server/?utm_source=openai))
+입니다. OpenAI의 스트리밍은 이벤트 타입이 명확한 **semantic events**로 흘러오고(예: `response.output_text.delta`)[^1], vLLM은 OpenAI 호환 HTTP 서버 형태로 띄워 로컬/자가호스팅 모델도 동일한 클라이언트 패턴으로 호출할 수 있습니다.[^2]
 
 ---
 
@@ -36,7 +38,7 @@ FastAPI의 `StreamingResponse`는 결과를 한 번에 만들지 않고 **async 
 - **NDJSON**: 줄 단위 JSON. 구현은 쉽지만 브라우저 기본 지원이 약하고, 이벤트 타입/재시도 같은 SSE의 관례가 없습니다.
 - **raw bytes**: 가장 단순하지만, 구조(이벤트 타입/메타데이터)를 직접 설계해야 합니다.
 
-LLM 스트리밍은 “텍스트 델타 + 라이프사이클 이벤트 + 에러”가 섞이므로, OpenAI도 **SSE 형태로 스트리밍 가이드**를 제공하고 이벤트 타입을 정의합니다. ([platform.openai.com](https://platform.openai.com/docs/guides/streaming-responses?utm_source=openai))
+LLM 스트리밍은 “텍스트 델타 + 라이프사이클 이벤트 + 에러”가 섞이므로, OpenAI도 **SSE 형태로 스트리밍 가이드**를 제공하고 이벤트 타입을 정의합니다.[^1]
 
 ### 3) 업스트림(OpenAI/vLLM) 스트림을 “중간 서버”가 망치는 지점
 중간에 FastAPI를 두면 다음이 자주 깨집니다.
@@ -46,13 +48,13 @@ LLM 스트리밍은 “텍스트 델타 + 라이프사이클 이벤트 + 에러�
 - **cancel 전파**: 사용자가 탭을 닫아도 업스트림 LLM 호출이 계속 돈다면 비용/자원 낭비
 - **keepalive**: 중간 장비가 idle connection으로 끊어버림 → 주기적 ping 필요
 
-그래서 “스트리밍 구현”은 단순히 `yield` 하는 것보다, **헤더/타임아웃/취소 처리/핑**까지 포함한 운영 단위로 봐야 합니다. (실제로 이를 패키징한 SSE wrapper류도 등장했습니다. ([pypi.org](https://pypi.org/project/fastapi-sse-wrapper/?utm_source=openai)))
+그래서 “스트리밍 구현”은 단순히 `yield` 하는 것보다, **헤더/타임아웃/취소 처리/핑**까지 포함한 운영 단위로 봐야 합니다. (실제로 이를 패키징한 SSE wrapper류도 등장했습니다.[^3])
 
 ---
 
 ## 💻 실전 코드
 아래 예제는 “LLM 스트림(업스트림)을 받아서 → 우리 API에서 SSE로 재전송”하는 **프록시 패턴**입니다.  
-(업스트림은 OpenAI Responses API 스트리밍 이벤트를 가정. 이벤트 타입 예시는 문서에 정의되어 있습니다. ([platform.openai.com](https://platform.openai.com/docs/guides/streaming-responses?utm_source=openai)))
+(업스트림은 OpenAI Responses API 스트리밍 이벤트를 가정. 이벤트 타입 예시는 문서에 정의되어 있습니다.[^1])
 
 ```python
 # app.py
@@ -69,7 +71,6 @@ from openai import OpenAI
 app = FastAPI()
 client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
-
 def sse_event(data: Dict[str, Any], event: Optional[str] = None) -> str:
     """
     SSE 포맷:
@@ -81,7 +82,6 @@ def sse_event(data: Dict[str, Any], event: Optional[str] = None) -> str:
     if event:
         return f"event: {event}\ndata: {payload}\n\n"
     return f"data: {payload}\n\n"
-
 
 async def openai_stream(prompt: str) -> AsyncIterator[str]:
     """
@@ -138,7 +138,6 @@ async def openai_stream(prompt: str) -> AsyncIterator[str]:
     except Exception as e:
         yield sse_event({"type": "proxy.error", "message": str(e)}, event="error")
 
-
 @app.get("/v1/chat/stream")
 async def chat_stream(q: str, request: Request):
     async def generator():
@@ -163,7 +162,7 @@ async def chat_stream(q: str, request: Request):
 
 핵심 포인트는 다음입니다.
 - **SSE 포맷을 엄격히 지킴**(이벤트 경계는 `\n\n`)
-- OpenAI 스트림에서 `response.output_text.delta` 같은 **델타 이벤트만 선별** ([platform.openai.com](https://platform.openai.com/docs/guides/streaming-responses?utm_source=openai))
+- OpenAI 스트림에서 `response.output_text.delta` 같은 **델타 이벤트만 선별**[^1]
 - **ping keepalive**로 중간 장비 idle timeout 완화
 - `request.is_disconnected()`로 **disconnect를 감지**하고 스트림을 멈춤
 
@@ -176,14 +175,14 @@ async def chat_stream(q: str, request: Request):
 - 인프라에서도 proxy buffering을 꺼야 합니다(환경별 설정 필요).
 
 2) 이벤트 스키마를 “우리 서버 기준”으로 재정의하라
-OpenAI는 semantic events로 굉장히 많은 타입(텍스트 델타, 툴 콜 델타, refusal 등)을 흘립니다. ([platform.openai.com](https://platform.openai.com/docs/guides/streaming-responses?utm_source=openai))  
+OpenAI는 semantic events로 굉장히 많은 타입(텍스트 델타, 툴 콜 델타, refusal 등)을 흘립니다.[^1]  
 클라이언트가 필요한 건 보통:
 - `delta`(텍스트)
 - `lifecycle`(start/end)
 - `error`
 - (선택) `usage`
 
-이므로 **내부 이벤트 → 외부 이벤트로 변환하는 thin mapping layer**를 두면, 업스트림이 OpenAI이든 vLLM이든 교체가 쉬워집니다. vLLM은 OpenAI 호환 서버로 띄우는 게 공식 가이드로 제공됩니다. ([docs.vllm.ai](https://docs.vllm.ai/en/latest/serving/openai_compatible_server/?utm_source=openai))
+이므로 **내부 이벤트 → 외부 이벤트로 변환하는 thin mapping layer**를 두면, 업스트림이 OpenAI이든 vLLM이든 교체가 쉬워집니다. vLLM은 OpenAI 호환 서버로 띄우는 게 공식 가이드로 제공됩니다.[^2]
 
 3) cancel 전파는 비용 최적화의 핵심
 SSE에서 클라이언트가 끊기면 서버는 빠르게 감지하고:
@@ -192,15 +191,19 @@ SSE에서 클라이언트가 끊기면 서버는 빠르게 감지하고:
 을 해야 GPU/토큰 비용을 줄입니다. “클라이언트 끊김 감지”만 있고 업스트림이 계속 돌면 반쪽짜리입니다.
 
 4) keepalive ping은 “옵션”이 아니라 “운영 필수”
-모바일 네트워크/LB는 가만히 있는 연결을 끊습니다. 토큰이 잠깐 안 나오는 구간(검색/툴 호출)에서도 **주기적 ping 이벤트**를 보내면 안정성이 올라갑니다. 프로덕션 지향 SSE wrapper들이 keepalive를 기능으로 강조하는 이유가 여기에 있습니다. ([pypi.org](https://pypi.org/project/fastapi-sse-wrapper/?utm_source=openai))
+모바일 네트워크/LB는 가만히 있는 연결을 끊습니다. 토큰이 잠깐 안 나오는 구간(검색/툴 호출)에서도 **주기적 ping 이벤트**를 보내면 안정성이 올라갑니다. 프로덕션 지향 SSE wrapper들이 keepalive를 기능으로 강조하는 이유가 여기에 있습니다.[^3]
 
 ---
 
 ## 🚀 마무리
 FastAPI로 LLM API 서버를 만들 때 스트리밍은 단순 기능이 아니라 **프로토콜(SSE) + 인프라(버퍼링) + 제어흐름(cancel/백프레셔) + UX(이벤트 스키마)**의 조합입니다.  
-2026년 2월 기준으로는 OpenAI의 Responses API 스트리밍 이벤트(semantic events)를 이해하고 ([platform.openai.com](https://platform.openai.com/docs/guides/streaming-responses?utm_source=openai)), FastAPI `StreamingResponse`로 SSE를 정확히 내보내며, 필요하면 vLLM 같은 OpenAI-compatible 서버로 동일 패턴을 확장하는 것이 가장 실용적인 아키텍처입니다. ([docs.vllm.ai](https://docs.vllm.ai/en/latest/serving/openai_compatible_server/?utm_source=openai))
+2026년 2월 기준으로는 OpenAI의 Responses API 스트리밍 이벤트(semantic events)를 이해하고[^1], FastAPI `StreamingResponse`로 SSE를 정확히 내보내며, 필요하면 vLLM 같은 OpenAI-compatible 서버로 동일 패턴을 확장하는 것이 가장 실용적인 아키텍처입니다.[^2]
 
 다음 학습으로는:
 - “툴 호출(function calling) 스트리밍”까지 포함해 이벤트를 어떻게 UI/상태머신으로 모델링할지
 - Ray Serve LLM/vLLM 기반으로 autoscaling과 backpressure를 어떻게 걸지(대규모 트래픽)
-를 추천합니다. (vLLM 문서에 Ray Serve LLM 언급도 포함됩니다. ([docs.vllm.ai](https://docs.vllm.ai/en/latest/serving/openai_compatible_server/?utm_source=openai)))
+를 추천합니다. (vLLM 문서에 Ray Serve LLM 언급도 포함됩니다.[^2])
+
+[^1]: <https://platform.openai.com/docs/guides/streaming-responses>
+[^2]: <https://docs.vllm.ai/en/latest/serving/openai_compatible_server/>
+[^3]: <https://pypi.org/project/fastapi-sse-wrapper/>

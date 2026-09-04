@@ -1,12 +1,14 @@
 ---
 title: "GPU 오토스케일링 2026: Kubernetes에서 LLM 서빙을 “GPU 기준”으로 제대로 스케일하는 법 (HPA/KEDA/DCGM/DRA/MIG 실전 조합)"
+description: "LLM inference를 Kubernetes에 올리면, 첫 번째로 부딪히는 벽이 “CPU는 놀고 있는데 GPU는 이미 포화인데도 HPA가 안 늘어난다”입니다."
 date: 2026-05-27 04:27:23 +0900
-categories: [Infra, Kubernetes]
-tags: [infra, kubernetes, trend, 2026-05]
+categories: [Infrastructure, Kubernetes]
+tags: [infra, kubernetes]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -38,29 +40,29 @@ LLM 서빙에서 흔한 스케일링 신호는 세 계열입니다.
 1. **GPU utilization 기반**
    - DCGM exporter의 `DCGM_FI_DEV_GPU_UTIL` 같은 메트릭을 사용해 HPA/KEDA로 스케일  
    - 장점: 인프라 관점에서 단순, “GPU가 바쁘면 늘린다”는 직관  
-   - 단점: LLM은 **GPU util이 낮아도 queue가 쌓일 수 있고**, 반대로 util이 높아도 batching 덕에 지연이 안정적일 수 있습니다. 즉 SLO 직접 최적화가 어렵습니다. (DCGM exporter 자체는 Kubernetes DaemonSet로 운영 가능) ([docs.nvidia.com](https://docs.nvidia.com/datacenter/dcgm/latest/gpu-telemetry/dcgm-exporter.html?utm_source=openai))
+   - 단점: LLM은 **GPU util이 낮아도 queue가 쌓일 수 있고**, 반대로 util이 높아도 batching 덕에 지연이 안정적일 수 있습니다. 즉 SLO 직접 최적화가 어렵습니다. (DCGM exporter 자체는 Kubernetes DaemonSet로 운영 가능)[^1]
 
 2. **애플리케이션 메트릭 기반(권장)**
    - vLLM의 `/metrics`(Prometheus 포맷)에서 `vllm:num_requests_waiting` 같은 **대기열/백로그** 지표로 스케일  
    - 장점: “지금 사용자 요청이 밀리냐”를 더 직접 반영  
    - 단점: 서빙 프레임워크별 지표 해석/임계값 튜닝이 필요  
-   vLLM production-stack 문서도 KEDA+Prometheus로 해당 흐름을 제시합니다. ([docs.vllm.ai](https://docs.vllm.ai/projects/production-stack/en/latest/use_cases/autoscaling-keda.html?utm_source=openai))
+   vLLM production-stack 문서도 KEDA+Prometheus로 해당 흐름을 제시합니다.[^2]
 
 3. **SLO/LLM-aware autoscaling**
-   - 2026년 관점에서 가장 흥미로운 흐름은 “TTFT, ITL, KV cache” 같은 LLM 특화 신호로 prefill/decode를 **협조적으로** 스케일하는 방식입니다. NVIDIA Dynamo Planner는 Prometheus에서 지표를 조회하고 프로파일링/예측 기반으로 replica를 결정하는 구성을 문서화합니다. ([docs.dynamo.nvidia.com](https://docs.dynamo.nvidia.com/dynamo/kubernetes-deployment/deployment-guide/autoscaling?utm_source=openai))  
+   - 2026년 관점에서 가장 흥미로운 흐름은 “TTFT, ITL, KV cache” 같은 LLM 특화 신호로 prefill/decode를 **협조적으로** 스케일하는 방식입니다. NVIDIA Dynamo Planner는 Prometheus에서 지표를 조회하고 프로파일링/예측 기반으로 replica를 결정하는 구성을 문서화합니다.[^3]  
    - 장점: “GPU util”이 아니라 **사용자 지연(SLA)** 중심으로 최적화 가능  
    - 단점: 도입 복잡도(프로파일링, 컴포넌트 구성, 관측 파이프라인)가 큼
 
 ### 2) KEDA는 “더 좋은 신호”를 HPA로 연결하는 어댑터다
-KEDA는 이벤트/외부 메트릭을 받아 Kubernetes scale subresource를 통해 Deployment 등을 스케일합니다(즉 내부적으로 HPA를 생성/관리). Prometheus scaler를 쓰면 “PromQL 결과”를 기준으로 스케일합니다. ([cncf.io](https://www.cncf.io/projects/keda/?utm_source=openai))
+KEDA는 이벤트/외부 메트릭을 받아 Kubernetes scale subresource를 통해 Deployment 등을 스케일합니다(즉 내부적으로 HPA를 생성/관리). Prometheus scaler를 쓰면 “PromQL 결과”를 기준으로 스케일합니다.[^4]
 
 여기서 실무 포인트는:
 - **HPA의 control loop**(평균화, 안정화 윈도우, 쿨다운) 특성은 그대로라서, 신호가 좋아져도 **노드 프로비저닝/모델 로딩 지연**까지 해결되진 않습니다.
-- GPU 메트릭 파이프라인(DCGM exporter → Prometheus → Adapter/KEDA)은 구성요소가 늘수록 **메트릭 지연과 운영 복잡도**가 커집니다. 실제로 “Prometheus 체인 없이 GPU 오토스케일을 하겠다”는 동기가 2026년에도 커지고 있습니다(외부 스케일러가 NVML을 직접 읽는 접근 등). ([reddit.com](https://www.reddit.com/r/kubernetes/comments/1sd7zyr/keda_gpu_scaler_autoscale_vllmtriton_inference/?utm_source=openai))
+- GPU 메트릭 파이프라인(DCGM exporter → Prometheus → Adapter/KEDA)은 구성요소가 늘수록 **메트릭 지연과 운영 복잡도**가 커집니다. 실제로 “Prometheus 체인 없이 GPU 오토스케일을 하겠다”는 동기가 2026년에도 커지고 있습니다(외부 스케일러가 NVML을 직접 읽는 접근 등).[^5]
 
 ### 3) MIG/DRA는 “스케일링” 이전에 “할당 단위”를 바꾼다
-- **MIG**: A100/H100 계열에서 GPU를 여러 인스턴스로 쪼개 Pod당 더 작은 단위로 할당 가능. GPU Operator의 MIG Manager가 노드 라벨(`nvidia.com/mig.config`) 변화를 감시해 설정을 적용합니다(필요 시 GPU Pod 중지 등 영향). ([docs.nvidia.com](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/23.6.0/gpu-operator-mig.html?utm_source=openai))  
-- **DRA(Dynamic Resource Allocation)**: Kubernetes가 장치 할당을 더 유연하게 다루기 위한 프레임워크. NVIDIA는 GPU Operator에서 DRA Driver 설치/구성을 문서화했고, Kubernetes도 DRA 개념/워크플로우를 공식 문서로 제공합니다. ([docs.nvidia.com](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/dra-intro-install.html?utm_source=openai))  
+- **MIG**: A100/H100 계열에서 GPU를 여러 인스턴스로 쪼개 Pod당 더 작은 단위로 할당 가능. GPU Operator의 MIG Manager가 노드 라벨(`nvidia.com/mig.config`) 변화를 감시해 설정을 적용합니다(필요 시 GPU Pod 중지 등 영향).[^6]  
+- **DRA(Dynamic Resource Allocation)**: Kubernetes가 장치 할당을 더 유연하게 다루기 위한 프레임워크. NVIDIA는 GPU Operator에서 DRA Driver 설치/구성을 문서화했고, Kubernetes도 DRA 개념/워크플로우를 공식 문서로 제공합니다.[^7]  
   핵심은 “요청/할당/구성”이 PV/PVC처럼 구조화되어 장치 벤더 드라이버가 더 많은 재량을 갖는 방향이라는 점입니다.
 
 ---
@@ -72,7 +74,7 @@ KEDA는 이벤트/외부 메트릭을 받아 Kubernetes scale subresource를 통
 - GPU 노드에 NVIDIA GPU Operator 설치(드라이버, device plugin, DCGM exporter 등)  
 - vLLM은 `/metrics` 노출(대부분 기본 제공, 서비스로 열어 Prometheus가 scrape)
 - Prometheus가 `vllm` 서비스의 metrics를 scrape하고 있어야 함  
-  (vLLM production-stack은 KEDA가 Prometheus에 질의하는 형태를 안내합니다.) ([docs.vllm.ai](https://docs.vllm.ai/projects/production-stack/en/latest/use_cases/autoscaling-keda.html?utm_source=openai))
+  (vLLM production-stack은 KEDA가 Prometheus에 질의하는 형태를 안내합니다.)[^2]
 
 ### 1) vLLM Deployment + Service (예: Llama 계열, 1 GPU/pod)
 ```yaml
@@ -131,7 +133,7 @@ spec:
 
 예상 동작
 - `kubectl -n llm port-forward svc/vllm-serve 8000:8000`
-- 트래픽을 넣으면 `/metrics`에 `vllm:num_requests_waiting` 같은 backlog 지표가 증가(버전에 따라 이름은 다를 수 있어 실제 노출 메트릭을 확인해야 합니다). ([kubernetes.recipes](https://kubernetes.recipes/recipes/ai/llm-autoscaling-kubernetes/?utm_source=openai))
+- 트래픽을 넣으면 `/metrics`에 `vllm:num_requests_waiting` 같은 backlog 지표가 증가(버전에 따라 이름은 다를 수 있어 실제 노출 메트릭을 확인해야 합니다).[^8]
 
 ### 2) KEDA ScaledObject: backlog(대기열) 기반 스케일
 Prometheus에 질의해 backlog가 커지면 replica를 늘립니다.
@@ -165,7 +167,7 @@ spec:
 - 트래픽 급증 시 `replicas` 증가, 트래픽 감소 후 `cooldownPeriod` 지나면 감소
 
 ### 3) (선택) GPU util 안전장치: DCGM 메트릭을 “상한”으로 함께 보기
-현실에서는 backlog만 보면 “모델 로딩/콜드스타트로 backlog가 순간 급증 → 과도 스케일”이 발생할 수 있습니다. 그래서 운영팀은 종종 DCGM util을 함께 대시보드로 보고 threshold를 재조정합니다. DCGM exporter는 Kubernetes에서 DaemonSet로 올려 GPU 메트릭을 노출할 수 있고, Pod label 매핑 옵션도 존재합니다. ([docs.nvidia.com](https://docs.nvidia.com/datacenter/dcgm/latest/gpu-telemetry/dcgm-exporter.html?utm_source=openai))
+현실에서는 backlog만 보면 “모델 로딩/콜드스타트로 backlog가 순간 급증 → 과도 스케일”이 발생할 수 있습니다. 그래서 운영팀은 종종 DCGM util을 함께 대시보드로 보고 threshold를 재조정합니다. DCGM exporter는 Kubernetes에서 DaemonSet로 올려 GPU 메트릭을 노출할 수 있고, Pod label 매핑 옵션도 존재합니다.[^1]
 
 ---
 
@@ -178,15 +180,15 @@ LLM은 **Pod가 늘어도 GPU 노드가 없으면 Pending**입니다. 즉 KEDA/H
 
 ### Best Practice 2) 스케일 신호는 “GPU util”보다 “queue/latency”에 가깝게
 - GPU util은 결과 지표라 **늦게 반응**하거나(이미 TTFT 깨짐), 반대로 batching 덕에 효율이 높아도 util이 높아 “불필요 스케일”로 이어질 수 있습니다.
-- 가능하면 vLLM backlog, request rate, p95 TTFT 같은 **서빙 품질 지표**로 스케일하세요. LLM-aware로 가면 Dynamo Planner처럼 TTFT/ITL/KV cache를 직접 다룹니다. ([docs.dynamo.nvidia.com](https://docs.dynamo.nvidia.com/dynamo/kubernetes-deployment/deployment-guide/autoscaling?utm_source=openai))
+- 가능하면 vLLM backlog, request rate, p95 TTFT 같은 **서빙 품질 지표**로 스케일하세요. LLM-aware로 가면 Dynamo Planner처럼 TTFT/ITL/KV cache를 직접 다룹니다.[^3]
 
 ### Best Practice 3) MIG는 “스케일링의 대체재”가 아니라 “할당 단위 최적화”
 - MIG로 Pod당 1 GPU 대신 1 MIG slice를 주면 **수평 스케일 granularity**가 좋아져서 오토스케일이 더 부드러워질 수 있습니다.
-- 하지만 MIG 재구성은 노드/파드 중단 같은 운영 이벤트를 동반할 수 있고(GPU Operator MIG Manager 동작 특성), 동적 재구성을 잦게 하는 패턴은 위험합니다. ([docs.nvidia.com](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/23.6.0/gpu-operator-mig.html?utm_source=openai))  
+- 하지만 MIG 재구성은 노드/파드 중단 같은 운영 이벤트를 동반할 수 있고(GPU Operator MIG Manager 동작 특성), 동적 재구성을 잦게 하는 패턴은 위험합니다.[^6]  
   결론: MIG는 “정적 프로파일 몇 개를 미리 준비”하고, 오토스케일은 그 위에서 하세요.
 
 ### 흔한 함정 1) 메트릭 지연(스크레이프 주기 + KEDA polling + HPA 안정화) 과소평가
-DCGM exporter → Prometheus → KEDA는 구성요소가 늘수록 지연이 누적됩니다. 커뮤니티에서도 “지연이 종종 체감보다 심각”하다는 피드백이 나옵니다. ([reddit.com](https://www.reddit.com/r/kubernetes/comments/1sd7zyr/keda_gpu_scaler_autoscale_vllmtriton_inference/?utm_source=openai))  
+DCGM exporter → Prometheus → KEDA는 구성요소가 늘수록 지연이 누적됩니다. 커뮤니티에서도 “지연이 종종 체감보다 심각”하다는 피드백이 나옵니다.[^5]  
 - 해결책: polling/스크레이프 주기를 공격적으로 낮추되, Prometheus 부하와 노이즈를 함께 관리
 - 또는 NVML을 노드에서 직접 읽는 external scaler 같은 “short path”를 검토(성숙도/보안/운영 리스크는 별도 평가)
 
@@ -208,7 +210,7 @@ LLM은 캐시(KV cache), JIT/컴파일, 모델 warm 상태가 성능에 크게 �
 1) **KEDA + Prometheus + 앱 메트릭(backlog/latency)** 로 “스케일 신호”를 바로잡기  
 2) GPU util(DCGM)은 “보조 관측/가드레일”로 두고, 운영 임계값을 튜닝  
 3) 더 나아가면 **LLM-aware autoscaling(SLA 기반: TTFT/ITL/KV cache)** 또는 DRA/MIG로 “할당 단위” 자체를 재설계  
-- Kubernetes DRA는 공식 문서와 v1.36 업데이트에서도 계속 강조되는 축이고, NVIDIA도 GPU DRA Driver를 GPU Operator에 통합해 안내합니다. ([kubernetes.io](https://kubernetes.io/blog/2026/05/07/kubernetes-v1-36-dra-136-updates/?utm_source=openai))
+- Kubernetes DRA는 공식 문서와 v1.36 업데이트에서도 계속 강조되는 축이고, NVIDIA도 GPU DRA Driver를 GPU Operator에 통합해 안내합니다.[^9]
 
 도입 판단 기준(실무 체크리스트)
 - 트래픽이 버스트인가? 노드/모델 로딩이 몇 분인가? → 리액티브만으로 되는지 먼저 측정
@@ -216,8 +218,16 @@ LLM은 캐시(KV cache), JIT/컴파일, 모델 warm 상태가 성능에 크게 �
 - GPU를 쪼개 써야 하나(MIG/DRA)? → 멀티테넌시/비용 구조에 따라 우선순위 결정
 
 다음 학습 추천
-- vLLM + KEDA autoscaling 문서 흐름을 그대로 재현해 보고(백로그 기반) ([docs.vllm.ai](https://docs.vllm.ai/projects/production-stack/en/latest/use_cases/autoscaling-keda.html?utm_source=openai))
-- DCGM exporter 메트릭/라벨 매핑 옵션을 이해해 “GPU 메트릭 관측”을 견고히 한 뒤 ([docs.nvidia.com](https://docs.nvidia.com/datacenter/dcgm/latest/gpu-telemetry/dcgm-exporter.html?utm_source=openai))
-- SLO 중심이 필요하면 Dynamo Planner 같은 LLM-aware 스케일링 설계를 검토하세요. ([docs.dynamo.nvidia.com](https://docs.dynamo.nvidia.com/dynamo/kubernetes-deployment/deployment-guide/autoscaling?utm_source=openai))
+- vLLM + KEDA autoscaling 문서 흐름을 그대로 재현해 보고(백로그 기반)[^2]
+- DCGM exporter 메트릭/라벨 매핑 옵션을 이해해 “GPU 메트릭 관측”을 견고히 한 뒤[^1]
+- SLO 중심이 필요하면 Dynamo Planner 같은 LLM-aware 스케일링 설계를 검토하세요.[^3]
 
-원하시면, 사용 중인 환경(EKS/GKE/온프렘), 서빙 엔진(vLLM/TGI/Triton), GPU 종류(A10/L4/A100/H100), 목표 SLO(TTFT/p95)와 트래픽 패턴(버스트/일변동)을 알려주시면 **“어떤 신호로, 어떤 min/max, 어떤 cooldown, MIG 필요 여부”**까지 포함해 더 구체적인 권장 설정으로 좁혀드릴게요.
+[^1]: <https://docs.nvidia.com/datacenter/dcgm/latest/gpu-telemetry/dcgm-exporter.html>
+[^2]: <https://docs.vllm.ai/projects/production-stack/en/latest/use_cases/autoscaling-keda.html>
+[^3]: <https://docs.dynamo.nvidia.com/dynamo/kubernetes-deployment/deployment-guide/autoscaling>
+[^4]: <https://www.cncf.io/projects/keda/>
+[^5]: <https://www.reddit.com/r/kubernetes/comments/1sd7zyr/keda_gpu_scaler_autoscale_vllmtriton_inference/>
+[^6]: <https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/23.6.0/gpu-operator-mig.html>
+[^7]: <https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/dra-intro-install.html>
+[^8]: <https://kubernetes.recipes/recipes/ai/llm-autoscaling-kubernetes/>
+[^9]: <https://kubernetes.io/blog/2026/05/07/kubernetes-v1-36-dra-136-updates/>

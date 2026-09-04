@@ -1,12 +1,14 @@
 ---
-title: "2026년 1월 기준: LangGraph vs AutoGen vs CrewAI로 “멀티 에이전트”를 제대로 만드는 법 (비교 + 구현 패턴)"
+title: "LangGraph vs AutoGen vs CrewAI로 “멀티 에이전트”를 제대로 만드는 법 (비교 + 구현 패턴)"
+description: "2024~2025년의 “Agent”는 데모가 많았고, 2026년 1월의 “Agent”는 운영 가능한 오케스트레이션이 핵심입니다."
 date: 2026-01-17 00:47:09 +0900
 categories: [AI, Agent]
-tags: [ai, agent, trend, 2026-01]
+tags: [ai, agent]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -20,15 +22,15 @@ tags: [ai, agent, trend, 2026-01]
 이 지점에서 LangGraph / Microsoft AutoGen / CrewAI는 철학이 완전히 다릅니다. 요약하면:
 - LangGraph: **제어 가능한 workflow(state machine/graph)** 중심
 - AutoGen: **대화(conversation)로 협업**시키는 멀티 에이전트 중심
-- CrewAI: **역할(role) + 작업(task) + 프로세스(process)**로 팀처럼 굴리는 중심 ([datacamp.com](https://www.datacamp.com/tutorial/crewai-vs-langgraph-vs-autogen?utm_source=openai))
+- CrewAI: **역할(role) + 작업(task) + 프로세스(process)**로 팀처럼 굴리는 중심[^1]
 
 ---
 
 ## 🔧 핵심 개념
 ### 1) 오케스트레이션 모델이 다르다
-- **LangGraph**: Node/Edge로 흐름을 명시합니다. “이 단계에서 schema 검증 실패하면 retry edge로”, “승인 필요하면 interrupt” 같은 **결정론적 흐름**이 강점입니다. 또한 checkpointer 기반으로 **persistence / time travel(재실행/분기)**가 가능해 디버깅과 운영에 유리합니다. ([docs.langchain.com](https://docs.langchain.com/oss/javascript/langgraph/persistence?utm_source=openai))
-- **AutoGen**: 멀티 에이전트가 “GroupChat”처럼 메시지를 주고받으며 문제를 풉니다. 코드 실행도 대화 흐름 속에서 “코드 작성 Agent ↔ 실행 Agent” 패턴으로 자연스럽게 엮습니다(보통 Docker 기반 격리 실행 권장). ([microsoft.github.io](https://microsoft.github.io/autogen/stable/user-guide/core-user-guide/design-patterns/code-execution-groupchat.html?utm_source=openai))
-- **CrewAI**: Agents/Tasks/Crew에 더해 **Process**가 핵심입니다. 특히 `Process.sequential` vs `Process.hierarchical`가 사실상 멀티 에이전트 구현의 뼈대예요. 계층형에서는 manager가 계획/위임/검증까지 담당합니다. ([docs.crewai.com](https://docs.crewai.com/en/concepts/processes?utm_source=openai))
+- **LangGraph**: Node/Edge로 흐름을 명시합니다. “이 단계에서 schema 검증 실패하면 retry edge로”, “승인 필요하면 interrupt” 같은 **결정론적 흐름**이 강점입니다. 또한 checkpointer 기반으로 **persistence / time travel(재실행/분기)**가 가능해 디버깅과 운영에 유리합니다.[^2]
+- **AutoGen**: 멀티 에이전트가 “GroupChat”처럼 메시지를 주고받으며 문제를 풉니다. 코드 실행도 대화 흐름 속에서 “코드 작성 Agent ↔ 실행 Agent” 패턴으로 자연스럽게 엮습니다(보통 Docker 기반 격리 실행 권장).[^3]
+- **CrewAI**: Agents/Tasks/Crew에 더해 **Process**가 핵심입니다. 특히 `Process.sequential` vs `Process.hierarchical`가 사실상 멀티 에이전트 구현의 뼈대예요. 계층형에서는 manager가 계획/위임/검증까지 담당합니다.[^4]
 
 ### 2) “멀티 에이전트 구현”의 실전 정의
 멀티 에이전트를 쓴다는 건 보통 아래 중 하나입니다.
@@ -36,9 +38,9 @@ tags: [ai, agent, trend, 2026-01]
 2) **Plan-and-Execute 패턴**: Planner가 단계 계획 → Worker들이 실행 → Validator가 검증  
 3) **Code + Tool 실행 루프**: 코드 생성/실행/피드백을 안전하게 반복
 
-- LangGraph는 1)과 2)를 “그래프”로 강제할 수 있고, checkpoint로 재현/중단/승인이 자연스럽습니다. ([docs.langchain.com](https://docs.langchain.com/oss/javascript/langgraph/persistence?utm_source=openai))  
-- AutoGen은 3)에서 특히 강하고, UserProxyAgent로 human-in-the-loop도 대화형으로 쉽게 섞습니다. ([microsoft.github.io](https://microsoft.github.io/autogen/0.2/docs/reference/agentchat/user_proxy_agent/?utm_source=openai))  
-- CrewAI는 2)를 “조직도”로 모델링(특히 hierarchical)하는 느낌이 강합니다. ([docs.crewai.com](https://docs.crewai.com/en/learn/hierarchical-process?utm_source=openai))
+- LangGraph는 1)과 2)를 “그래프”로 강제할 수 있고, checkpoint로 재현/중단/승인이 자연스럽습니다.[^2]  
+- AutoGen은 3)에서 특히 강하고, UserProxyAgent로 human-in-the-loop도 대화형으로 쉽게 섞습니다.[^5]  
+- CrewAI는 2)를 “조직도”로 모델링(특히 hierarchical)하는 느낌이 강합니다.[^6]
 
 ---
 
@@ -74,8 +76,8 @@ crew = Crew(
     agents=[researcher, engineer],
     tasks=[t1, t2, t3],
     process=Process.hierarchical,
-    manager_llm="gpt-4o",  # 문서에 명시된 핵심 옵션: hierarchical에 필요 ([docs.crewai.com](https://docs.crewai.com/en/concepts/processes?utm_source=openai))
-    memory=True,           # 팀 단위 메모리(상황에 따라 비용/노이즈 증가 주의) ([docs.crewai.com](https://docs.crewai.com/en/learn/sequential-process?utm_source=openai))
+    manager_llm="gpt-4o",  # 문서에 명시된 핵심 옵션: hierarchical에 필요[^4]
+    memory=True,           # 팀 단위 메모리(상황에 따라 비용/노이즈 증가 주의)[^7]
 )
 
 result = crew.kickoff()
@@ -84,7 +86,7 @@ print(result)
 
 ```python
 # 예제 2) AutoGen: Coder Agent + CodeExecutorAgent로 "대화 기반" 실행 루프
-# 핵심: 모델이 작성한 코드를 Docker에서 격리 실행하는 패턴이 공식 가이드에 등장 ([microsoft.github.io](https://microsoft.github.io/autogen/stable/user-guide/core-user-guide/design-patterns/code-execution-groupchat.html?utm_source=openai))
+# 핵심: 모델이 작성한 코드를 Docker에서 격리 실행하는 패턴이 공식 가이드에 등장[^3]
 import asyncio
 from autogen_agentchat.agents import AssistantAgent, CodeExecutorAgent
 from autogen_agentchat.teams import RoundRobinGroupChat
@@ -118,7 +120,7 @@ asyncio.run(main())
 
 ```python
 # 예제 3) LangGraph: "상태(state) + 체크포인터(checkpointer)"로 멀티스텝/재개 가능한 흐름 뼈대(개념 코드)
-# 핵심: checkpointer는 persistence/memory/time travel/human-in-the-loop의 기반 ([docs.langchain.com](https://docs.langchain.com/oss/javascript/langgraph/persistence?utm_source=openai))
+# 핵심: checkpointer는 persistence/memory/time travel/human-in-the-loop의 기반[^2]
 # (아래는 구조를 보여주는 예시이며, 실제 노드 구현/모델 호출은 프로젝트에 맞게 채우세요.)
 
 from typing_extensions import TypedDict
@@ -171,34 +173,43 @@ print(result["answer"])
 
 ## ⚡ 실전 팁
 1) **프레임워크 선택 기준을 “대화”가 아니라 “통제 지점”으로 잡기**  
-- “승인/검증/재시도/분기”가 중요하면 LangGraph가 유리합니다(체크포인터 기반 time travel, human-in-the-loop). ([docs.langchain.com](https://docs.langchain.com/oss/javascript/langgraph/persistence?utm_source=openai))  
-- “에이전트끼리 토론하며 해결”이 본질이면 AutoGen이 자연스럽습니다(대화 루프 + 코드 실행 에이전트). ([microsoft.github.io](https://microsoft.github.io/autogen/stable/user-guide/core-user-guide/design-patterns/code-execution-groupchat.html?utm_source=openai))  
-- “역할 분담이 명확한 파이프라인”이면 CrewAI가 빠릅니다(특히 hierarchical manager). ([docs.crewai.com](https://docs.crewai.com/en/learn/hierarchical-process?utm_source=openai))
+- “승인/검증/재시도/분기”가 중요하면 LangGraph가 유리합니다(체크포인터 기반 time travel, human-in-the-loop).[^2]  
+- “에이전트끼리 토론하며 해결”이 본질이면 AutoGen이 자연스럽습니다(대화 루프 + 코드 실행 에이전트).[^3]  
+- “역할 분담이 명확한 파이프라인”이면 CrewAI가 빠릅니다(특히 hierarchical manager).[^6]
 
 2) **멀티 에이전트의 함정: ‘자율성’이 아니라 ‘디버깅 불가능성’이 비용을 만든다**  
 운영에서 진짜 무서운 건 hallucination 자체보다, “왜 그렇게 됐는지 추적이 안 되는 상태”입니다. 그래서 최소한 아래는 강제하세요.
 - 각 step의 **입력/출력 schema 고정**
 - 실패 시 **retry 정책(횟수/조건) 고정**
-- tool 실행은 **격리(Docker 등) + 허용 리스트**로 제한 ([microsoft.github.io](https://microsoft.github.io/autogen/dev/reference/python/autogen_agentchat.agents.html?utm_source=openai))
+- tool 실행은 **격리(Docker 등) + 허용 리스트**로 제한[^8]
 
 3) **CrewAI Hierarchical은 ‘좋은 매니저 프롬프트’가 성능의 50%**  
-계층형은 manager가 위임/검증을 하므로, manager가 보는 컨텍스트가 과해지면 비용과 혼선이 커집니다. `max_iterations`, 요청 제한 같은 가드레일을 반드시 켜고(문서에 옵션 존재), Task를 “산출물 중심”으로 짧게 쓰세요. ([docs.crewai.com](https://docs.crewai.com/en/learn/hierarchical-process?utm_source=openai))
+계층형은 manager가 위임/검증을 하므로, manager가 보는 컨텍스트가 과해지면 비용과 혼선이 커집니다. `max_iterations`, 요청 제한 같은 가드레일을 반드시 켜고(문서에 옵션 존재), Task를 “산출물 중심”으로 짧게 쓰세요.[^6]
 
 4) **AutoGen 코드 실행은 “기능”이 아니라 “보안 모델”로 설계**  
 CodeExecutorAgent는 편하지만, 로컬 실행을 섞기 시작하면 사고가 납니다. 공식 문서도 Docker 격리 실행을 전제로 설명합니다. 운영에서는:
 - 네트워크/파일 접근 제한
 - 시간/메모리 제한
 - approval_func(승인 훅)로 실행 전 검사  
-같은 장치를 붙이세요. ([microsoft.github.io](https://microsoft.github.io/autogen/dev/reference/python/autogen_agentchat.agents.html?utm_source=openai))
+같은 장치를 붙이세요.[^8]
 
 ---
 
 ## 🚀 마무리
-- LangGraph는 **워크플로우를 그래프로 “고정”**해 멀티 에이전트를 운영형으로 만들 때 강합니다(체크포인트/재개/리플레이가 설계에 포함). ([docs.langchain.com](https://docs.langchain.com/oss/javascript/langgraph/persistence?utm_source=openai))  
-- AutoGen은 **대화 기반 협업 + 코드 실행 루프**가 자연스러워 “연구/탐색형 멀티 에이전트”에 강합니다. ([microsoft.github.io](https://microsoft.github.io/autogen/stable/user-guide/core-user-guide/design-patterns/code-execution-groupchat.html?utm_source=openai))  
-- CrewAI는 **역할/작업/프로세스(특히 hierarchical)**로 팀을 빠르게 꾸릴 수 있어 “명확한 파이프라인형 멀티 에이전트”에 좋습니다. ([docs.crewai.com](https://docs.crewai.com/en/learn/hierarchical-process?utm_source=openai))  
+- LangGraph는 **워크플로우를 그래프로 “고정”**해 멀티 에이전트를 운영형으로 만들 때 강합니다(체크포인트/재개/리플레이가 설계에 포함).[^2]  
+- AutoGen은 **대화 기반 협업 + 코드 실행 루프**가 자연스러워 “연구/탐색형 멀티 에이전트”에 강합니다.[^3]  
+- CrewAI는 **역할/작업/프로세스(특히 hierarchical)**로 팀을 빠르게 꾸릴 수 있어 “명확한 파이프라인형 멀티 에이전트”에 좋습니다.[^6]  
 
 다음 학습 추천:
-1) LangGraph의 checkpointer 기반 **persistence/time travel/human-in-the-loop**를 실제 장애 대응 시나리오로 연습 ([docs.langchain.com](https://docs.langchain.com/oss/javascript/langgraph/persistence?utm_source=openai))  
-2) AutoGen의 **CodeExecutorAgent + approval**로 안전한 실행 파이프라인 만들기 ([microsoft.github.io](https://microsoft.github.io/autogen/dev/reference/python/autogen_agentchat.agents.html?utm_source=openai))  
-3) CrewAI의 **hierarchical manager 설계(프롬프트/가드레일)**를 “산출물 품질” 기준으로 튜닝 ([docs.crewai.com](https://docs.crewai.com/en/learn/hierarchical-process?utm_source=openai))
+1) LangGraph의 checkpointer 기반 **persistence/time travel/human-in-the-loop**를 실제 장애 대응 시나리오로 연습[^2]  
+2) AutoGen의 **CodeExecutorAgent + approval**로 안전한 실행 파이프라인 만들기[^8]  
+3) CrewAI의 **hierarchical manager 설계(프롬프트/가드레일)**를 “산출물 품질” 기준으로 튜닝[^6]
+
+[^1]: <https://www.datacamp.com/tutorial/crewai-vs-langgraph-vs-autogen>
+[^2]: <https://docs.langchain.com/oss/javascript/langgraph/persistence>
+[^3]: <https://microsoft.github.io/autogen/stable/user-guide/core-user-guide/design-patterns/code-execution-groupchat.html>
+[^4]: <https://docs.crewai.com/en/concepts/processes>
+[^5]: <https://microsoft.github.io/autogen/0.2/docs/reference/agentchat/user_proxy_agent/>
+[^6]: <https://docs.crewai.com/en/learn/hierarchical-process>
+[^7]: <https://docs.crewai.com/en/learn/sequential-process>
+[^8]: <https://microsoft.github.io/autogen/dev/reference/python/autogen_agentchat.agents.html>

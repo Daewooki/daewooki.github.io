@@ -1,12 +1,14 @@
 ---
-title: "LLM API 429에 지지 않는 법: 2026년형 Retry/Backoff 패턴(Headers 기반 + Jitter + 큐/동시성 제어)"
+title: "LLM API 429에 지지 않는 법: Retry/Backoff 패턴(Headers 기반 + Jitter + 큐/동시성 제어)"
+description: "LLM API를 운영에 붙이면 “가끔 느려짐”이 아니라 특정 순간에 429(Too Many Requests)가 연쇄적으로 터지며 장애처럼 보이는 현상을 자주 겪습니다."
 date: 2026-06-24 04:12:48 +0900
 categories: [Backend, API]
-tags: [backend, api, trend, 2026-06]
+tags: [backend, api]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -16,7 +18,7 @@ tags: [backend, api, trend, 2026-06]
 </script>
 
 ## 들어가며
-LLM API를 운영에 붙이면 “가끔 느려짐”이 아니라 **특정 순간에 429(Too Many Requests)가 연쇄적으로 터지며 장애처럼 보이는 현상**을 자주 겪습니다. 특히 트래픽이 bursty(짧은 시간에 몰림)한 서비스(챗봇/에이전트, 비동기 배치, 이미지/음성처럼 요청당 비용이 큰 작업)에서 더 심합니다. OpenAI는 rate limit이 **RPM/TPM처럼 분 단위로 보이지만 더 짧은 구간(예: 1 RPS 형태)에서도 적용**될 수 있다고 명시합니다. 그래서 “분당 60회 제한인데 1초에 10번 쏘면 왜 막히지?”가 실제로 일어납니다. ([help-lb.openai.com](https://help-lb.openai.com/en/articles/5955604-how-can-i-solve-429-too-many-requests-errors))
+LLM API를 운영에 붙이면 “가끔 느려짐”이 아니라 **특정 순간에 429(Too Many Requests)가 연쇄적으로 터지며 장애처럼 보이는 현상**을 자주 겪습니다. 특히 트래픽이 bursty(짧은 시간에 몰림)한 서비스(챗봇/에이전트, 비동기 배치, 이미지/음성처럼 요청당 비용이 큰 작업)에서 더 심합니다. OpenAI는 rate limit이 **RPM/TPM처럼 분 단위로 보이지만 더 짧은 구간(예: 1 RPS 형태)에서도 적용**될 수 있다고 명시합니다. 그래서 “분당 60회 제한인데 1초에 10번 쏘면 왜 막히지?”가 실제로 일어납니다.[^1]
 
 이 글은 “그냥 exponential backoff 하세요” 수준이 아니라, **내 프로젝트에 적용 가능한 판단 기준**을 제공합니다.
 
@@ -34,8 +36,8 @@ LLM API를 운영에 붙이면 “가끔 느려짐”이 아니라 **특정 순�
 2026년 현재 주요 LLM 벤더들은 대체로 **요청 수(RPM) + 토큰(TPM 계열)**을 함께 제한합니다.
 
 - **OpenAI**: 응답 헤더로 requests/tokens limit, remaining, reset 정보를 제공합니다. 예:  
-  `x-ratelimit-limit-requests`, `x-ratelimit-remaining-tokens`, `x-ratelimit-reset-tokens` 등. ([platform.openai.com](https://platform.openai.com/docs/guides/rate-limits/usage-tiers))  
-- **Anthropic(Claude)**: `retry-after`와 함께, requests/tokens/input/output 토큰까지 세분화한 reset 헤더를 제공합니다. 특히 `anthropic-ratelimit-*-reset`은 **RFC3339 timestamp**로 “언제 완전히 회복되는지”를 직접 알려줍니다. ([platform.claude.com](https://platform.claude.com/docs/en/api/rate-limits))  
+  `x-ratelimit-limit-requests`, `x-ratelimit-remaining-tokens`, `x-ratelimit-reset-tokens` 등.[^2]  
+- **Anthropic(Claude)**: `retry-after`와 함께, requests/tokens/input/output 토큰까지 세분화한 reset 헤더를 제공합니다. 특히 `anthropic-ratelimit-*-reset`은 **RFC3339 timestamp**로 “언제 완전히 회복되는지”를 직접 알려줍니다.[^3]  
 
 결론: **429 한 번**을 “요청을 조금 늦추면 되겠지”로 보면 실패합니다. 지금 막힌 원인이 requests인지 tokens인지에 따라 *대기 시간과 제어 지점*이 달라집니다.
 
@@ -43,19 +45,19 @@ LLM API를 운영에 붙이면 “가끔 느려짐”이 아니라 **특정 순�
 공식 문서가 공통적으로 권장하는 건 **randomized exponential backoff**입니다. 이유는 간단합니다.
 
 - exponential backoff: 초반엔 빠르게 복구를 시도하되, 계속 실패하면 대기 시간을 급격히 늘려 **자기 보호**  
-- jitter(랜덤): 여러 워커가 동시에 429를 맞고 동시에 재시도하면 **thundering herd**가 발생 → 랜덤으로 흩어야 함 ([platform.openai.com](https://platform.openai.com/docs/guides/rate-limits/usage-tiers))  
+- jitter(랜덤): 여러 워커가 동시에 429를 맞고 동시에 재시도하면 **thundering herd**가 발생 → 랜덤으로 흩어야 함[^2]  
 
-또 한 가지 중요한 경고: **실패한 요청도 per-minute limit에 포함**될 수 있으므로, “빠르게 계속 재시도”는 문제를 악화시킵니다. ([platform.openai.com](https://platform.openai.com/docs/guides/rate-limits/usage-tiers))
+또 한 가지 중요한 경고: **실패한 요청도 per-minute limit에 포함**될 수 있으므로, “빠르게 계속 재시도”는 문제를 악화시킵니다.[^2]
 
 ### 3) “Headers-first backoff”가 2026년형 정답에 가깝다
 2026년 기준, 단순 expo backoff보다 운영 친화적인 패턴은 다음 순서입니다.
 
 1) **서버가 준 힌트**를 최우선으로 존중  
-- OpenAI: `x-ratelimit-reset-*`이 “얼마나 남았는지(duration)”로 제공 ([platform.openai.com](https://platform.openai.com/docs/guides/rate-limits/usage-tiers))  
-- Anthropic: `retry-after`(초) + `*-reset`(timestamp) 둘 다 제공 ([platform.claude.com](https://platform.claude.com/docs/en/api/rate-limits))  
+- OpenAI: `x-ratelimit-reset-*`이 “얼마나 남았는지(duration)”로 제공[^2]  
+- Anthropic: `retry-after`(초) + `*-reset`(timestamp) 둘 다 제공[^3]  
 
 2) 힌트가 없거나 신뢰가 낮을 때만 exponential + jitter로 폴백  
-(일부 엔드포인트/상황에서 Retry-After가 없거나, vendor/엔드포인트별로 일관되지 않을 수 있음. 커뮤니티에서도 “기다렸는데도 429가 난다” 같은 케이스가 보고됩니다. ([discuss.ai.google.dev](https://discuss.ai.google.dev/t/429-errors-despite-waiting-after-retrydelay/96899?utm_source=openai)))
+(일부 엔드포인트/상황에서 Retry-After가 없거나, vendor/엔드포인트별로 일관되지 않을 수 있음. 커뮤니티에서도 “기다렸는데도 429가 난다” 같은 케이스가 보고됩니다.[^4])
 
 3) “재시도”와 “동시성/큐”를 분리  
 - backoff는 **개별 요청의 실패 회복**  
@@ -111,7 +113,7 @@ class RetryHint:
 
 def _parse_openai_reset_headers(headers: httpx.Headers) -> Optional[RetryHint]:
     """
-    OpenAI는 x-ratelimit-reset-requests: 1s, x-ratelimit-reset-tokens: 6m0s 처럼 duration을 줄 수 있음. ([platform.openai.com](https://platform.openai.com/docs/guides/rate-limits/usage-tiers))
+    OpenAI는 x-ratelimit-reset-requests: 1s, x-ratelimit-reset-tokens: 6m0s 처럼 duration을 줄 수 있음.[^2]
     여기서는 더 보수적으로 tokens reset을 우선(토큰이 병목인 경우가 많기 때문).
     """
     def parse_duration(s: str) -> Optional[float]:
@@ -262,15 +264,15 @@ if __name__ == "__main__":
 
 ## ⚡ 실전 팁 & 함정
 ### Best Practice 1) “재시도”보다 먼저 “429를 안 나게” 만들어라: 큐 + 동시성 상한
-OpenAI도 “짧은 burst로도 제한에 걸릴 수 있다”고 명시합니다. ([help-lb.openai.com](https://help-lb.openai.com/en/articles/5955604-how-can-i-solve-429-too-many-requests-errors))  
+OpenAI도 “짧은 burst로도 제한에 걸릴 수 있다”고 명시합니다.[^1]  
 즉, **백오프는 사후 처리**이고, 운영의 승패는 **동시성(cap) + 큐잉**이 가릅니다.
 
 - 동시성 상한: 모델/엔드포인트별로 다르게(텍스트 vs 이미지/오디오)  
 - 큐: user-facing은 짧게, 배치는 길게(우선순위 큐를 추천)
 
 ### Best Practice 2) headers를 “관측”에 써라 (단순 sleep 용도 이상)
-OpenAI는 remaining/reset을 헤더로 제공합니다. ([platform.openai.com](https://platform.openai.com/docs/guides/rate-limits/usage-tiers))  
-Anthropic은 reset을 timestamp로도 제공합니다. ([platform.claude.com](https://platform.claude.com/docs/en/api/rate-limits))  
+OpenAI는 remaining/reset을 헤더로 제공합니다.[^2]  
+Anthropic은 reset을 timestamp로도 제공합니다.[^3]  
 
 이 헤더들을 로그/metrics에 남기면:
 - “우리는 tokens 병목인가 requests 병목인가?”
@@ -279,13 +281,13 @@ Anthropic은 reset을 timestamp로도 제공합니다. ([platform.claude.com](ht
 **retry 횟수**만 세면 근본 원인을 놓칩니다.
 
 ### Best Practice 3) retry budget을 “비용 예산”으로 다뤄라
-실패한 요청도 제한을 소모할 수 있고, 재시도는 곧 비용/지연 증가입니다. ([platform.openai.com](https://platform.openai.com/docs/guides/rate-limits/usage-tiers))  
+실패한 요청도 제한을 소모할 수 있고, 재시도는 곧 비용/지연 증가입니다.[^2]  
 따라서:
 - 요청 타입별 MAX_RETRIES 분리(예: 검색/요약은 2회, 결제/규정 준수 관련은 0회+즉시 fallback)
 - “유저 요청 경로”는 총 대기시간 상한(예: 2초)을 두고, 초과 시 graceful degradation(캐시/더 싼 모델/나중에 알림)
 
 ### 흔한 함정/안티패턴
-- **429인데 즉시 재시도**: limit을 더 태워서 악화(공식 경고) ([help-lb.openai.com](https://help-lb.openai.com/en/articles/5955604-how-can-i-solve-429-too-many-requests-errors))  
+- **429인데 즉시 재시도**: limit을 더 태워서 악화(공식 경고)[^1]  
 - **모든 에러를 동일하게 재시도**: 4xx(잘못된 요청)까지 재시도하면 비용만 증가  
 - **jitter 없는 동시 재시도**: 워커들이 같은 타이밍에 깨어나 또 429 → “주기적 장애” 패턴
 
@@ -302,8 +304,8 @@ Anthropic은 reset을 timestamp로도 제공합니다. ([platform.claude.com](ht
 정리하면, 2026년 6월 기준 LLM API 안정화에서 가장 재현성 높은 패턴은:
 
 1) **큐/동시성 제어로 burst를 먼저 누르고**  
-2) 429에서는 **Retry-After / rate limit reset headers를 최우선으로 존중**(headers-first) ([platform.openai.com](https://platform.openai.com/docs/guides/rate-limits/usage-tiers))  
-3) 힌트가 없을 때만 **randomized exponential backoff + jitter**로 폴백 ([platform.openai.com](https://platform.openai.com/docs/guides/rate-limits/usage-tiers))  
+2) 429에서는 **Retry-After / rate limit reset headers를 최우선으로 존중**(headers-first)[^2]  
+3) 힌트가 없을 때만 **randomized exponential backoff + jitter**로 폴백[^2]  
 4) 그리고 retry를 “성공률”이 아니라 **비용·지연 예산**으로 관리
 
 도입 판단 기준:
@@ -316,4 +318,7 @@ Anthropic은 reset을 timestamp로도 제공합니다. ([platform.claude.com](ht
 - “요청 단위 retry”와 “전역 limiter/큐”를 분리한 아키텍처(워크큐, priority queue, per-tenant fairness)
 - 실제 트래픽 리플레이로 backoff 파라미터 튜닝(재시도 budget, 동시성, 큐 길이)
 
-원하면, 당신의 시스템 형태(동기 API인지, 배치인지, 팬아웃 구조인지, 벤더 혼용인지)를 기준으로 **파라미터(MAX_CONCURRENCY, retry budget, 큐 전략) 튜닝 가이드**까지 구체적으로 맞춰 드릴 수 있습니다.
+[^1]: <https://help-lb.openai.com/en/articles/5955604-how-can-i-solve-429-too-many-requests-errors>
+[^2]: <https://platform.openai.com/docs/guides/rate-limits/usage-tiers>
+[^3]: <https://platform.claude.com/docs/en/api/rate-limits>
+[^4]: <https://discuss.ai.google.dev/t/429-errors-despite-waiting-after-retrydelay/96899>

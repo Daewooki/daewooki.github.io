@@ -1,5 +1,6 @@
 ---
 title: "AI로 빠르게 프로토타이핑하는 나만의 방법 🤖"
+description: "요즘 저는 새로운 아이디어가 떠오르면 하루 안에 동작하는 프로토타입을 만들어봅니다."
 date: 2025-12-20 11:00:00 +0900
 categories: [AI, Prototyping]
 tags: [ai, llm, prototyping, productivity, cursor]

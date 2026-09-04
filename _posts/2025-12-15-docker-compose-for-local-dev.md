@@ -1,5 +1,6 @@
 ---
 title: "Docker Compose로 로컬 개발환경 세팅하기 🐳"
+description: "이 말을 안 하려면 Docker가 필수입니다. 특히 Docker Compose는 로컬 개발환경 구성에 있어서 게임 체인저입니다."
 date: 2025-12-15 10:00:00 +0900
 categories: [Infrastructure, Docker]
 tags: [docker, docker-compose, devops, local-development]

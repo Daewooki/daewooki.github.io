@@ -1,12 +1,14 @@
 ---
-title: "LLM API 429 지옥에서 살아남기: 2026년 5월 기준 Rate Limit Retry/Backoff “정답 패턴” 심층 분석"
+title: "LLM API 429 지옥에서 살아남기: Rate Limit Retry/Backoff “정답 패턴” 심층 분석"
+description: "LLM API를 프로덕션에 붙이면, 성능 최적화보다 먼저 “호출 안정화”에서 막힙니다. 특히 HTTP 429(Too Many Requests) 는 단순히 “잠깐 기다렸다가 다시” 수준이 아니라, 동시성(Parallelism), Burst 트래픽, 토큰 기반 제한(TPM/ITPM/OTPM…"
 date: 2026-05-09 03:42:29 +0900
 categories: [Backend, API]
-tags: [backend, api, trend, 2026-05]
+tags: [backend, api]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -16,7 +18,7 @@ tags: [backend, api, trend, 2026-05]
 </script>
 
 ## 들어가며
-LLM API를 프로덕션에 붙이면, 성능 최적화보다 먼저 “호출 안정화”에서 막힙니다. 특히 **HTTP 429(Too Many Requests)** 는 단순히 “잠깐 기다렸다가 다시” 수준이 아니라, **동시성(Parallelism)**, **Burst 트래픽**, **토큰 기반 제한(TPM/ITPM/OTPM)**, **Retry 폭풍(thundering herd)** 이 얽히면서 장애를 유발합니다. OpenAI는 429 대응으로 **randomized exponential backoff(지터 포함)** 를 공식 가이드로 안내하고, 실패한 요청도 분당 제한에 포함될 수 있어 무한 재시도는 악수라고 명시합니다. ([platform.openai.com](https://platform.openai.com/docs/guides/rate-limits/retrying-with-exponential-backoff%20.eot?utm_source=openai))
+LLM API를 프로덕션에 붙이면, 성능 최적화보다 먼저 “호출 안정화”에서 막힙니다. 특히 **HTTP 429(Too Many Requests)** 는 단순히 “잠깐 기다렸다가 다시” 수준이 아니라, **동시성(Parallelism)**, **Burst 트래픽**, **토큰 기반 제한(TPM/ITPM/OTPM)**, **Retry 폭풍(thundering herd)** 이 얽히면서 장애를 유발합니다. OpenAI는 429 대응으로 **randomized exponential backoff(지터 포함)** 를 공식 가이드로 안내하고, 실패한 요청도 분당 제한에 포함될 수 있어 무한 재시도는 악수라고 명시합니다.[^1]
 
 **언제 쓰면 좋은가**
 - 사용자 요청이 실시간이지만, *수백 ms~수 초 수준의 지연*을 허용할 수 있는 서비스(챗, 요약, 분류 등)
@@ -32,16 +34,16 @@ LLM API를 프로덕션에 붙이면, 성능 최적화보다 먼저 “호출 �
 
 ## 🔧 핵심 개념
 ### 1) Rate limit은 보통 “요청 수”가 아니라 “요청 수 + 토큰”의 조합이다
-OpenAI는 RPM/TPM 등 복수 축으로 제한을 걸고, 모델/조직/프로젝트 단위로 적용될 수 있으며, 일부 모델은 shared limit을 갖습니다. 또한 `max_tokens` 설정이 토큰 제한에 영향을 줄 수 있으니 “최대치로 크게”는 안정성 측면에서 손해입니다. ([platform.openai.com](https://platform.openai.com/docs/guides/rate-limits/retrying-with-exponential-backoff%20.eot?utm_source=openai))  
-Anthropic도 RPM + (입력/출력) 토큰 계열로 제한하며, 짧은 구간에서 더 촘촘히(예: 60 RPM이 1 RPS처럼) 적용될 수 있다고 명시합니다. ([docs.anthropic.com](https://docs.anthropic.com/en/api/rate-limits?utm_source=openai))
+OpenAI는 RPM/TPM 등 복수 축으로 제한을 걸고, 모델/조직/프로젝트 단위로 적용될 수 있으며, 일부 모델은 shared limit을 갖습니다. 또한 `max_tokens` 설정이 토큰 제한에 영향을 줄 수 있으니 “최대치로 크게”는 안정성 측면에서 손해입니다.[^1]  
+Anthropic도 RPM + (입력/출력) 토큰 계열로 제한하며, 짧은 구간에서 더 촘촘히(예: 60 RPM이 1 RPS처럼) 적용될 수 있다고 명시합니다.[^2]
 
 **실무 함의**
 - “요청은 적은데 왜 429?” → 대개 **토큰 축**(혹은 `max_tokens`)이 원인
 - “큐로 속도 조절했는데도 429?” → 다중 인스턴스/다중 워커가 **공유 쿼터**를 경쟁하거나, 서버가 더 짧은 버킷으로 쪼개서 보는 경우
 
 ### 2) `Retry-After`는 “힌트”가 아니라 사실상 “계약”에 가깝다
-Anthropic은 429에서 `retry-after`를 제공하고, 추가로 남은 요청/토큰/리셋 시간 헤더를 제공합니다. ([docs.anthropic.com](https://docs.anthropic.com/en/api/rate-limits?utm_source=openai))  
-OpenAI도 rate limit 대응 문서에서 backoff를 권장하면서, 무작정 재전송하면 안 되고(실패도 제한에 기여), 재시도 지연을 늘려야 한다고 설명합니다. ([platform.openai.com](https://platform.openai.com/docs/guides/rate-limits/retrying-with-exponential-backoff%20.eot?utm_source=openai))
+Anthropic은 429에서 `retry-after`를 제공하고, 추가로 남은 요청/토큰/리셋 시간 헤더를 제공합니다.[^2]  
+OpenAI도 rate limit 대응 문서에서 backoff를 권장하면서, 무작정 재전송하면 안 되고(실패도 제한에 기여), 재시도 지연을 늘려야 한다고 설명합니다.[^1]
 
 **핵심 패턴**
 1. 응답에 `Retry-After`가 있으면 **최우선으로 존중**
@@ -49,7 +51,7 @@ OpenAI도 rate limit 대응 문서에서 backoff를 권장하면서, 무작정 �
 3. 둘 다 하더라도, 최종적으로는 **재시도 예산(retry budget)** 을 둬서 “포기”할 줄 알아야 함
 
 ### 3) Exponential backoff의 목적은 “성공할 때까지”가 아니라 “동기화된 재시도 폭풍을 깨기”
-OpenAI가 지터(jitter)를 강조하는 이유는 여러 클라이언트가 동일한 backoff 곡선을 타면 **같은 타이밍에 다시 몰려** 또 429를 만들기 때문입니다. ([platform.openai.com](https://platform.openai.com/docs/guides/rate-limits/retrying-with-exponential-backoff%20.eot?utm_source=openai))  
+OpenAI가 지터(jitter)를 강조하는 이유는 여러 클라이언트가 동일한 backoff 곡선을 타면 **같은 타이밍에 다시 몰려** 또 429를 만들기 때문입니다.[^1]  
 즉, backoff는 “운이 좋아지면 성공”이 아니라, **경합을 분산**해 시스템 전체 성공률을 올리는 설계입니다.
 
 ### 4) Retry는 ‘오류 분류(classification)’가 80%다
@@ -293,22 +295,22 @@ async def worker_loop():
 
 ## ⚡ 실전 팁 & 함정
 ### Best Practice 1) “Retry”보다 “Pacing(사전 조절)”이 우선이다
-StackOverflow/커뮤니티에서 반복적으로 나오는 포인트는, 동시 요청이 한꺼번에 몰리면 backoff는 “지연만 늘리고 결국 경쟁”이 된다는 것입니다. 즉, **큐/토큰버킷/슬라이딩 윈도우** 로 먼저 평탄화하고, retry는 *마지막 안전망*으로 둬야 합니다. ([stackoverflow.com](https://stackoverflow.com/questions/79924021/429-on-vertex-aii-api-calling-nano-banana-pro-3?utm_source=openai))
+StackOverflow/커뮤니티에서 반복적으로 나오는 포인트는, 동시 요청이 한꺼번에 몰리면 backoff는 “지연만 늘리고 결국 경쟁”이 된다는 것입니다. 즉, **큐/토큰버킷/슬라이딩 윈도우** 로 먼저 평탄화하고, retry는 *마지막 안전망*으로 둬야 합니다.[^3]
 
 ### Best Practice 2) `Retry-After`/rate limit 헤더를 “관측”하고 정책을 조정하라
-Anthropic은 `retry-after` 외에도 remaining/reset 계열 헤더를 제공합니다. 이건 단순 재시도에 쓰는 게 아니라, **대시보드/알람/자동 스로틀링**에 써야 가치가 큽니다. ([docs.anthropic.com](https://docs.anthropic.com/en/api/rate-limits?utm_source=openai))  
+Anthropic은 `retry-after` 외에도 remaining/reset 계열 헤더를 제공합니다. 이건 단순 재시도에 쓰는 게 아니라, **대시보드/알람/자동 스로틀링**에 써야 가치가 큽니다.[^2]  
 (공급자별로 헤더 형태가 다르니, “표준화된 내부 이벤트”로 변환해 로그/메트릭을 쌓는 걸 추천합니다.)
 
 ### Best Practice 3) `max_tokens`/출력 상한을 “현실적으로” 잡아라
-OpenAI는 토큰 기반 제한이 있으며, `max_tokens`가 제한 소모에 영향을 줄 수 있다고 안내합니다. 응답이 200토큰이면 충분한데 매번 2000으로 열어두면, 동일 RPM에서도 TPM 축으로 먼저 막힙니다. ([platform.openai.com](https://platform.openai.com/docs/guides/rate-limits/retrying-with-exponential-backoff%20.eot?utm_source=openai))
+OpenAI는 토큰 기반 제한이 있으며, `max_tokens`가 제한 소모에 영향을 줄 수 있다고 안내합니다. 응답이 200토큰이면 충분한데 매번 2000으로 열어두면, 동일 RPM에서도 TPM 축으로 먼저 막힙니다.[^1]
 
 ### 흔한 함정/안티패턴
 - **인프라 레벨 자동 retry 중복**: LB/SDK/HTTP client가 각자 retry하면 “재시도 폭탄”이 됩니다(애플리케이션에서 한 군데로 통제).
 - **429를 전부 같은 429로 취급**: (1) 순간적 rate limit, (2) spend/quota 소진, (3) 특정 엔드포인트/모델의 별도 제한… 해결책이 다릅니다.
-- **지터 없는 exponential backoff**: 여러 워커가 같은 곡선을 타면 결국 같은 타이밍에 다시 충돌합니다(OpenAI도 지터를 권장). ([platform.openai.com](https://platform.openai.com/docs/guides/rate-limits/retrying-with-exponential-backoff%20.eot?utm_source=openai))
+- **지터 없는 exponential backoff**: 여러 워커가 같은 곡선을 타면 결국 같은 타이밍에 다시 충돌합니다(OpenAI도 지터를 권장).[^1]
 
 ### 비용/성능/안정성 트레이드오프
-- retry를 공격적으로 하면 성공률은 오르지만 **지연/비용**이 늘고, 실패 요청도 rate limit을 소모할 수 있어 **전체 처리량이 오히려 감소**할 수 있습니다. ([platform.openai.com](https://platform.openai.com/docs/guides/rate-limits/retrying-with-exponential-backoff%20.eot?utm_source=openai))
+- retry를 공격적으로 하면 성공률은 오르지만 **지연/비용**이 늘고, 실패 요청도 rate limit을 소모할 수 있어 **전체 처리량이 오히려 감소**할 수 있습니다.[^1]
 - 반대로 pacing을 너무 보수적으로 하면 안정적이지만 **p95/p99 latency**가 증가합니다.  
 - 실무적으로는 “유저-facing은 짧은 budget(예: 2~6회, 총 10~30초)” + “비동기 배치는 긴 budget”처럼 **워크로드별 정책 분리**가 가장 효과적입니다.
 
@@ -316,7 +318,7 @@ OpenAI는 토큰 기반 제한이 있으며, `max_tokens`가 제한 소모에 �
 
 ## 🚀 마무리
 핵심은 하나입니다: **Backoff는 429를 ‘해결’하지 않고, ‘완충’한다.**  
-프로덕션 LLM 호출 안정화의 표준 조합은 (1) **사전 pacing(큐/토큰버킷)**, (2) **오류 분류 기반 retry**, (3) **Retry-After 존중 + jitter exponential backoff**, (4) **retry budget로 빠른 포기**, (5) **헤더/지표 기반 관측**입니다. OpenAI는 지터 포함 exponential backoff를 권장하고, Anthropic은 `retry-after` 및 rate limit 헤더를 제공하므로 이를 적극 활용하는 쪽이 2026년 현재 가장 “정답에 가까운” 패턴입니다. ([platform.openai.com](https://platform.openai.com/docs/guides/rate-limits/retrying-with-exponential-backoff%20.eot?utm_source=openai))
+프로덕션 LLM 호출 안정화의 표준 조합은 (1) **사전 pacing(큐/토큰버킷)**, (2) **오류 분류 기반 retry**, (3) **Retry-After 존중 + jitter exponential backoff**, (4) **retry budget로 빠른 포기**, (5) **헤더/지표 기반 관측**입니다. OpenAI는 지터 포함 exponential backoff를 권장하고, Anthropic은 `retry-after` 및 rate limit 헤더를 제공하므로 이를 적극 활용하는 쪽이 2026년 현재 가장 “정답에 가까운” 패턴입니다.[^1]
 
 **도입 판단 기준(체크리스트)**
 - 429가 “가끔”이면 → backoff 튜닝으로 충분한 경우가 많음
@@ -328,4 +330,6 @@ OpenAI는 토큰 기반 제한이 있으며, `max_tokens`가 제한 소모에 �
 - 요청 단위가 아니라 **토큰 단위 예측 기반 limiter**(입력 토큰 추정 + `max_output_tokens`)로 고도화
 - fallback 전략(모델 다운그레이드/캐시/결과 재사용)까지 포함한 “SLO 중심 설계”
 
-원하시면 위 코드를 기반으로, (1) 토큰 기반(ITPM/OTPM/TPM)까지 포함한 limiter 확장, (2) OpenAI/Anthropic/Gemini별 헤더 파서 모듈화, (3) Prometheus metrics까지 붙인 프로덕션 템플릿 형태로 더 발전시켜 드릴게요.
+[^1]: <https://platform.openai.com/docs/guides/rate-limits/retrying-with-exponential-backoff%20.eot>
+[^2]: <https://docs.anthropic.com/en/api/rate-limits>
+[^3]: <https://stackoverflow.com/questions/79924021/429-on-vertex-aii-api-calling-nano-banana-pro-3>

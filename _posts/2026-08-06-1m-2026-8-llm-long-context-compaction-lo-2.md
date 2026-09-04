@@ -1,12 +1,14 @@
 ---
-title: "컨텍스트 1M 시대에도 “기억”은 부족하다: 2026년 8월 LLM Long Context Compaction 설계 가이드 (Lost-in-the-Middle 대응 포함)"
+title: "컨텍스트 1M 시대에도 “기억”은 부족하다: LLM Long Context Compaction 설계 가이드 (Lost-in-the-Middle 대응 포함)"
+description: "긴 컨텍스트(window 200K~1M)가 보편화되면서 “그냥 다 넣으면 되겠지”라는 유혹이 커졌습니다. 하지만 실제 프로덕션에서는 (1) 토큰 비용/TTFT 폭증, (2) 대화·에이전트가 길어질수록 누적되는 노이즈, (3) 컨텍스트 안에 있어도 중간 정보가 씹히는 Lost-in-the…"
 date: 2026-08-06 03:21:00 +0900
 categories: [AI, LLM]
-tags: [ai, llm, trend, 2026-08]
+tags: [ai, llm]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -16,9 +18,9 @@ tags: [ai, llm, trend, 2026-08]
 </script>
 
 ## 들어가며
-긴 컨텍스트(window 200K~1M)가 보편화되면서 “그냥 다 넣으면 되겠지”라는 유혹이 커졌습니다. 하지만 실제 프로덕션에서는 **(1) 토큰 비용/TTFT 폭증**, **(2) 대화·에이전트가 길어질수록 누적되는 노이즈**, **(3) 컨텍스트 안에 있어도 중간 정보가 씹히는 Lost-in-the-Middle(LITM)** 때문에 “긴 컨텍스트 = 안정적 기억”이 성립하지 않습니다. LITM은 관련 정보가 컨텍스트 **앞/뒤에 있을 때 성능이 높고, 가운데에 있을 때 크게 떨어지는 U-curve**로 관측됩니다. ([arxiv.org](https://arxiv.org/abs/2307.03172?utm_source=openai))
+긴 컨텍스트(window 200K~1M)가 보편화되면서 “그냥 다 넣으면 되겠지”라는 유혹이 커졌습니다. 하지만 실제 프로덕션에서는 **(1) 토큰 비용/TTFT 폭증**, **(2) 대화·에이전트가 길어질수록 누적되는 노이즈**, **(3) 컨텍스트 안에 있어도 중간 정보가 씹히는 Lost-in-the-Middle(LITM)** 때문에 “긴 컨텍스트 = 안정적 기억”이 성립하지 않습니다. LITM은 관련 정보가 컨텍스트 **앞/뒤에 있을 때 성능이 높고, 가운데에 있을 때 크게 떨어지는 U-curve**로 관측됩니다.[^1]
 
-그래서 2026년의 실무 해법은 **“long context를 최대한 쓰되, 그대로 쌓지 말고 compaction/summary로 SNR(signal-to-noise ratio)을 관리”**하는 쪽으로 수렴 중입니다. OpenAI는 Responses API에 **native compaction**을 넣어 “개발자가 직접 요약/상태 관리 시스템을 설계하지 않도록” 한다고 밝히고 있고, ([openai.com](https://openai.com/index/equip-responses-api-computer-environment/?utm_source=openai)) Anthropic도 Messages API에서 **compaction 전략을 베타로 제공**하며 요청 헤더/전략 설정으로 활성화하게 했습니다. ([platform.claude.com](https://platform.claude.com/docs/en/build-with-claude/compaction?e45d281a_page=1&gad_source=1&hsa_acc=4274135664&hsa_ad=546356286896&hsa_cam=14664253650&hsa_grp=126956236963&hsa_kw=data+orchestration&hsa_mt=&hsa_net=adwords&hsa_src=d&hsa_tgt=kwd-388439863644&hsa_ver=3&wtime=596s&utm_source=openai)) 또한 연구 쪽에서는 “컨텍스트 길이 자체가(심지어 perfect retrieval이어도) 성능을 떨어뜨린다”는 결과가 나오면서, ([arxiv.org](https://arxiv.org/abs/2510.05381?utm_source=openai)) 단순히 retrieval을 잘하는 것만으로는 부족하다는 경고도 명확해졌습니다.
+그래서 2026년의 실무 해법은 **“long context를 최대한 쓰되, 그대로 쌓지 말고 compaction/summary로 SNR(signal-to-noise ratio)을 관리”**하는 쪽으로 수렴 중입니다. OpenAI는 Responses API에 **native compaction**을 넣어 “개발자가 직접 요약/상태 관리 시스템을 설계하지 않도록” 한다고 밝히고 있고,[^2] Anthropic도 Messages API에서 **compaction 전략을 베타로 제공**하며 요청 헤더/전략 설정으로 활성화하게 했습니다.[^3] 또한 연구 쪽에서는 “컨텍스트 길이 자체가(심지어 perfect retrieval이어도) 성능을 떨어뜨린다”는 결과가 나오면서,[^4] 단순히 retrieval을 잘하는 것만으로는 부족하다는 경고도 명확해졌습니다.
 
 **언제 쓰면 좋은가**
 - 장시간 에이전트(코딩/운영/리서치)처럼 “대화 히스토리가 업무 상태(state)”가 되는 경우
@@ -40,18 +42,18 @@ tags: [ai, llm, trend, 2026-08]
 - **Structured state compaction**: “요약 문장” 대신 **스키마화된 상태(결정/제약/TODO/인터페이스/키값)**로 재구성
 - **External memory offload + retrieval**: 원문은 저장소로 보내고, 컨텍스트에는 “인덱스/요약+핵심 포인터”만 유지
 
-문제는 요약이 누적될수록 정보가 증발하는 경향이 있다는 점입니다. 최근 일부 이론/분석 글들은 이걸 **rate-distortion 관점**(제한된 채널에 무엇을 보존할 것인가)으로 모델링하면서 “summarize-a-summary는 관련 정보가 기하급수적으로 줄어들 수 있다”는 논지를 강화합니다. ([tmls.nyc](https://www.tmls.nyc/research/context-compression-lower-bounds?utm_source=openai))
+문제는 요약이 누적될수록 정보가 증발하는 경향이 있다는 점입니다. 최근 일부 이론/분석 글들은 이걸 **rate-distortion 관점**(제한된 채널에 무엇을 보존할 것인가)으로 모델링하면서 “summarize-a-summary는 관련 정보가 기하급수적으로 줄어들 수 있다”는 논지를 강화합니다.[^5]
 
 ### 2) Lost-in-the-Middle(LITM)와 compaction의 관계
-LITM은 “컨텍스트가 길면 모델이 가운데 정보를 못 본다” 수준이 아니라, **길어질수록 유효 주의(attention) 분배가 희박해지고**, 결과적으로 “중간 구간의 신호가 잡음에 묻히는 현상”으로 이해하는 게 실전에서 더 유용합니다. 고전 연구인 *Lost in the Middle*은 multi-doc QA와 key-value retrieval에서 **관련 정보 위치에 따라 성능이 크게 변동**함을 보여줍니다. ([arxiv.org](https://arxiv.org/abs/2307.03172?utm_source=openai))
+LITM은 “컨텍스트가 길면 모델이 가운데 정보를 못 본다” 수준이 아니라, **길어질수록 유효 주의(attention) 분배가 희박해지고**, 결과적으로 “중간 구간의 신호가 잡음에 묻히는 현상”으로 이해하는 게 실전에서 더 유용합니다. 고전 연구인 *Lost in the Middle*은 multi-doc QA와 key-value retrieval에서 **관련 정보 위치에 따라 성능이 크게 변동**함을 보여줍니다.[^1]
 
-그리고 2025~2026엔 더 불편한 결과가 나왔습니다. **관련 정보를 완벽히 제공(perfect retrieval)해도 입력 길이만 증가하면 성능이 크게 하락**할 수 있다는 실험 보고가 있습니다. ([arxiv.org](https://arxiv.org/abs/2510.05381?utm_source=openai))  
+그리고 2025~2026엔 더 불편한 결과가 나왔습니다. **관련 정보를 완벽히 제공(perfect retrieval)해도 입력 길이만 증가하면 성능이 크게 하락**할 수 있다는 실험 보고가 있습니다.[^4]  
 즉, “RAG로 관련 chunk만 넣었으니 괜찮다”가 아니라, **컨텍스트를 짧고 밀도 있게 유지**해야 합니다.
 
 ### 3) 2026년 흐름: “모델/서빙 레벨의 compaction”과 “애플리케이션 레벨 compaction”의 분리
-- **서빙/인프라 레벨**: KV-cache 병목을 줄여 긴 컨텍스트를 “돌릴 수 있게” 만드는 기술(예: paged KV 등). 다만 이건 비용/서빙 효율 문제를 푸는 것이지, LITM을 직접 해결하진 않습니다. (예: llama.cpp에서도 paged KV 논의가 활발) ([github.com](https://github.com/ggml-org/llama.cpp/discussions/21961?utm_source=openai))
+- **서빙/인프라 레벨**: KV-cache 병목을 줄여 긴 컨텍스트를 “돌릴 수 있게” 만드는 기술(예: paged KV 등). 다만 이건 비용/서빙 효율 문제를 푸는 것이지, LITM을 직접 해결하진 않습니다. (예: llama.cpp에서도 paged KV 논의가 활발)[^6]
 - **애플리케이션 레벨**: 무엇을 남기고 무엇을 버릴지(업무 의미론) 결정하는 compaction. 여기서 LITM 방지(앞/뒤에 앵커 배치, 구조화 상태 유지)가 핵심입니다.
-- **모델 내부 레벨(KV compaction)**: 2026년엔 KV cache 자체를 “압축/compaction”하는 연구도 나오고 있습니다(예: Still: single forward pass로 amortized KV cache compaction). ([arxiv.org](https://arxiv.org/abs/2606.07878?utm_source=openai))  
+- **모델 내부 레벨(KV compaction)**: 2026년엔 KV cache 자체를 “압축/compaction”하는 연구도 나오고 있습니다(예: Still: single forward pass로 amortized KV cache compaction).[^7]  
   이 축은 “토큰을 줄이는 요약”과는 다르게, **모델이 보는 내부 메모리 표현을 줄여 장기 지평을 늘리는** 계열입니다.
 
 ---
@@ -227,15 +229,15 @@ if __name__ == "__main__":
 ## ⚡ 실전 팁 & 함정
 ### Best Practice (2~3개)
 1) **Anchor를 ‘앞’에 고정하고, 업데이트는 append/merge로만**
-- LITM U-curve 특성상 “중간에 있는 정보”는 신뢰하기 어렵습니다. ([arxiv.org](https://arxiv.org/abs/2307.03172?utm_source=openai))  
+- LITM U-curve 특성상 “중간에 있는 정보”는 신뢰하기 어렵습니다.[^1]  
 - 따라서 “현재 상태(규칙/결정/인터페이스/중요 키값)”는 항상 system 또는 첫 블록에 두고, compaction은 그 블록을 갱신하는 방식이 안정적입니다.
 
 2) **free-form summary 대신 ‘스키마 기반 상태’로 compact**
-- summarize-a-summary 누적은 품질이 서서히 무너집니다(특히 장기 에이전트). ([tmls.nyc](https://www.tmls.nyc/research/context-compression-lower-bounds?utm_source=openai))  
+- summarize-a-summary 누적은 품질이 서서히 무너집니다(특히 장기 에이전트).[^5]  
 - `decisions/open_questions/next_actions`처럼 “업무에 필요한 최소 충분 통계량(sufficient state)”을 정의해 두면, 요약 손실을 관리할 수 있습니다.
 
 3) **원문은 밖에 저장하고, 컨텍스트에는 포인터만**
-- “길이 자체가 성능을 해친다”는 결과를 감안하면 ([arxiv.org](https://arxiv.org/abs/2510.05381?utm_source=openai)), 원문을 계속 넣어두는 건 손해입니다.
+- “길이 자체가 성능을 해친다”는 결과를 감안하면[^4], 원문을 계속 넣어두는 건 손해입니다.
 - 원문은 object storage + 검색(RAG)로 두고, 컨텍스트에는 “무엇을 어디서 다시 꺼낼지”만 남기는 게 비용/품질 모두 유리합니다.
 
 ### 흔한 함정/안티패턴
@@ -244,22 +246,22 @@ if __name__ == "__main__":
 - **(안티패턴) compaction 결과를 검증 없이 진실로 취급**
   - compaction은 생성(generation)입니다. 반드시 “누락/왜곡 가능성”을 전제로 하고, 중요 항목은 구조화/검증(예: key 목록, 테스트, 체크리스트)으로 방어하세요.
 - **(안티패턴) 긴 컨텍스트를 ‘저장소’로 사용**
-  - 컨텍스트는 DB가 아닙니다. 길어질수록 모델이 잘 못 쓰는 경향(LITM)도 있고 ([arxiv.org](https://arxiv.org/abs/2307.03172?utm_source=openai)), 길이 자체가 성능을 떨어뜨릴 수도 있습니다. ([arxiv.org](https://arxiv.org/abs/2510.05381?utm_source=openai))
+  - 컨텍스트는 DB가 아닙니다. 길어질수록 모델이 잘 못 쓰는 경향(LITM)도 있고[^1], 길이 자체가 성능을 떨어뜨릴 수도 있습니다.[^4]
 
 ### 비용/성능/안정성 트레이드오프
 - **별도 요약 호출(compaction call)**: 품질은 통제하기 쉽지만 호출 비용/지연이 추가
 - **provider-native compaction(OpenAI/Anthropic 등)**: 운영은 편하지만 “어떤 포맷으로 무엇을 보존하는지”를 100% 통제하기 어려움  
-  - OpenAI는 Responses API에 native compaction을 넣어 개발자 부담을 줄인다고 설명합니다. ([openai.com](https://openai.com/index/equip-responses-api-computer-environment/?utm_source=openai))  
-  - Anthropic은 API에서 compaction 전략을 활성화하는 문서를 제공합니다. ([platform.claude.com](https://platform.claude.com/docs/en/build-with-claude/compaction?e45d281a_page=1&gad_source=1&hsa_acc=4274135664&hsa_ad=546356286896&hsa_cam=14664253650&hsa_grp=126956236963&hsa_kw=data+orchestration&hsa_mt=&hsa_net=adwords&hsa_src=d&hsa_tgt=kwd-388439863644&hsa_ver=3&wtime=596s&utm_source=openai))
-- **KV-level compaction(Still 등)**: 장기 지평에서 매력적이지만, 앱 관점의 “업무 의미론(무엇이 중요한가)”을 자동으로 해결하진 않음. ([arxiv.org](https://arxiv.org/abs/2606.07878?utm_source=openai))
+  - OpenAI는 Responses API에 native compaction을 넣어 개발자 부담을 줄인다고 설명합니다.[^2]  
+  - Anthropic은 API에서 compaction 전략을 활성화하는 문서를 제공합니다.[^3]
+- **KV-level compaction(Still 등)**: 장기 지평에서 매력적이지만, 앱 관점의 “업무 의미론(무엇이 중요한가)”을 자동으로 해결하진 않음.[^7]
 
 ---
 
 ## 🚀 마무리
 정리하면, 2026년 8월의 long context 활용은 “창이 커졌으니 다 넣자”가 아니라:
 
-- **길이 자체가 성능을 해칠 수 있고** ([arxiv.org](https://arxiv.org/abs/2510.05381?utm_source=openai))
-- **중간 정보는 더 잘 잃어버리며(LITM)** ([arxiv.org](https://arxiv.org/abs/2307.03172?utm_source=openai))
+- **길이 자체가 성능을 해칠 수 있고**[^4]
+- **중간 정보는 더 잘 잃어버리며(LITM)**[^1]
 - 그래서 **compaction은 선택이 아니라 운영 기법**이 되었습니다.
 
 도입 판단 기준:
@@ -268,9 +270,15 @@ if __name__ == "__main__":
 - “요약이 틀리면 큰 사고” → compaction은 최소화하고, **원문 인용/검증 루프**를 설계
 
 다음 학습 추천(읽을 거리):
-- LITM의 정석: *Lost in the Middle* ([arxiv.org](https://arxiv.org/abs/2307.03172?utm_source=openai))
-- “retrieval이 완벽해도 길면 망가진다”: *Context Length Alone Hurts…* ([arxiv.org](https://arxiv.org/abs/2510.05381?utm_source=openai))
-- 프로바이더 네이티브 compaction: OpenAI Responses API 소개 ([openai.com](https://openai.com/index/equip-responses-api-computer-environment/?utm_source=openai)), Anthropic compaction 문서 ([platform.claude.com](https://platform.claude.com/docs/en/build-with-claude/compaction?e45d281a_page=1&gad_source=1&hsa_acc=4274135664&hsa_ad=546356286896&hsa_cam=14664253650&hsa_grp=126956236963&hsa_kw=data+orchestration&hsa_mt=&hsa_net=adwords&hsa_src=d&hsa_tgt=kwd-388439863644&hsa_ver=3&wtime=596s&utm_source=openai))
-- KV-level 연구 방향: Still (amortized KV cache compaction) ([arxiv.org](https://arxiv.org/abs/2606.07878?utm_source=openai))
+- LITM의 정석: *Lost in the Middle*[^1]
+- “retrieval이 완벽해도 길면 망가진다”: *Context Length Alone Hurts…*[^4]
+- 프로바이더 네이티브 compaction: OpenAI Responses API 소개[^2], Anthropic compaction 문서[^3]
+- KV-level 연구 방향: Still (amortized KV cache compaction)[^7]
 
-원하시면, 위 코드 예제를 **(1) RAG 인덱스(예: Postgres+pgvector)와 결합**, **(2) compaction 결과에 대한 자동 검증(“hard_constraints 누락 감지”, “결정/액션 중복 제거”)**, **(3) 팀 개발용 handoff 문서 자동 생성**까지 확장한 버전으로도 정리해드릴게요.
+[^1]: <https://arxiv.org/abs/2307.03172>
+[^2]: <https://openai.com/index/equip-responses-api-computer-environment/>
+[^3]: <https://platform.claude.com/docs/en/build-with-claude/compaction?e45d281a_page=1&gad_source=1&hsa_acc=4274135664&hsa_ad=546356286896&hsa_cam=14664253650&hsa_grp=126956236963&hsa_kw=data+orchestration&hsa_mt=&hsa_net=adwords&hsa_src=d&hsa_tgt=kwd-388439863644&hsa_ver=3&wtime=596s>
+[^4]: <https://arxiv.org/abs/2510.05381>
+[^5]: <https://www.tmls.nyc/research/context-compression-lower-bounds>
+[^6]: <https://github.com/ggml-org/llama.cpp/discussions/21961>
+[^7]: <https://arxiv.org/abs/2606.07878>

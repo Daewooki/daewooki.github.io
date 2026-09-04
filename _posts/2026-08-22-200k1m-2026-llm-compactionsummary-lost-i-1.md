@@ -1,12 +1,14 @@
 ---
 title: "긴 컨텍스트(200k~1M+)가 ‘쓸 수 있게’ 되는 법: 2026년식 LLM compaction/summary 설계와 lost-in-the-middle 대응"
+description: "LLM의 context window가 200k~1M 토큰까지 커졌는데도, “그 안에 넣기만 하면 알아서 잘 쓰겠지”는 여전히 잘 안 됩니다. 실제 현업에서 터지는 문제는 보통 3가지로 요약됩니다."
 date: 2026-08-22 01:39:35 +0900
 categories: [AI, LLM]
-tags: [ai, llm, trend, 2026-08]
+tags: [ai, llm]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -19,8 +21,8 @@ tags: [ai, llm, trend, 2026-08]
 LLM의 context window가 200k~1M 토큰까지 커졌는데도, **“그 안에 넣기만 하면 알아서 잘 쓰겠지”**는 여전히 잘 안 됩니다. 실제 현업에서 터지는 문제는 보통 3가지로 요약됩니다.
 
 1) **비용/지연**: 긴 컨텍스트는 입력 토큰 비용과 latency를 선형(혹은 시스템적으로 더)로 밀어 올립니다.  
-2) **성능 저하(특히 중간)**: 문서/대화가 길어질수록, 중요한 정보가 **중간에 묻히면** 정확도가 떨어지는 *lost in the middle*이 반복 관측됩니다. Google의 *Found in the middle*은 이를 **U-shaped attention bias(앞/뒤 과대, 중간 과소)**로 설명합니다. ([research.google](https://research.google/pubs/found-in-the-middle-calibrating-positional-attention-bias-improves-long-context-utilization/?utm_source=openai))  
-3) **장기 세션의 ‘기억 부패’**: agent가 수백 step을 돌면, compaction(요약/압축)이 요약을 다시 요약하면서 중요한 사실을 잃거나(irreversible loss), 잘못된 사실이 요약에 들어가 “독”처럼 남습니다. ([tianpan.co](https://tianpan.co/blog/2026-05-09-summary-tax-compaction-eats-more-tokens-than-it-saves?utm_source=openai))
+2) **성능 저하(특히 중간)**: 문서/대화가 길어질수록, 중요한 정보가 **중간에 묻히면** 정확도가 떨어지는 *lost in the middle*이 반복 관측됩니다. Google의 *Found in the middle*은 이를 **U-shaped attention bias(앞/뒤 과대, 중간 과소)**로 설명합니다.[^1]  
+3) **장기 세션의 ‘기억 부패’**: agent가 수백 step을 돌면, compaction(요약/압축)이 요약을 다시 요약하면서 중요한 사실을 잃거나(irreversible loss), 잘못된 사실이 요약에 들어가 “독”처럼 남습니다.[^2]
 
 **언제 쓰면 좋나**
 - 장기 대화/agent(코딩 에이전트, 운영 자동화, 리서치 에이전트)
@@ -28,7 +30,7 @@ LLM의 context window가 200k~1M 토큰까지 커졌는데도, **“그 안에 �
 - “문서 전체를 한 번에”가 아니라, **반복적으로 일부만 참조**하면서 작업이 진행되는 워크플로우
 
 **언제 쓰면 안 되나**
-- 단발성 Q&A(입력 짧음): compaction 호출 자체가 “Summary tax(요약 비용)”만 추가할 수 있음 ([tianpan.co](https://tianpan.co/blog/2026-05-09-summary-tax-compaction-eats-more-tokens-than-it-saves?utm_source=openai))  
+- 단발성 Q&A(입력 짧음): compaction 호출 자체가 “Summary tax(요약 비용)”만 추가할 수 있음[^2]  
 - 정확히 보존해야 할 원문(법무/규정/정산 등)을 요약에만 의존: 요약은 항상 손실 가능  
 - 디버깅이 안 된 상태로 “자동 compaction”만 켜기: 무엇이 언제 사라지는지 관측 불가
 
@@ -36,20 +38,20 @@ LLM의 context window가 200k~1M 토큰까지 커졌는데도, **“그 안에 �
 
 ## 🔧 핵심 개념
 ### 1) “long context 활용”의 적: position bias + middle loss
-*Lost-in-the-middle*은 단순히 “컨텍스트가 길어서”가 아니라, 모델 내부적으로 **앞/뒤 토큰에 더 주의를 주는 편향**과 연결됩니다. *Found in the middle*은 이 편향을 보정해 긴 컨텍스트에서 관련 정보를 찾는 성능을 올리는 접근을 제안합니다. ([research.google](https://research.google/pubs/found-in-the-middle-calibrating-positional-attention-bias-improves-long-context-utilization/?utm_source=openai))  
-즉, **길이를 늘리는 것(LongRoPE 같은 확장)**만으로는 해결이 안 되고, *배치(placement)*, *압축(compaction)*, *검색(RAG)*, *평가*가 같이 가야 합니다. (LongRoPE류는 “더 많이 넣을 수 있음”의 영역) ([github.com](https://github.com/microsoft/longrope?utm_source=openai))
+*Lost-in-the-middle*은 단순히 “컨텍스트가 길어서”가 아니라, 모델 내부적으로 **앞/뒤 토큰에 더 주의를 주는 편향**과 연결됩니다. *Found in the middle*은 이 편향을 보정해 긴 컨텍스트에서 관련 정보를 찾는 성능을 올리는 접근을 제안합니다.[^1]  
+즉, **길이를 늘리는 것(LongRoPE 같은 확장)**만으로는 해결이 안 되고, *배치(placement)*, *압축(compaction)*, *검색(RAG)*, *평가*가 같이 가야 합니다. (LongRoPE류는 “더 많이 넣을 수 있음”의 영역)[^3]
 
 ### 2) compaction의 본질: “요약”이 아니라 “상태(state) 재인코딩”
 실무 compaction은 보통 다음 중 하나(또는 혼합)입니다.
 
 - **Hard compression(텍스트 요약/프루닝)**: 오래된 대화를 요약문으로 치환, 중요하지 않은 메시지는 drop  
-- **Query-aware compression(RAG 압축)**: 질문/의도(Q)에 따라 문서에서 쓸 부분만 남김(문서 재정렬/랭킹 포함). 잃기 쉬운 중간 정보를 “앞쪽으로 끌어올리는” 효과도 있음. ([academ.us](https://academ.us/article/2607.08032/?utm_source=openai))  
-- **Soft compression(잠재 표현/KV cache 압축)**: 텍스트 자체가 아니라 latent/KV에 정보를 넣어 효율적으로 유지(연구가 활발, 배포 난이도 높음). ([openreview.net](https://openreview.net/pdf?id=6AWWE08NnN&utm_source=openai))  
+- **Query-aware compression(RAG 압축)**: 질문/의도(Q)에 따라 문서에서 쓸 부분만 남김(문서 재정렬/랭킹 포함). 잃기 쉬운 중간 정보를 “앞쪽으로 끌어올리는” 효과도 있음.[^4]  
+- **Soft compression(잠재 표현/KV cache 압축)**: 텍스트 자체가 아니라 latent/KV에 정보를 넣어 효율적으로 유지(연구가 활발, 배포 난이도 높음).[^5]  
 
 2026년 현업 관점에서 당장 쓸 수 있는 건 대개 **Hard + Query-aware 혼합**이고, 여기에 “middle loss를 줄이기 위한 배치 규칙”이 핵심입니다.
 
 ### 3) 자동 compaction(플랫폼 기능) vs 앱 레벨 compaction
-예를 들어 AWS Bedrock의 Claude Messages는 **server-side compaction**을 제공하며, 특정 beta header로 활성화하고 “compaction block” 이전 메시지를 자동으로 요약/드롭해 이어갑니다. ([docs.aws.amazon.com](https://docs.aws.amazon.com/bedrock/latest/userguide/claude-messages-compaction.html?utm_source=openai))  
+예를 들어 AWS Bedrock의 Claude Messages는 **server-side compaction**을 제공하며, 특정 beta header로 활성화하고 “compaction block” 이전 메시지를 자동으로 요약/드롭해 이어갑니다.[^6]  
 이 방식은 통합은 쉽지만, 실무에선 아래가 중요합니다.
 
 - 요약 포맷을 **내가 통제**할 수 있는가?
@@ -89,7 +91,6 @@ from typing import List, Dict, Any, Optional
 from pydantic import BaseModel, Field
 from rich import print
 
-
 # --- 1) 데이터 모델: "요약"이 아니라 "상태"로 보관 ---
 class PinnedState(BaseModel):
     # 절대 잃으면 안 되는 값들(식별자/환경/목표/안전규칙/버전 등)
@@ -98,7 +99,6 @@ class PinnedState(BaseModel):
     customer_id: str
     repo: str
     hard_constraints: List[str]
-
 
 class MemoryState(BaseModel):
     # 장기적으로 유지할 "결정/시도/결과" (요약의 핵심 단위)
@@ -109,12 +109,10 @@ class MemoryState(BaseModel):
     open_questions: List[str] = Field(default_factory=list)
     last_updated_ts: float = Field(default_factory=lambda: time.time())
 
-
 class Turn(BaseModel):
     role: str  # "user" | "assistant" | "tool"
     content: str
     ts: float = Field(default_factory=lambda: time.time())
-
 
 # --- 2) LLM 호출은 실제 프로젝트의 SDK로 교체 ---
 def call_llm(messages: List[Dict[str, str]]) -> str:
@@ -124,7 +122,6 @@ def call_llm(messages: List[Dict[str, str]]) -> str:
     """
     # 현실 코드에서는 messages를 그대로 API에 전달하고 텍스트를 반환
     return "DUMMY: (여기서 LLM이 답변/다음 행동을 생성한다고 가정)"
-
 
 # --- 3) Compaction: "요약문"이 아니라 구조화된 MemoryState로 갱신 ---
 def compact_memory(pinned: PinnedState, memory: MemoryState, old_turns: List[Turn]) -> MemoryState:
@@ -150,11 +147,10 @@ def compact_memory(pinned: PinnedState, memory: MemoryState, old_turns: List[Tur
     # 드리프트 방지: constraints는 pinned로만 유지(요약이 수정하지 못하게 분리)
     return updated
 
-
 # --- 4) Query-aware context compression (RAG/툴 출력 압축) 자리 ---
 def compress_blob_for_query(blob_text: str, query: str, token_budget_chars: int = 1800) -> str:
     """
-    실제로는 AttnComp/ACC-RAG 류처럼 '질문 적응형 압축'을 적용하거나 ([aclanthology.org](https://aclanthology.org/2025.findings-emnlp.449/?utm_source=openai))
+    실제로는 AttnComp/ACC-RAG 류처럼 '질문 적응형 압축'을 적용하거나[^7]
     LLM/규칙 기반으로 코드/JSON은 byte-preserving, 설명 텍스트만 축약하는 혼합 전략을 쓴다.
     """
     # 매우 단순한 placeholder: query 관련 줄만 우선 + 길이 제한
@@ -162,7 +158,6 @@ def compress_blob_for_query(blob_text: str, query: str, token_budget_chars: int 
     picked = [ln for ln in lines if any(k in ln.lower() for k in query.lower().split())]
     out = "\n".join(picked)[:token_budget_chars]
     return out if out.strip() else blob_text[:token_budget_chars]
-
 
 # --- 5) 메시지 구성: lost-in-the-middle 대응(앞/뒤로 중요 상태 배치) ---
 def build_messages(
@@ -201,7 +196,6 @@ def build_messages(
     messages.append({"role": "user", "content": user_query})
     messages.append({"role": "user", "content": f"(REPEAT_QUERY_FOR_END_BIAS) {user_query}"})
     return messages
-
 
 def main():
     pinned = PinnedState(
@@ -253,7 +247,6 @@ def main():
     out = call_llm(messages)
     print(out)
 
-
 if __name__ == "__main__":
     main()
 ```
@@ -268,22 +261,22 @@ if __name__ == "__main__":
 ## ⚡ 실전 팁 & 함정
 ### Best Practice (2~3개)
 1) **“요약문” 대신 “상태 머신”으로 압축하라**  
-   결정(Decisions), 시도(Attempts), 근거(Findings), 오픈이슈(Open questions)를 **구조화**하면 요약 드리프트가 줄고, 재사용/검증이 쉬워집니다. 장기 compaction의 실패 패턴(요약이 요약을 먹으며 의미가 흐려짐)은 반복적으로 지적됩니다. ([tianpan.co](https://tianpan.co/blog/2026-05-09-summary-tax-compaction-eats-more-tokens-than-it-saves?utm_source=openai))  
+   결정(Decisions), 시도(Attempts), 근거(Findings), 오픈이슈(Open questions)를 **구조화**하면 요약 드리프트가 줄고, 재사용/검증이 쉬워집니다. 장기 compaction의 실패 패턴(요약이 요약을 먹으며 의미가 흐려짐)은 반복적으로 지적됩니다.[^2]  
 
 2) **middle loss는 ‘더 넣기’가 아니라 ‘배치/재배치’로 먼저 해결**  
-   중요한 식별자/제약/현재 상태는 앞쪽(system/pinned)으로 고정하고, 현재 질문/목표는 뒤쪽에도 반복 배치해 position bias를 역이용하세요. (Found-in-the-middle이 말하는 attention bias 관점과도 정합적) ([research.google](https://research.google/pubs/found-in-the-middle-calibrating-positional-attention-bias-improves-long-context-utilization/?utm_source=openai))  
+   중요한 식별자/제약/현재 상태는 앞쪽(system/pinned)으로 고정하고, 현재 질문/목표는 뒤쪽에도 반복 배치해 position bias를 역이용하세요. (Found-in-the-middle이 말하는 attention bias 관점과도 정합적)[^1]  
 
 3) **RAG는 “그대로 붙이기”보다 “질문 적응형 압축 + 재정렬”이 기본값**  
-   EMNLP 2025의 AttnComp처럼 attention-guided로 컨텍스트를 압축/선별하는 흐름이 나오고, 2025년에도 Adaptive Context Compression류가 RAG 비용을 줄이면서 성능을 유지하려는 시도가 많습니다. ([aclanthology.org](https://aclanthology.org/2025.findings-emnlp.449/?utm_source=openai))  
+   EMNLP 2025의 AttnComp처럼 attention-guided로 컨텍스트를 압축/선별하는 흐름이 나오고, 2025년에도 Adaptive Context Compression류가 RAG 비용을 줄이면서 성능을 유지하려는 시도가 많습니다.[^7]  
 
 ### 흔한 함정/안티패턴
-- **요약을 매번 덮어쓰기(Overwrite)만 하고 검증을 안 함**: 한 번 잃은 사실은 복구가 어렵고, 잘못된 사실이 요약에 남으면 계속 전파됩니다. ([tianpan.co](https://tianpan.co/blog/2026-05-09-summary-tax-compaction-eats-more-tokens-than-it-saves?utm_source=openai))  
+- **요약을 매번 덮어쓰기(Overwrite)만 하고 검증을 안 함**: 한 번 잃은 사실은 복구가 어렵고, 잘못된 사실이 요약에 남으면 계속 전파됩니다.[^2]  
 - **툴 출력/검색 결과를 “원문 그대로” 대화에 넣고 계속 참조**: 같은 비용을 매 step 재지불 + middle loss 악화  
 - **플랫폼 자동 compaction을 “만능”으로 취급**: 통제/관측/회귀테스트 없으면 디버깅이 매우 어려움(예: 어떤 시점에 무엇이 사라졌는지)
 
 ### 비용/성능/안정성 트레이드오프
-- Compaction은 공짜가 아니고, 추가 LLM call과 운영 복잡도를 가져옵니다(“Summary tax”). ([tianpan.co](https://tianpan.co/blog/2026-05-09-summary-tax-compaction-eats-more-tokens-than-it-saves?utm_source=openai))  
-- 그러나 “긴 컨텍스트를 그대로 유지”하는 접근은 토큰 경제 측면에서 빠르게 비싸지고, 성능도 일정 길이 이후 떨어질 수 있다는 논의/리뷰가 이어집니다. ([openreview.net](https://openreview.net/pdf?id=e8ycTWGTIR&utm_source=openai))  
+- Compaction은 공짜가 아니고, 추가 LLM call과 운영 복잡도를 가져옵니다(“Summary tax”).[^2]  
+- 그러나 “긴 컨텍스트를 그대로 유지”하는 접근은 토큰 경제 측면에서 빠르게 비싸지고, 성능도 일정 길이 이후 떨어질 수 있다는 논의/리뷰가 이어집니다.[^8]  
 - 따라서 실무 최적점은 보통: **(1) pinned state 최소화 + (2) 구조화 메모리 + (3) 최근 원문 window + (4) 필요 시 query-aware로 blob 복원**입니다.
 
 ---
@@ -291,9 +284,9 @@ if __name__ == "__main__":
 ## 🚀 마무리
 2026년 8월 기준, long context window는 충분히 커졌지만 “제대로 쓰게 만드는 기술”은 별개 문제입니다. 핵심은:
 
-- *lost in the middle*은 실재하는 실패 모드이며, attention bias/position bias 관점에서 **배치와 재배치**가 즉효입니다. ([research.google](https://research.google/pubs/found-in-the-middle-calibrating-positional-attention-bias-improves-long-context-utilization/?utm_source=openai))  
-- compaction은 요약이 아니라 **상태 관리(state management)**로 접근해야 드리프트/독성 요약을 줄입니다. ([tianpan.co](https://tianpan.co/blog/2026-04-19-compaction-traps-long-running-agents?utm_source=openai))  
-- RAG는 “더 가져오기”가 아니라 “질문 적응형 압축/선별”이 기본 설계가 되어가고 있습니다. ([aclanthology.org](https://aclanthology.org/2025.findings-emnlp.449/?utm_source=openai))  
+- *lost in the middle*은 실재하는 실패 모드이며, attention bias/position bias 관점에서 **배치와 재배치**가 즉효입니다.[^1]  
+- compaction은 요약이 아니라 **상태 관리(state management)**로 접근해야 드리프트/독성 요약을 줄입니다.[^9]  
+- RAG는 “더 가져오기”가 아니라 “질문 적응형 압축/선별”이 기본 설계가 되어가고 있습니다.[^7]  
 
 **도입 판단 기준**
 - 대화/agent가 50~200 turn 이상, 혹은 툴 출력이 크고 반복 참조된다 → compaction 설계 가치 큼  
@@ -301,8 +294,16 @@ if __name__ == "__main__":
 - 요약 품질이 불안정하다 → 구조화 메모리 + 회귀 테스트(“핵심 상태를 N step 후에도 복원 가능한가”)를 먼저
 
 **다음 학습 추천**
-- *Found in the middle* (position bias 교정) ([research.google](https://research.google/pubs/found-in-the-middle-calibrating-positional-attention-bias-improves-long-context-utilization/?utm_source=openai))  
-- AttnComp / Adaptive Context Compression 계열(질문 적응형 RAG 압축) ([aclanthology.org](https://aclanthology.org/2025.findings-emnlp.449/?utm_source=openai))  
-- Bedrock server-side compaction 문서(플랫폼 기능을 쓸 경우 동작/제약 파악) ([docs.aws.amazon.com](https://docs.aws.amazon.com/bedrock/latest/userguide/claude-messages-compaction.html?utm_source=openai))  
+- *Found in the middle* (position bias 교정)[^1]  
+- AttnComp / Adaptive Context Compression 계열(질문 적응형 RAG 압축)[^7]  
+- Bedrock server-side compaction 문서(플랫폼 기능을 쓸 경우 동작/제약 파악)[^6]
 
-원하면, 당신의 실제 워크플로우(예: “코딩 에이전트 + CI 로그 + PR diff + 이슈 티켓”) 기준으로 **PINNED/MEMORY 스키마**와 **compaction 트리거 정책(토큰/스텝/비용 기반)**을 더 구체적으로 설계해 드릴 수 있습니다.
+[^1]: <https://research.google/pubs/found-in-the-middle-calibrating-positional-attention-bias-improves-long-context-utilization/>
+[^2]: <https://tianpan.co/blog/2026-05-09-summary-tax-compaction-eats-more-tokens-than-it-saves>
+[^3]: <https://github.com/microsoft/longrope>
+[^4]: <https://academ.us/article/2607.08032/>
+[^5]: <https://openreview.net/pdf?id=6AWWE08NnN>
+[^6]: <https://docs.aws.amazon.com/bedrock/latest/userguide/claude-messages-compaction.html>
+[^7]: <https://aclanthology.org/2025.findings-emnlp.449/>
+[^8]: <https://openreview.net/pdf?id=e8ycTWGTIR>
+[^9]: <https://tianpan.co/blog/2026-04-19-compaction-traps-long-running-agents>

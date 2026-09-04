@@ -1,12 +1,14 @@
 ---
-title: "Streamlit vs Gradio: 2026년 5월 기준 “하루 만에 AI 데모 UI”를 제대로 만드는 선택과 설계"
+title: "Streamlit vs Gradio: “하루 만에 AI 데모 UI”를 제대로 만드는 선택과 설계"
+description: "AI 기능(LLM, vision, STT/TTS, RAG 등)을 “일단 보여주는 것” 자체는 쉬워졌지만, 데모 UI를 빨리 만들수록 바로 다음 문제가 터집니다."
 date: 2026-05-08 03:41:07 +0900
 categories: [AI, Prototyping]
-tags: [ai, prototyping, trend, 2026-05]
+tags: [ai, prototyping]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -32,7 +34,7 @@ AI 기능(LLM, vision, STT/TTS, RAG 등)을 “일단 보여주는 것” 자체
 
 **언제 Gradio가 좋은가**
 - 모델 inference를 **입력→출력 파이프라인**으로 명확히 정의하고, 데모/공유가 핵심일 때
-- FastAPI 같은 백엔드에 **UI를 붙이는 컴포넌트**로 두고 싶을 때(특히 mount) ([gradio.app](https://www.gradio.app/main/docs/gradio/mount_gradio_app))
+- FastAPI 같은 백엔드에 **UI를 붙이는 컴포넌트**로 두고 싶을 때(특히 mount)[^1]
 
 **언제 둘 다 피하고 Next.js/React(+FastAPI)로 가야 하나**
 - 트래픽/권한/테넌시/관측성/QA가 필요한 “진짜 프로덕션 웹앱”
@@ -46,22 +48,22 @@ Streamlit은 기본적으로 **사용자 인터랙션이 발생하면 스크립�
 
 이때 핵심이 캐시 2종입니다.
 
-- `st.cache_data`: **직렬화 가능한 데이터 결과**를 캐시(입력 파라미터 + 함수 코드 변경을 기준으로 무효화) ([docs.streamlit.io](https://docs.streamlit.io/develop/concepts/architecture/caching))  
-- `st.cache_resource`: **전역 리소스(모델, 커넥션 등)** 를 캐시. 단, 객체를 공유하므로 **mutable 객체 오염/동시성**에 특히 주의 ([docs.streamlit.io](https://docs.streamlit.io/develop/concepts/architecture/caching))  
+- `st.cache_data`: **직렬화 가능한 데이터 결과**를 캐시(입력 파라미터 + 함수 코드 변경을 기준으로 무효화)[^2]  
+- `st.cache_resource`: **전역 리소스(모델, 커넥션 등)** 를 캐시. 단, 객체를 공유하므로 **mutable 객체 오염/동시성**에 특히 주의[^2]  
 
 2026년 릴리즈 노트에서 특히 실무적으로 큰 변화는:
-- `st.cache_data` / `st.cache_resource`를 **session-scoped로 스코핑**할 수 있음(전역 공유 vs 세션 격리 선택지) ([docs.streamlit.io](https://docs.streamlit.io/develop/quick-reference/release-notes/2026))  
-- `st.cache_resource`에 `on_release`로 **리소스 정리(커넥션 close 등)** 가능 ([docs.streamlit.io](https://docs.streamlit.io/develop/quick-reference/release-notes/2026))  
-- (실험) `server.useStarlette` 옵션으로 Streamlit 서버 런타임 선택 폭이 넓어짐(배포/미들웨어 호환성 관점에서 체크 포인트) ([docs.streamlit.io](https://docs.streamlit.io/develop/quick-reference/release-notes/2026))  
+- `st.cache_data` / `st.cache_resource`를 **session-scoped로 스코핑**할 수 있음(전역 공유 vs 세션 격리 선택지)[^3]  
+- `st.cache_resource`에 `on_release`로 **리소스 정리(커넥션 close 등)** 가능[^3]  
+- (실험) `server.useStarlette` 옵션으로 Streamlit 서버 런타임 선택 폭이 넓어짐(배포/미들웨어 호환성 관점에서 체크 포인트)[^3]  
 
 **정리:** Streamlit의 성능/안정성은 “재실행을 전제로 캐시/상태를 어떻게 나누는가”에서 갈립니다.
 
 ### 2) Gradio의 “함수/블록 중심” 구성과 FastAPI 결합
 Gradio는 UI가 **모델 함수(또는 파이프라인)에 바인딩**되는 방식이 강하고, 데모용 UX(입력 컴포넌트/출력 컴포넌트)가 빠릅니다.
 
-실무에서 중요한 포인트는 “Gradio를 단독 서버로 띄울지” vs “기존 백엔드(FastAPI)에 **mount**해서 서브 경로로 붙일지”입니다. Gradio는 공식적으로 `gr.mount_gradio_app(app, blocks, path="/gradio")` 패턴을 제공합니다. ([gradio.app](https://www.gradio.app/main/docs/gradio/mount_gradio_app))
+실무에서 중요한 포인트는 “Gradio를 단독 서버로 띄울지” vs “기존 백엔드(FastAPI)에 **mount**해서 서브 경로로 붙일지”입니다. Gradio는 공식적으로 `gr.mount_gradio_app(app, blocks, path="/gradio")` 패턴을 제공합니다.[^1]
 
-또한 프록시/서브패스(예: `https://example.com/myapp`) 환경에서 `root_path` 이슈가 자주 터지는데, 문서에서 **proxy가 올바른 경로 헤더를 주지 않으면 `root_path`를 명시**하라고 안내합니다. ([gradio.app](https://www.gradio.app/main/docs/gradio/mount_gradio_app))
+또한 프록시/서브패스(예: `https://example.com/myapp`) 환경에서 `root_path` 이슈가 자주 터지는데, 문서에서 **proxy가 올바른 경로 헤더를 주지 않으면 `root_path`를 명시**하라고 안내합니다.[^1]
 
 ### 3) “빠른 데모 UI”의 본질: UI 프레임워크가 아니라 “아키텍처 분리”
 Streamlit/Gradio 중 무엇을 쓰든, 2026년 시점에서 빠른 데모를 “실무에서 쓸만하게” 만드는 핵심은 다음 2계층 분리입니다.
@@ -174,12 +176,12 @@ streamlit run ui_streamlit/app.py --server.port 8501
 - 첫 실행: 스피너가 약 2~3초
 - 같은 파일로 재실행: 거의 즉시 표시(캐시)
 
-Streamlit 캐시는 “입력 파라미터 + 함수 코드” 변경을 기준으로 동작하므로(= 코드 바꾸면 캐시 무효화), 데모 중 잦은 수정에도 예측 가능하게 동작합니다. ([docs.streamlit.io](https://docs.streamlit.io/develop/concepts/architecture/caching))
+Streamlit 캐시는 “입력 파라미터 + 함수 코드” 변경을 기준으로 동작하므로(= 코드 바꾸면 캐시 무효화), 데모 중 잦은 수정에도 예측 가능하게 동작합니다.[^2]
 
 ---
 
 ### 2) Gradio 데모 UI + FastAPI에 mount (`ui_gradio/main.py`)
-이번엔 **기존 FastAPI에 Gradio를 서브패스로 붙이는** 패턴을 사용합니다. ([gradio.app](https://www.gradio.app/main/docs/gradio/mount_gradio_app))  
+이번엔 **기존 FastAPI에 Gradio를 서브패스로 붙이는** 패턴을 사용합니다.[^1]  
 (“프로덕션 백엔드가 이미 있다”는 팀에서 특히 유용)
 
 ```python
@@ -219,7 +221,7 @@ uvicorn ui_gradio.main:app --reload --port 9000
 접속:
 - `http://127.0.0.1:9000/gradio`
 
-프록시/서브패스 배포라면 `root_path`를 명시해야 하는 경우가 있습니다(문서에 언급). ([gradio.app](https://www.gradio.app/main/docs/gradio/mount_gradio_app))
+프록시/서브패스 배포라면 `root_path`를 명시해야 하는 경우가 있습니다(문서에 언급).[^1]
 
 ---
 
@@ -232,16 +234,16 @@ uvicorn ui_gradio.main:app --reload --port 9000
 2) Streamlit은 **`st.cache_data` vs `st.cache_resource` 경계를 엄격히**
 - 데이터(요약 결과, 전처리 산출물) = `st.cache_data`
 - 커넥션/모델/클라이언트 = `st.cache_resource`
-- 특히 `st.cache_resource`는 공유 객체 mutable 오염 위험이 크니 조심하라는 경고가 문서에 명확합니다. ([docs.streamlit.io](https://docs.streamlit.io/develop/concepts/architecture/caching))
+- 특히 `st.cache_resource`는 공유 객체 mutable 오염 위험이 크니 조심하라는 경고가 문서에 명확합니다.[^2]
 
 3) Gradio를 조직에 넣을 때는 **mount + auth 전략**
-- `gr.mount_gradio_app`는 `auth`, `auth_dependency`, `root_path` 등 운영 옵션을 제공합니다. ([gradio.app](https://www.gradio.app/main/docs/gradio/mount_gradio_app))  
+- `gr.mount_gradio_app`는 `auth`, `auth_dependency`, `root_path` 등 운영 옵션을 제공합니다.[^1]  
 - “내부 데모”라도 인증 없이 올리면 금방 사고 납니다(파일 업로드/모델 추론은 공격 표면이 큼).
 
 ### 흔한 함정/안티패턴
-- (Streamlit) 캐시된 리소스를 **in-place mutate**: 한 유저의 변경이 다른 유저에게 새어 나갈 수 있음 ([docs.streamlit.io](https://docs.streamlit.io/develop/concepts/architecture/caching))  
+- (Streamlit) 캐시된 리소스를 **in-place mutate**: 한 유저의 변경이 다른 유저에게 새어 나갈 수 있음[^2]  
 - (Streamlit) “빠르게 만들겠다고” 모든 걸 `st.cache_resource`에 박기: 처음은 빨라도, 디버깅 지옥이 옵니다.
-- (Gradio) 프록시 환경에서 `root_path`를 무시: 서브패스 배포에서 정적 리소스/라우팅이 깨지기 쉬움 ([gradio.app](https://www.gradio.app/main/docs/gradio/mount_gradio_app))  
+- (Gradio) 프록시 환경에서 `root_path`를 무시: 서브패스 배포에서 정적 리소스/라우팅이 깨지기 쉬움[^1]  
 
 ### 비용/성능/안정성 트레이드오프
 - **Streamlit 단독**: 개발 속도 ↑ / 복잡 UI 구성 ↑, 하지만 고부하 inference를 한 프로세스에서 감당하려 하면 한계가 빨리 옴(결국 API 분리 필요)
@@ -253,12 +255,14 @@ uvicorn ui_gradio.main:app --reload --port 9000
 ## 🚀 마무리
 핵심은 “Streamlit이냐 Gradio냐”보다 **데모 UI를 어디까지 운영할 생각인지**입니다.
 
-- **내부 운영툴 + 다중 페이지/데이터 UI 중심**이면 Streamlit이 유리하고, 2026 릴리즈에서 캐시의 session-scope, `on_release` 같은 운영 친화 기능이 강화되었습니다. ([docs.streamlit.io](https://docs.streamlit.io/develop/quick-reference/release-notes/2026))  
-- **모델 데모/공유 + 기존 FastAPI에 UI를 얹기**가 목표면 Gradio의 mount 패턴이 깔끔하고, 프록시 환경에서는 `root_path`까지 포함해 배포 경로를 명확히 잡아야 합니다. ([gradio.app](https://www.gradio.app/main/docs/gradio/mount_gradio_app))  
+- **내부 운영툴 + 다중 페이지/데이터 UI 중심**이면 Streamlit이 유리하고, 2026 릴리즈에서 캐시의 session-scope, `on_release` 같은 운영 친화 기능이 강화되었습니다.[^3]  
+- **모델 데모/공유 + 기존 FastAPI에 UI를 얹기**가 목표면 Gradio의 mount 패턴이 깔끔하고, 프록시 환경에서는 `root_path`까지 포함해 배포 경로를 명확히 잡아야 합니다.[^1]  
 
 다음 학습 추천(프로젝트 적용 순서):
-1) Streamlit: `st.cache_data`/`st.cache_resource`를 “데이터 vs 리소스”로 분리하고, 동시성 위험을 문서 수준에서 이해 ([docs.streamlit.io](https://docs.streamlit.io/develop/concepts/architecture/caching))  
-2) Gradio: `mount_gradio_app`로 FastAPI에 붙이고, `root_path`/auth 옵션을 포함한 “사내 배포” 플로우 정리 ([gradio.app](https://www.gradio.app/main/docs/gradio/mount_gradio_app))  
+1) Streamlit: `st.cache_data`/`st.cache_resource`를 “데이터 vs 리소스”로 분리하고, 동시성 위험을 문서 수준에서 이해[^2]  
+2) Gradio: `mount_gradio_app`로 FastAPI에 붙이고, `root_path`/auth 옵션을 포함한 “사내 배포” 플로우 정리[^1]  
 3) 공통: inference API 계층에 큐잉/타임아웃/로깅/비용제어를 넣어 “데모가 성공해도 망가지지 않는” 구조로 확장
 
-원하면, 당신의 상황(데모 대상: 내부/외부, 예상 동시접속, 배포 환경: k8s/EC2/Cloud Run, 모델 유형: LLM/RAG/vision)에 맞춰 **Streamlit vs Gradio 의사결정 체크리스트**와 **권장 폴더 구조/배포 방식**까지 구체적으로 설계해 드릴게요.
+[^1]: <https://www.gradio.app/main/docs/gradio/mount_gradio_app>
+[^2]: <https://docs.streamlit.io/develop/concepts/architecture/caching>
+[^3]: <https://docs.streamlit.io/develop/quick-reference/release-notes/2026>

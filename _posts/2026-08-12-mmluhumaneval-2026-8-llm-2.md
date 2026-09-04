@@ -1,13 +1,15 @@
 ---
-title: "MMLU·HumanEval 점수, 이제 그대로 믿으면 안 된다: 2026년 8월 기준 LLM 벤치마크 해석과 실무 적용 가이드"
+title: "MMLU·HumanEval 점수, 이제 그대로 믿으면 안 된다: LLM 벤치마크 해석과 실무 적용 가이드"
+description: "LLM을 프로젝트에 붙일 때 “어떤 모델이 더 좋나?”를 빠르게 결정하려면 결국 평가(evaluation) 가 필요합니다. 문제는 2026년 현재, MMLU/HumanEval 같은 고전 벤치마크 점수는 그 자체로 제품 성능을 대표하지 못하는 경우가 점점 늘었다는 점입니다."
 date: 2026-08-12 02:31:17 +0900
 categories: [AI, LLM]
-tags: [ai, llm, trend, 2026-08]
+tags: [ai, llm]
 render_with_liquid: false
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -20,9 +22,9 @@ render_with_liquid: false
 
 LLM을 프로젝트에 붙일 때 “어떤 모델이 더 좋나?”를 빠르게 결정하려면 결국 **평가(evaluation)** 가 필요합니다. 문제는 2026년 현재, MMLU/HumanEval 같은 고전 벤치마크 점수는 **그 자체로 제품 성능을 대표하지 못하는 경우가 점점 늘었다**는 점입니다. 이유는 크게 세 가지입니다.
 
-- **데이터셋 결함/정답 오류**: MMLU는 정답 오류가 유의미하게 존재한다는 대규모 수작업 분석이 있었고, 그 결과물이 MMLU-Redux로 이어졌습니다. ([arxiv.org](https://arxiv.org/abs/2406.04127?utm_source=openai))  
-- **벤치마크 “오염(contamination)”과 과적합**: 모델이 학습 과정에서 문제/해설을 “봤을” 가능성이 커질수록 점수는 더 이상 일반화 성능을 의미하지 않습니다. 코드 벤치마크는 특히 취약해서, HumanEval을 **더 빡센 테스트로 확장한 HumanEval+**(EvalPlus)가 널리 인용됩니다. ([arxiv.org](https://arxiv.org/abs/2305.01210?utm_source=openai))  
-- **평가 구현체/프롬프트/런타임 차이로 점수가 흔들림**: MMLU-Pro처럼 프롬프트 민감도를 낮추려는 시도도 있지만, 여전히 “어떤 구현으로 돌렸는지”가 점수를 좌우합니다. ([arxiv.org](https://arxiv.org/abs/2406.01574?utm_source=openai))  
+- **데이터셋 결함/정답 오류**: MMLU는 정답 오류가 유의미하게 존재한다는 대규모 수작업 분석이 있었고, 그 결과물이 MMLU-Redux로 이어졌습니다.[^1]  
+- **벤치마크 “오염(contamination)”과 과적합**: 모델이 학습 과정에서 문제/해설을 “봤을” 가능성이 커질수록 점수는 더 이상 일반화 성능을 의미하지 않습니다. 코드 벤치마크는 특히 취약해서, HumanEval을 **더 빡센 테스트로 확장한 HumanEval+**(EvalPlus)가 널리 인용됩니다.[^2]  
+- **평가 구현체/프롬프트/런타임 차이로 점수가 흔들림**: MMLU-Pro처럼 프롬프트 민감도를 낮추려는 시도도 있지만, 여전히 “어떤 구현으로 돌렸는지”가 점수를 좌우합니다.[^3]  
 
 언제 쓰면 좋나?
 - **모델 후보군을 1차로 좁힐 때**(cheap filter): “완전 탈락” 모델 걸러내기
@@ -50,11 +52,11 @@ MMLU는 57개 과목의 **multiple-choice** 문제에서 **Exact Match(정답 �
 - 모델이 “정답을 아는데” 출력 파싱이 실패하면 0점
 - 반대로, **운 좋게** 찍어 맞추면 1점
 - 정답 레이블 자체가 틀리면, 모델이 맞는 답을 해도 0점  
-→ 실제로 MMLU는 정답/문항 품질 이슈가 지적되었고, 이를 정제/재주석한 MMLU-Redux가 제안되었습니다. ([arxiv.org](https://arxiv.org/abs/2406.04127?utm_source=openai))  
+→ 실제로 MMLU는 정답/문항 품질 이슈가 지적되었고, 이를 정제/재주석한 MMLU-Redux가 제안되었습니다.[^1]  
 
 ### 2) MMLU-Pro / Redux: “난이도/신뢰도”를 올리려는 갈래
-- **MMLU-Redux**: 원본 MMLU의 오류를 체계적으로 분류/주석해 “점수의 신뢰도”를 올리려는 접근 ([arxiv.org](https://arxiv.org/abs/2406.04127?utm_source=openai))  
-- **MMLU-Pro**: 더 어려운 문제·더 많은 보기(10-way) 등으로 “찍기 운”을 줄이고, 프롬프트 민감도를 낮추려는 접근 ([arxiv.org](https://arxiv.org/abs/2406.01574?utm_source=openai))  
+- **MMLU-Redux**: 원본 MMLU의 오류를 체계적으로 분류/주석해 “점수의 신뢰도”를 올리려는 접근[^1]  
+- **MMLU-Pro**: 더 어려운 문제·더 많은 보기(10-way) 등으로 “찍기 운”을 줄이고, 프롬프트 민감도를 낮추려는 접근[^3]  
 
 실무적으로는 “원본 MMLU 점수 vs Pro/Redux 점수”가 다르면,
 - 모델이 **암기/오염**에 강했는지
@@ -76,12 +78,12 @@ HumanEval은 164개 Python 문제에서 **테스트 통과(pass@k)** 로 봅니�
 
 그리고 HumanEval의 약점(현업 관점)은 명확합니다:
 - “테스트가 약하면” 허술한 코드도 통과 가능  
-→ 그래서 HumanEval의 테스트를 대폭 확장한 **HumanEval+ (EvalPlus)** 같은 변형이 널리 쓰입니다. ([arxiv.org](https://arxiv.org/abs/2305.01210?utm_source=openai))  
-- 오염 방지 측면에서 “최신 문제”를 쓰려면 LiveCodeBench 같은 접근이 등장했습니다. ([arxiv.org](https://arxiv.org/abs/2403.07974?utm_source=openai))  
+→ 그래서 HumanEval의 테스트를 대폭 확장한 **HumanEval+ (EvalPlus)** 같은 변형이 널리 쓰입니다.[^2]  
+- 오염 방지 측면에서 “최신 문제”를 쓰려면 LiveCodeBench 같은 접근이 등장했습니다.[^4]  
 
 ### 4) 2026년식 결론: 벤치마크는 “점수”가 아니라 “측정 시스템”이다
-요즘 커뮤니티/프레임워크는 “canonical implementation”을 강조합니다. 예를 들어 OpenAI는 simple-evals에서 MMLU/HumanEval 등을 정리해 제공합니다. ([github.com](https://github.com/openai/simple-evals?utm_source=openai))  
-또한 EleutherAI lm-evaluation-harness 쪽도 태스크/설정이 계속 업데이트되어, 동일 벤치라도 설정 차이로 결과가 달라질 수 있음을 시사합니다. ([github.com](https://github.com/EleutherAI/lm-evaluation-harness/releases?utm_source=openai))  
+요즘 커뮤니티/프레임워크는 “canonical implementation”을 강조합니다. 예를 들어 OpenAI는 simple-evals에서 MMLU/HumanEval 등을 정리해 제공합니다.[^5]  
+또한 EleutherAI lm-evaluation-harness 쪽도 태스크/설정이 계속 업데이트되어, 동일 벤치라도 설정 차이로 결과가 달라질 수 있음을 시사합니다.[^6]  
 
 ---
 
@@ -119,7 +121,6 @@ from typing import Literal, Optional, List, Dict, Any
 
 import jsonlines
 from openai import OpenAI
-
 
 # ---------- MMLU-style MCQ ----------
 
@@ -161,7 +162,6 @@ def extract_final_letter(text: str) -> Optional[str]:
             return ch
     return None
 
-
 # ---------- HumanEval-style code execution ----------
 
 @dataclass
@@ -198,7 +198,6 @@ def run_pytest(code: str, tests_py: str, timeout_s: int = 20) -> Dict[str, Any]:
         except subprocess.TimeoutExpired:
             return {"ok": False, "returncode": None, "stdout": "", "stderr": "TIMEOUT"}
 
-
 # ---------- Model call ----------
 
 def call_model_json(client: OpenAI, model: str, prompt: str) -> str:
@@ -209,7 +208,6 @@ def call_model_json(client: OpenAI, model: str, prompt: str) -> str:
         temperature=0,
     )
     return resp.output_text
-
 
 def main():
     client = OpenAI()
@@ -312,7 +310,6 @@ def test_cap():
     print(f"[CODE] {code_ok}/{len(code_items)}")
     print(f"wrote: {out_path}")
 
-
 if __name__ == "__main__":
     main()
 ```
@@ -327,7 +324,7 @@ wrote: eval_results.jsonl
 
 이게 왜 “MMLU/HumanEval 실전 적용”이냐?
 - MMLU/HumanEval을 그대로 돌리기보다, **같은 채점 원리(정답 선택 / 테스트 통과)** 를 내 문제로 이식해야 점수가 의미를 갖습니다.
-- OpenAI simple-evals도 “구현체(benchmark runner)”가 중요하다는 방향으로 정리되어 있습니다. ([github.com](https://github.com/openai/simple-evals?utm_source=openai))  
+- OpenAI simple-evals도 “구현체(benchmark runner)”가 중요하다는 방향으로 정리되어 있습니다.[^5]  
 
 ---
 
@@ -335,19 +332,19 @@ wrote: eval_results.jsonl
 
 ### Best Practice 1) “리더보드 점수” 대신 “내 파이프라인의 canonical run”을 만들기
 - 프롬프트 템플릿, temperature, max tokens, 파서, 타임아웃, 샌드박스 옵션을 **고정**하고 버전 관리하세요.
-- lm-evaluation-harness처럼 설정 업데이트로 결과가 바뀔 수 있다는 점을 전제로, **eval 스냅샷(코드+데이터+설정)** 을 남기는 게 필수입니다. ([github.com](https://github.com/EleutherAI/lm-evaluation-harness/releases?utm_source=openai))  
+- lm-evaluation-harness처럼 설정 업데이트로 결과가 바뀔 수 있다는 점을 전제로, **eval 스냅샷(코드+데이터+설정)** 을 남기는 게 필수입니다.[^6]  
 
 ### Best Practice 2) MMLU는 “정답률”만 보지 말고, “무효 문항/불확실 문항”을 분리
-MMLU류는 정답 오류/문항 품질 문제가 실제로 보고되었습니다. ([arxiv.org](https://arxiv.org/abs/2406.04127?utm_source=openai))  
+MMLU류는 정답 오류/문항 품질 문제가 실제로 보고되었습니다.[^1]  
 실무 대응:
 - 사내 MCQ 세트에도 “애매한 문항”이 섞이기 쉽습니다(특히 트렌드/버전 이슈).
 - **문항별 disagreement(모델들/사람들 간 불일치)** 가 큰 문제는 “평가에서 제외”하거나 “근거 제출형(LLM judge + human audit)”으로 전환하세요.
 
 ### Best Practice 3) HumanEval은 반드시 HumanEval+ 또는 사내 강화 테스트로 보강
-HumanEval은 테스트가 상대적으로 약해 “그럴듯한 코드”가 통과할 수 있습니다. 이를 보완하는 대표 흐름이 HumanEval+ (EvalPlus)입니다. ([arxiv.org](https://arxiv.org/abs/2305.01210?utm_source=openai))  
+HumanEval은 테스트가 상대적으로 약해 “그럴듯한 코드”가 통과할 수 있습니다. 이를 보완하는 대표 흐름이 HumanEval+ (EvalPlus)입니다.[^2]  
 실무 대응:
 - “단위 테스트 추가(엣지/랜덤/프로퍼티 기반)”가 가장 비용 대비 효과가 큽니다.
-- 가능하면 LiveCodeBench 같은 “오염에 강한 최신 문제” 계열을 참고해, **신규 문제를 주기적으로 추가**하세요. ([arxiv.org](https://arxiv.org/abs/2403.07974?utm_source=openai))  
+- 가능하면 LiveCodeBench 같은 “오염에 강한 최신 문제” 계열을 참고해, **신규 문제를 주기적으로 추가**하세요.[^4]  
 
 ### 흔한 함정/안티패턴
 - **pass@k를 pass@1처럼 해석**: 제품은 대부분 첫 출력이 중요합니다. k를 올리면 “샘플링 비용”을 성능으로 착각하기 쉽습니다.
@@ -367,13 +364,18 @@ HumanEval은 테스트가 상대적으로 약해 “그럴듯한 코드”가 �
 정리하면, 2026년 8월 기준 MMLU/HumanEval은 여전히 유용하지만 **‘점수’가 아니라 ‘측정 시스템’** 으로 다뤄야 합니다.
 
 도입 판단 기준:
-- 우리 요구가 “지식형 QA”에 가깝다면: MMLU 스타일 MCQ를 쓰되, **Redux/Pro 계열의 문제의식(오류/난이도/프롬프트 민감도)** 을 내 평가에도 반영 ([arxiv.org](https://arxiv.org/abs/2406.04127?utm_source=openai))  
-- 우리 요구가 “코드 생성/수정”이라면: HumanEval pass@1을 기본으로, **HumanEval+ 수준으로 테스트를 강화**하고 실행 환경을 제품과 가깝게 ([arxiv.org](https://arxiv.org/abs/2305.01210?utm_source=openai))  
-- 그리고 무엇보다: simple-evals/lm-eval-harness처럼 **구현체를 고정하고 재현 가능한 리그를 운영**하는 것이 “진짜 성능 비교”의 출발점입니다. ([github.com](https://github.com/openai/simple-evals?utm_source=openai))  
+- 우리 요구가 “지식형 QA”에 가깝다면: MMLU 스타일 MCQ를 쓰되, **Redux/Pro 계열의 문제의식(오류/난이도/프롬프트 민감도)** 을 내 평가에도 반영[^1]  
+- 우리 요구가 “코드 생성/수정”이라면: HumanEval pass@1을 기본으로, **HumanEval+ 수준으로 테스트를 강화**하고 실행 환경을 제품과 가깝게[^2]  
+- 그리고 무엇보다: simple-evals/lm-eval-harness처럼 **구현체를 고정하고 재현 가능한 리그를 운영**하는 것이 “진짜 성능 비교”의 출발점입니다.[^5]  
 
 다음 학습 추천:
-- MMLU-Redux 논문/데이터셋로 “정답 오류가 점수를 어떻게 왜곡하는지” 체감하기 ([arxiv.org](https://arxiv.org/abs/2406.04127?utm_source=openai))  
-- HumanEval+ (EvalPlus) 논문로 “테스트 강화가 모델 순위를 어떻게 바꾸는지” 확인 ([arxiv.org](https://arxiv.org/abs/2305.01210?utm_source=openai))  
-- LiveCodeBench로 “오염에 강한 코드 평가” 설계를 참고 ([arxiv.org](https://arxiv.org/abs/2403.07974?utm_source=openai))  
+- MMLU-Redux 논문/데이터셋로 “정답 오류가 점수를 어떻게 왜곡하는지” 체감하기[^1]  
+- HumanEval+ (EvalPlus) 논문로 “테스트 강화가 모델 순위를 어떻게 바꾸는지” 확인[^2]  
+- LiveCodeBench로 “오염에 강한 코드 평가” 설계를 참고[^4]
 
-원하면, 당신의 서비스(예: RAG QA / 코드리뷰 봇 / 데이터 파이프라인 생성기)에 맞춰 **평가 항목 설계(문항 타입, 채점 방식, 비용 상한, 실패 분석 리포트 포맷)** 까지 이어서 템플릿으로 잡아드릴 수 있습니다.
+[^1]: <https://arxiv.org/abs/2406.04127>
+[^2]: <https://arxiv.org/abs/2305.01210>
+[^3]: <https://arxiv.org/abs/2406.01574>
+[^4]: <https://arxiv.org/abs/2403.07974>
+[^5]: <https://github.com/openai/simple-evals>
+[^6]: <https://github.com/EleutherAI/lm-evaluation-harness/releases>

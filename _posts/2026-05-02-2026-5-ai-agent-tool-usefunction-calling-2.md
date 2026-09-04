@@ -1,12 +1,14 @@
 ---
-title: "2026년 5월, “AI Agent의 Tool Use/Function Calling”을 프로덕션에 넣는 법: Responses API + Agents SDK 패턴 정리"
+title: "“AI Agent의 Tool Use/Function Calling”을 프로덕션에 넣는 법: Responses API + Agents SDK 패턴 정리"
+description: "AI Agent에서 tool use(function calling) 는 “모델이 말로만 아는 척” 하는 구간을 줄이고, 외부 시스템(DB/HTTP/Queue/사내 API)과 실제로 일하게 만드는 연결부입니다."
 date: 2026-05-02 03:36:58 +0900
 categories: [AI, Agent]
-tags: [ai, agent, trend, 2026-05]
+tags: [ai, agent]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -16,7 +18,7 @@ tags: [ai, agent, trend, 2026-05]
 </script>
 
 ## 들어가며
-AI Agent에서 **tool use(function calling)** 는 “모델이 말로만 아는 척” 하는 구간을 줄이고, **외부 시스템(DB/HTTP/Queue/사내 API)과 실제로 일하게 만드는 연결부**입니다. 2026년 5월 기준 흐름은 “프롬프트로 JSON 뽑아 파싱”이 아니라, **모델이 `tool_call`을 생성 → 앱이 실행/검증 → 결과를 `tool_result`로 다시 주입**하는 루프가 표준으로 굳어졌습니다. (OpenAI는 Responses API 중심으로 통합을 밀고 있고, Agents SDK/Tracing까지 한 덩어리로 제공합니다.) ([platform.openai.com](https://platform.openai.com/docs/guides/function-calling?api-mode=chat&utm_source=openai))
+AI Agent에서 **tool use(function calling)** 는 “모델이 말로만 아는 척” 하는 구간을 줄이고, **외부 시스템(DB/HTTP/Queue/사내 API)과 실제로 일하게 만드는 연결부**입니다. 2026년 5월 기준 흐름은 “프롬프트로 JSON 뽑아 파싱”이 아니라, **모델이 `tool_call`을 생성 → 앱이 실행/검증 → 결과를 `tool_result`로 다시 주입**하는 루프가 표준으로 굳어졌습니다. (OpenAI는 Responses API 중심으로 통합을 밀고 있고, Agents SDK/Tracing까지 한 덩어리로 제공합니다.)[^1]
 
 **언제 쓰면 좋은가**
 - “답변”이 아니라 **업무 실행**이 핵심일 때: 티켓 분류/요약+Jira 업데이트, 주문 상태 조회+환불 프로세스, 리서치+사내 위키 기록 등
@@ -26,16 +28,16 @@ AI Agent에서 **tool use(function calling)** 는 “모델이 말로만 아는 
 **언제 쓰면 안 되는가**
 - tool이 “항상” 필요 없는 단순 Q&A: tool 스키마 토큰/호출 비용이 과함
 - **정확성보다 지연이 더 치명적**인 초저지연 UX(실시간 음성 등): tool 호출이 latency를 늘리고, 상태 관리가 복잡해짐(특히 멀티모달)  
-- 보안/감사 체계 없이 “사내 전체 API를 전부 툴로 노출”하려는 경우: 공격면(tool abuse/prompt injection)이 크게 늘어남 (OWASP LLM Top 10에서도 에이전트/툴 악용이 핵심 이슈로 거론됨) ([zylos.ai](https://zylos.ai/research/2026-04-07-tool-use-function-calling-standards-benchmarks?utm_source=openai))
+- 보안/감사 체계 없이 “사내 전체 API를 전부 툴로 노출”하려는 경우: 공격면(tool abuse/prompt injection)이 크게 늘어남 (OWASP LLM Top 10에서도 에이전트/툴 악용이 핵심 이슈로 거론됨)[^2]
 
 ---
 
 ## 🔧 핵심 개념
 ### 1) 주요 개념 정의
-- **Tool definition**: 모델에게 “이런 함수가 있고, 입력은 이 JSON 스키마”라고 알려주는 계약. (OpenAI는 `tools: [{type:"function", function:{name, description, parameters}}]`) ([platform.openai.com](https://platform.openai.com/docs/guides/function-calling?api-mode=chat&utm_source=openai))
-- **Tool call**: 모델이 “이 함수를 이 인자로 호출해줘”라고 **요청**하는 구조화 이벤트(실행은 모델이 아니라 애플리케이션이 함). ([platform.openai.com](https://platform.openai.com/docs/guides/function-calling?api-mode=chat&utm_source=openai))
+- **Tool definition**: 모델에게 “이런 함수가 있고, 입력은 이 JSON 스키마”라고 알려주는 계약. (OpenAI는 `tools: [{type:"function", function:{name, description, parameters}}]`)[^1]
+- **Tool call**: 모델이 “이 함수를 이 인자로 호출해줘”라고 **요청**하는 구조화 이벤트(실행은 모델이 아니라 애플리케이션이 함).[^1]
 - **Tool result**: 앱이 실제 실행 후 결과를 다시 모델 컨텍스트에 넣는 메시지/이벤트.
-- **Agent loop**: (모델 추론 → tool call 생성 → 실행/검증 → 결과 주입 → 다음 추론) 반복. Responses API는 이 멀티턴/툴 흐름을 단일 인터페이스로 수렴시키는 방향입니다. ([openai.com](https://openai.com/index/new-tools-for-building-agents/?utm_source=openai))
+- **Agent loop**: (모델 추론 → tool call 생성 → 실행/검증 → 결과 주입 → 다음 추론) 반복. Responses API는 이 멀티턴/툴 흐름을 단일 인터페이스로 수렴시키는 방향입니다.[^3]
 
 ### 2) 내부 작동 방식(구조/흐름)
 프로덕션에서 가장 안정적인 패턴은 아래 5단계입니다.
@@ -49,19 +51,19 @@ AI Agent에서 **tool use(function calling)** 는 “모델이 말로만 아는 
 4. **툴 실행 후 결과를 tool_result로 주입**
 5. **다음 모델 호출**: 결과를 근거로 후속 액션/요약/추가 호출 결정
 
-여기서 **핵심은 “툴 실행 정책은 프롬프트가 아니라 코드”** 로 잡는 겁니다. “한 번만 호출해” 같은 프롬프트 지시는 종종 깨집니다. 중복 호출/재시도는 실행 레이어에서 막고, 툴은 idempotent하게 설계하는 게 2026년에도 정석으로 반복해서 언급됩니다. ([reddit.com](https://www.reddit.com/r/AI_Agents/comments/1q9vzsi/agent_calling_tools_multiple_times/?utm_source=openai))
+여기서 **핵심은 “툴 실행 정책은 프롬프트가 아니라 코드”** 로 잡는 겁니다. “한 번만 호출해” 같은 프롬프트 지시는 종종 깨집니다. 중복 호출/재시도는 실행 레이어에서 막고, 툴은 idempotent하게 설계하는 게 2026년에도 정석으로 반복해서 언급됩니다.[^4]
 
 ### 3) 다른 접근과의 차이점
 - **(구) JSON 출력 파싱 방식** vs **(현) native tool calling**
   - 전자: 모델이 텍스트로 JSON을 “써주면” 파서가 실행 → 포맷 일탈/인젝션/예외처리가 지옥
-  - 후자: 모델이 `tool_call` 구조를 만들고, 앱이 안전하게 실행/회수 → 운영/감사가 쉬움 ([platform.openai.com](https://platform.openai.com/docs/guides/function-calling?api-mode=chat&utm_source=openai))
+  - 후자: 모델이 `tool_call` 구조를 만들고, 앱이 안전하게 실행/회수 → 운영/감사가 쉬움[^1]
 - **모든 tool을 한 번에 노출** vs **단계별 tool gating**
   - 전자: tool 정의가 곧 컨텍스트 비용(수만 토큰) + 잘못된 선택 증가
-  - 후자: “지금 단계에서 필요한 최소 tool만” 제공 → 비용/정확도/안정성 개선 (실무에서 체감이 큼) ([reddit.com](https://www.reddit.com/r/SideProject/comments/1sijlgf/the_hidden_problem_with_giving_ai_agents_200_api/?utm_source=openai))
+  - 후자: “지금 단계에서 필요한 최소 tool만” 제공 → 비용/정확도/안정성 개선 (실무에서 체감이 큼)[^5]
 - **단일 호출 순차 실행** vs **병렬/배치 실행**
-  - 연구/현장 모두 “여러 툴 호출을 병렬로” 하는 방향이 성능 상 이점이 큼(폭(width) 확장) ([zylos.ai](https://zylos.ai/research/2026-04-07-tool-use-function-calling-standards-benchmarks?utm_source=openai))
+  - 연구/현장 모두 “여러 툴 호출을 병렬로” 하는 방향이 성능 상 이점이 큼(폭(width) 확장)[^2]
 - **스트리밍/소켓 기반 루프**
-  - 툴 호출이 많아질수록 “모델 추론보다 API/클라이언트 오버헤드”가 커지며, 이를 줄이기 위한 WebSocket/비동기 루프 최적화가 실제로 다뤄지고 있습니다. ([openai.com](https://openai.com/index/speeding-up-agentic-workflows-with-websockets/?utm_source=openai))
+  - 툴 호출이 많아질수록 “모델 추론보다 API/클라이언트 오버헤드”가 커지며, 이를 줄이기 위한 WebSocket/비동기 루프 최적화가 실제로 다뤄지고 있습니다.[^6]
 
 ---
 
@@ -207,7 +209,7 @@ async def run_ticket_agent(ticket_id: str, ticket_text: str) -> str:
     deduper = ToolDeduper()
     phase = "diagnose"
 
-    # Responses API는 tool call/streaming/멀티턴을 한 흐름으로 다루는 방향(공식 가이드 참고) ([openai.com](https://openai.com/index/new-tools-for-building-agents/?utm_source=openai))
+    # Responses API는 tool call/streaming/멀티턴을 한 흐름으로 다루는 방향(공식 가이드 참고)[^3]
     input_messages = [
         {
             "role": "system",
@@ -306,13 +308,13 @@ if __name__ == "__main__":
 ## ⚡ 실전 팁 & 함정
 ### Best Practice (2~3개)
 1) **Tool gating(단계별 최소 툴 노출)**  
-   툴을 많이 줄수록 “선택 비용(토큰) + 오선택 확률”이 커집니다. 특히 MCP/툴 표준화 흐름이 오더라도, “모든 것을 항상 컨텍스트에 올리는 방식”은 비용이 터집니다. “진단(read) → 조치(write)”로 툴을 쪼개면 실패율이 눈에 띄게 줄어듭니다. ([reddit.com](https://www.reddit.com/r/SideProject/comments/1sijlgf/the_hidden_problem_with_giving_ai_agents_200_api/?utm_source=openai))
+   툴을 많이 줄수록 “선택 비용(토큰) + 오선택 확률”이 커집니다. 특히 MCP/툴 표준화 흐름이 오더라도, “모든 것을 항상 컨텍스트에 올리는 방식”은 비용이 터집니다. “진단(read) → 조치(write)”로 툴을 쪼개면 실패율이 눈에 띄게 줄어듭니다.[^5]
 
 2) **Idempotency + 중복 호출 차단은 필수**  
-   모델은 같은 호출을 반복할 수 있고(프롬프트로 100% 막기 어려움), 네트워크 재시도까지 겹치면 실제 시스템에 중복 쓰기가 발생합니다. **request_id(또는 args hash) 기반 dedupe**를 넣고, 쓰기 툴은 서버도 idempotent하게 설계하세요. ([reddit.com](https://www.reddit.com/r/AI_Agents/comments/1q9vzsi/agent_calling_tools_multiple_times/?utm_source=openai))
+   모델은 같은 호출을 반복할 수 있고(프롬프트로 100% 막기 어려움), 네트워크 재시도까지 겹치면 실제 시스템에 중복 쓰기가 발생합니다. **request_id(또는 args hash) 기반 dedupe**를 넣고, 쓰기 툴은 서버도 idempotent하게 설계하세요.[^4]
 
 3) **Observability/Tracing을 먼저 깔고 시작**  
-   “왜 그 tool을 골랐는지 / 어떤 args로 몇 번 호출했는지 / 어떤 결과가 들어왔는지”가 안 보이면 운영이 불가능합니다. OpenAI는 Agents SDK에 Tracing을 같이 엮는 방향을 문서/가이드에서 강조합니다. ([help.openai.com](https://help.openai.com/en/articles/8555517-function-calling-in-the-openai-api%29%5B?utm_source=openai))
+   “왜 그 tool을 골랐는지 / 어떤 args로 몇 번 호출했는지 / 어떤 결과가 들어왔는지”가 안 보이면 운영이 불가능합니다. OpenAI는 Agents SDK에 Tracing을 같이 엮는 방향을 문서/가이드에서 강조합니다.[^7]
 
 ### 흔한 함정/안티패턴
 - **툴 스키마를 ‘문서’처럼 길게 쓰기**: description이 길면 토큰만 잡아먹고, 모델이 중요한 제약을 놓칩니다. 제약은 “짧고 강하게” + “코드 검증”으로.
@@ -320,14 +322,14 @@ if __name__ == "__main__":
 - **모델에게 라우팅을 100% 맡기기**: “어떤 단계에서 어떤 툴이 가능한지”는 제품 정책입니다. 모델은 정책 집행자가 아니라 *의사결정 보조자*로 두는 게 안전합니다.
 
 ### 비용/성능/안정성 트레이드오프
-- **성능**: 툴 호출이 많아질수록 모델 추론보다 “API/클라이언트 오버헤드”가 병목이 됩니다. WebSocket/비동기 루프 최적화가 실제로 큰 차이를 만듭니다. ([openai.com](https://openai.com/index/speeding-up-agentic-workflows-with-websockets/?utm_source=openai))  
-- **비용**: 툴 정의/결과가 컨텍스트를 잠식합니다. tool gating, 결과 압축, 병렬 호출(필요 시)이 비용과 시간을 같이 줄입니다. ([zylos.ai](https://zylos.ai/research/2026-04-07-tool-use-function-calling-standards-benchmarks?utm_source=openai))  
+- **성능**: 툴 호출이 많아질수록 모델 추론보다 “API/클라이언트 오버헤드”가 병목이 됩니다. WebSocket/비동기 루프 최적화가 실제로 큰 차이를 만듭니다.[^6]  
+- **비용**: 툴 정의/결과가 컨텍스트를 잠식합니다. tool gating, 결과 압축, 병렬 호출(필요 시)이 비용과 시간을 같이 줄입니다.[^2]  
 - **안정성**: write tool은 특히 위험합니다. “승인 단계(human-in-the-loop)”를 넣거나, act 단계 툴을 별도 모델/별도 정책으로 분리하는 게 실무적으로 안전합니다.
 
 ---
 
 ## 🚀 마무리
-2026년 5월 기준 “AI Agent의 function calling”은 기술적으로는 성숙 단계로 가고 있지만, 프로덕션 성공/실패를 가르는 건 여전히 **(1) tool gating (2) 검증/정책의 코드화 (3) 관측 가능성 (4) idempotency** 입니다. OpenAI는 Responses API를 중심으로 툴/에이전트/스트리밍을 통합하고 있고, Agents SDK 문서도 그 방향으로 정리되는 중입니다. ([openai.com](https://openai.com/index/new-tools-for-building-agents/?utm_source=openai))
+2026년 5월 기준 “AI Agent의 function calling”은 기술적으로는 성숙 단계로 가고 있지만, 프로덕션 성공/실패를 가르는 건 여전히 **(1) tool gating (2) 검증/정책의 코드화 (3) 관측 가능성 (4) idempotency** 입니다. OpenAI는 Responses API를 중심으로 툴/에이전트/스트리밍을 통합하고 있고, Agents SDK 문서도 그 방향으로 정리되는 중입니다.[^3]
 
 **도입 판단 기준**
 - “에이전트가 호출할 외부 작업”이 명확하고, 실패했을 때의 영향(특히 write)이 통제 가능한가?
@@ -335,8 +337,14 @@ if __name__ == "__main__":
 - 트레이싱/감사 로그 없이도 운영할 수 있다고 생각한다면, 아직은 시기상조다.
 
 **다음 학습 추천**
-- OpenAI 공식: Function Calling/Responses API 가이드 + Agents SDK Tools/Tracing 문서 ([platform.openai.com](https://platform.openai.com/docs/guides/function-calling?api-mode=chat&utm_source=openai))
-- “툴 호출 성능 최적화(비동기/소켓)” 관련 엔지니어링 글 ([openai.com](https://openai.com/index/speeding-up-agentic-workflows-with-websockets/?utm_source=openai))
-- 보안 관점(프롬프트 인젝션/툴 악용)과 표준화(MCP) 동향 정리 ([zylos.ai](https://zylos.ai/research/2026-04-07-tool-use-function-calling-standards-benchmarks?utm_source=openai))
+- OpenAI 공식: Function Calling/Responses API 가이드 + Agents SDK Tools/Tracing 문서[^1]
+- “툴 호출 성능 최적화(비동기/소켓)” 관련 엔지니어링 글[^6]
+- 보안 관점(프롬프트 인젝션/툴 악용)과 표준화(MCP) 동향 정리[^2]
 
-원하면, 위 예제를 **TypeScript(Node) 기반**으로 바꾸거나(실서비스에 더 흔함), “툴이 100개 이상인 조직”에서 쓰는 **Tool Search/Registry 설계(스키마 압축/동적 로딩/권한 스코핑)** 패턴까지 확장해서 이어서 정리해드릴게요.
+[^1]: <https://platform.openai.com/docs/guides/function-calling?api-mode=chat>
+[^2]: <https://zylos.ai/research/2026-04-07-tool-use-function-calling-standards-benchmarks>
+[^3]: <https://openai.com/index/new-tools-for-building-agents/>
+[^4]: <https://www.reddit.com/r/AI_Agents/comments/1q9vzsi/agent_calling_tools_multiple_times/>
+[^5]: <https://www.reddit.com/r/SideProject/comments/1sijlgf/the_hidden_problem_with_giving_ai_agents_200_api/>
+[^6]: <https://openai.com/index/speeding-up-agentic-workflows-with-websockets/>
+[^7]: <https://help.openai.com/en/articles/8555517-function-calling-in-the-openai-api%29%5B>

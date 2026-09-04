@@ -1,12 +1,14 @@
 ---
-title: "프레임을 “샘플링”하던 시대는 끝났다: 2026년 5월 비디오 AI(Understanding/Generation)와 프레임 분석 파이프라인 설계법"
+title: "프레임을 “샘플링”하던 시대는 끝났다: 비디오 AI(Understanding/Generation)와 프레임 분석 파이프라인 설계법"
+description: "전통적인 파이프라인은 N fps로 프레임 추출 → 각 프레임에 image caption/embedding → 합치기였는데, 이 방식은 다음 문제가 있습니다."
 date: 2026-05-15 04:07:29 +0900
 categories: [AI, Multimodal]
-tags: [ai, multimodal, trend, 2026-05]
+tags: [ai, multimodal]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -22,18 +24,18 @@ tags: [ai, multimodal, trend, 2026-05]
 - **Video Generation(생성)**: “이런 장면을 만들어라”를 넘어, **길이/일관성/오디오/비용**이 의사결정 포인트가 된 기술
 
 이번 달에 특히 실무 관점에서 중요한 변화는:
-- **비용 효율형 video generation API가 본격적으로 ‘개발자용 제품’ 형태로 정리**되고(예: Google의 Veo 3.1 Lite를 Gemini API/AI Studio로 제공) ([blog.google](https://blog.google/innovation-and-ai/technology/ai/veo-3-1-lite/?utm_source=openai))
-- **엔터프라이즈 비디오 이해 플랫폼이 “모델 + 인프라”에서 “편집/제작 파이프라인 통합”으로 진화**한다는 점입니다(예: TwelveLabs의 NAB 2026 발표). ([prweb.com](https://www.prweb.com/releases/twelvelabs-unveils-the-next-era-of-video-intelligence-at-nab-show-2026-302746715.html?utm_source=openai))
-- 연구 측면에서는 **Long video generation의 병목을 ‘attention 비용’이 아니라 ‘내부 retrieval(기억 검색)’ 문제로 재정의**하며, 길이를 늘리는 기법이 구체화되고 있습니다(Mixture of Contexts, ICLR 2026). ([openreview.net](https://openreview.net/forum?id=y6XJZlEC2x&utm_source=openai))
+- **비용 효율형 video generation API가 본격적으로 ‘개발자용 제품’ 형태로 정리**되고(예: Google의 Veo 3.1 Lite를 Gemini API/AI Studio로 제공)[^1]
+- **엔터프라이즈 비디오 이해 플랫폼이 “모델 + 인프라”에서 “편집/제작 파이프라인 통합”으로 진화**한다는 점입니다(예: TwelveLabs의 NAB 2026 발표).[^2]
+- 연구 측면에서는 **Long video generation의 병목을 ‘attention 비용’이 아니라 ‘내부 retrieval(기억 검색)’ 문제로 재정의**하며, 길이를 늘리는 기법이 구체화되고 있습니다(Mixture of Contexts, ICLR 2026).[^3]
 
 ### 언제 쓰면 좋나
 - **사내 영상(교육/세일즈콜/회의/제조/물류/매장 CCTV)**에서 “찾기/요약/근거 프레임 제시”가 필요할 때
-- UGC/광고/커머스에서 **대량 생성(variation)**이 필요하고, 1개 퀄리티보다 **단가와 회전율**이 중요한 경우(Veo 3.1 Lite 같은 cost-effective 모델) ([blog.google](https://blog.google/innovation-and-ai/technology/ai/veo-3-1-lite/?utm_source=openai))
+- UGC/광고/커머스에서 **대량 생성(variation)**이 필요하고, 1개 퀄리티보다 **단가와 회전율**이 중요한 경우(Veo 3.1 Lite 같은 cost-effective 모델)[^1]
 - 생성 결과의 **정합성(brand safety / factual consistency)**을 이해 모델로 “검증”하는 **closed-loop**를 만들 때
 
 ### 언제 쓰면 안 되나(혹은 조건부)
 - “영상 전체를 매 프레임 정밀 분석”하려는 접근: 비용/지연/저장(특히 egress)이 바로 병목
-- 모델/엔드포인트 라이프사이클이 빠른 공급자 의존을 감당 못하는 경우: **preview→deprecate→shutdown** 같은 일정이 실제 운영 리스크가 됩니다(예: 모델 단계 전환/디프리케이션 공지와 커뮤니티 반응). ([blog.google](https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-3-1-flash-lite/?utm_source=openai))  
+- 모델/엔드포인트 라이프사이클이 빠른 공급자 의존을 감당 못하는 경우: **preview→deprecate→shutdown** 같은 일정이 실제 운영 리스크가 됩니다(예: 모델 단계 전환/디프리케이션 공지와 커뮤니티 반응).[^4]  
 - 규제/법무 상 “영상 원본 외부 반출 불가”인데 클라우드 API만 고려하는 경우(온프렘/프라이빗 옵션까지 포함해 설계해야 함)
 
 ---
@@ -66,12 +68,12 @@ tags: [ai, multimodal, trend, 2026-05]
   - 후보 구간에 대해서만 고정밀 caption/ASR alignment/object/action query 수행
   - 목적: 사용자에게 납득 가능한 결과(근거) 만들기
 
-여기서 최신 트렌드 중 하나는 “**텍스트/이미지/비디오를 같은 임베딩 공간에 매핑**”하려는 시도입니다(예: Google의 Gemini Embedding 2가 text/image/video를 함께 매핑한다고 소개). ([gadgets360.com](https://www.gadgets360.com/ai/news/google-gemini-embedding-2-first-natively-multimodal-ai-model-map-text-images-videos-released-11198672/amp?utm_source=openai))  
+여기서 최신 트렌드 중 하나는 “**텍스트/이미지/비디오를 같은 임베딩 공간에 매핑**”하려는 시도입니다(예: Google의 Gemini Embedding 2가 text/image/video를 함께 매핑한다고 소개).[^5]  
 이 방향은 **“텍스트 질의로 비디오를 찾는”** 제품에서 특히 강력합니다.
 
 ### 3) Video Generation: 길이를 늘리는 싸움의 본질이 바뀜
 Long video generation에서 가장 큰 병목은 DiT류에서 **self-attention 비용이 길이에 대해 quadratic**으로 터지는 것입니다.  
-ICLR 2026의 *Mixture of Contexts(MoC)*는 이를 “긴 컨텍스트를 전부 보지 말고, **현재 생성에 필요한 과거를 retrieval로 고르자**”로 재정의합니다. ([openreview.net](https://openreview.net/forum?id=y6XJZlEC2x&utm_source=openai))
+ICLR 2026의 *Mixture of Contexts(MoC)*는 이를 “긴 컨텍스트를 전부 보지 말고, **현재 생성에 필요한 과거를 retrieval로 고르자**”로 재정의합니다.[^3]
 
 실무 적용 관점의 함의:
 - 길이를 늘릴수록 중요한 건 “더 큰 모델”이 아니라  
@@ -80,7 +82,7 @@ ICLR 2026의 *Mixture of Contexts(MoC)*는 이를 “긴 컨텍스트를 전부 
   **plan → generate → check → repair** 같은 루프로 제품화됩니다.
 
 ### 4) 2026년 5월에 ‘개발자가 바로 쓰는’ 생성 모델 포지션
-Google은 Veo 3.1 Lite를 **비용 효율형 video generation**으로 밀고, **Gemini API/AI Studio에서 접근** 가능하다고 공식 블로그와 모델 카드로 설명합니다. ([blog.google](https://blog.google/innovation-and-ai/technology/ai/veo-3-1-lite/?utm_source=openai))  
+Google은 Veo 3.1 Lite를 **비용 효율형 video generation**으로 밀고, **Gemini API/AI Studio에서 접근** 가능하다고 공식 블로그와 모델 카드로 설명합니다.[^1]  
 즉 “고퀄 원툴”보다 “대량 생성 + 빠른 iteration”이 필요한 팀에 현실적인 선택지가 됐다는 뜻입니다.
 
 ---
@@ -91,7 +93,7 @@ Google은 Veo 3.1 Lite를 **비용 효율형 video generation**으로 밀고, **
 - Understanding: **로컬 파이프라인(FFmpeg + OpenCV + Whisper)**로 비용 통제
 - Generation: **Veo 3.1 Lite (Gemini API)**로 “요약 클립”을 생성(예: 핵심 장면을 재구성한 짧은 안내 영상)
 
-> 주의: Veo/Gemini API의 정확한 SDK/엔드포인트는 수시로 바뀔 수 있습니다. 여기서는 **구조(파이프라인/데이터 계약)** 중심으로 작성하고, 호출부는 공식 문서에 맞게 교체 가능하도록 어댑터로 분리합니다. (Veo 3.1 Lite가 Gemini API로 제공된다는 점은 공식 안내에 근거) ([blog.google](https://blog.google/innovation-and-ai/technology/ai/veo-3-1-lite/?utm_source=openai))
+> 주의: Veo/Gemini API의 정확한 SDK/엔드포인트는 수시로 바뀔 수 있습니다. 여기서는 **구조(파이프라인/데이터 계약)** 중심으로 작성하고, 호출부는 공식 문서에 맞게 교체 가능하도록 어댑터로 분리합니다. (Veo 3.1 Lite가 Gemini API로 제공된다는 점은 공식 안내에 근거)[^1]
 
 ### 0) 설치/의존성
 ```bash
@@ -289,7 +291,7 @@ if __name__ == "__main__":
 ```
 
 ### 3) (확장) top-k 구간만 Veo로 “짧은 요약 클립” 생성하기(어댑터)
-여기서 핵심은 **생성 모델을 ‘원본 그대로 생성’에 쓰지 말고**, “설명/재현/가이드 클립”처럼 *product-safe*한 용도로 제한하는 겁니다. 비용도 줄고 리스크도 줄어듭니다. (Veo 3.1 Lite는 비용 효율형 포지션을 명확히 함) ([blog.google](https://blog.google/innovation-and-ai/technology/ai/veo-3-1-lite/?utm_source=openai))
+여기서 핵심은 **생성 모델을 ‘원본 그대로 생성’에 쓰지 말고**, “설명/재현/가이드 클립”처럼 *product-safe*한 용도로 제한하는 겁니다. 비용도 줄고 리스크도 줄어듭니다. (Veo 3.1 Lite는 비용 효율형 포지션을 명확히 함)[^1]
 
 ```python
 # veo_adapter.py
@@ -344,14 +346,14 @@ Context from the original report (ASR excerpt, may be noisy):
 
 3) **Generation은 ‘최종 콘텐츠’가 아니라 ‘보조 산출물’로 시작**  
    예: 요약 데모 클립, 하이라이트 시안, A/B용 variation 등.  
-   Veo 3.1 Lite처럼 cost-effective API가 나올수록 “대량 보조 산출물”이 ROI가 좋습니다. ([blog.google](https://blog.google/innovation-and-ai/technology/ai/veo-3-1-lite/?utm_source=openai))
+   Veo 3.1 Lite처럼 cost-effective API가 나올수록 “대량 보조 산출물”이 ROI가 좋습니다.[^1]
 
 ### 흔한 함정/안티패턴
 - **안티패턴: 전 프레임 captioning**  
   “나중에 쓸 수도” 때문에 다 처리하면, 비용·지연·저장 모두 터집니다.  
   대신 “필요 시 L1 재처리”로 설계하세요.
 - **안티패턴: preview 엔드포인트를 프로덕션에 고정**  
-  모델 lifecycle이 빠른 곳은 preview deprecation/shutdown이 실제 장애로 이어집니다(커뮤니티에서도 운영 적합성 이슈가 반복 제기). ([reddit.com](https://www.reddit.com/r/GoogleGeminiAI/comments/1taf464/gemini_model_lifecycle_is_incompatible_with/?utm_source=openai))
+  모델 lifecycle이 빠른 곳은 preview deprecation/shutdown이 실제 장애로 이어집니다(커뮤니티에서도 운영 적합성 이슈가 반복 제기).[^6]
 - **함정: ASR 텍스트만 믿고 검색 품질을 평가**  
   소음/억양/도메인 용어 때문에 recall이 떨어집니다. keyframe caption(가벼운 VLM)이나 도메인 사전 기반 keyword boosting을 섞는 편이 낫습니다.
 
@@ -364,14 +366,22 @@ Context from the original report (ASR excerpt, may be noisy):
 ---
 
 ## 🚀 마무리
-- 2026년 5월의 핵심은 “비디오 AI가 좋아졌다”가 아니라, **파이프라인 단위가 프레임에서 세그먼트/이벤트로 이동**했고, **생성은 장편화를 retrieval/메모리 문제로 풀기 시작**했다는 점입니다. ([openreview.net](https://openreview.net/forum?id=y6XJZlEC2x&utm_source=openai))  
-- 개발자 관점에서는 **비용 효율형 video generation API(예: Veo 3.1 Lite)**가 “실험용”을 넘어 “운영 설계에 넣어볼 만한” 단계로 내려왔습니다. ([blog.google](https://blog.google/innovation-and-ai/technology/ai/veo-3-1-lite/?utm_source=openai))  
+- 2026년 5월의 핵심은 “비디오 AI가 좋아졌다”가 아니라, **파이프라인 단위가 프레임에서 세그먼트/이벤트로 이동**했고, **생성은 장편화를 retrieval/메모리 문제로 풀기 시작**했다는 점입니다.[^3]  
+- 개발자 관점에서는 **비용 효율형 video generation API(예: Veo 3.1 Lite)**가 “실험용”을 넘어 “운영 설계에 넣어볼 만한” 단계로 내려왔습니다.[^1]  
 - 도입 판단 기준:
   1) 영상 데이터가 꾸준히 쌓이고 “찾기/요약/근거” 요구가 있는가?
   2) 전 프레임 분석 없이도 해결 가능한가? (가능해야 ROI가 나옵니다)
   3) 모델 라이프사이클(Preview→GA→Deprecation)에 대응할 운영 체계를 갖출 수 있는가?
 
 다음 학습 추천:
-- Long video generation의 메모리/일관성 관점: *Mixture of Contexts(MoC), ICLR 2026* ([openreview.net](https://openreview.net/forum?id=y6XJZlEC2x&utm_source=openai))  
-- 상용 API로 “단가/지연/품질” 비교 실험: Veo 3.1 Lite의 모델 카드/가이드 ([deepmind.google](https://deepmind.google/models/model-cards/veo-3-1-lite/?utm_source=openai))  
-- 제작 워크플로우 통합 사례(understanding의 제품화 방향): TwelveLabs의 NAB 2026 발표 흐름 ([prweb.com](https://www.prweb.com/releases/twelvelabs-unveils-the-next-era-of-video-intelligence-at-nab-show-2026-302746715.html?utm_source=openai))
+- Long video generation의 메모리/일관성 관점: *Mixture of Contexts(MoC), ICLR 2026*[^3]  
+- 상용 API로 “단가/지연/품질” 비교 실험: Veo 3.1 Lite의 모델 카드/가이드[^7]  
+- 제작 워크플로우 통합 사례(understanding의 제품화 방향): TwelveLabs의 NAB 2026 발표 흐름[^2]
+
+[^1]: <https://blog.google/innovation-and-ai/technology/ai/veo-3-1-lite/>
+[^2]: <https://www.prweb.com/releases/twelvelabs-unveils-the-next-era-of-video-intelligence-at-nab-show-2026-302746715.html>
+[^3]: <https://openreview.net/forum?id=y6XJZlEC2x>
+[^4]: <https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-3-1-flash-lite/>
+[^5]: <https://www.gadgets360.com/ai/news/google-gemini-embedding-2-first-natively-multimodal-ai-model-map-text-images-videos-released-11198672/amp>
+[^6]: <https://www.reddit.com/r/GoogleGeminiAI/comments/1taf464/gemini_model_lifecycle_is_incompatible_with/>
+[^7]: <https://deepmind.google/models/model-cards/veo-3-1-lite/>

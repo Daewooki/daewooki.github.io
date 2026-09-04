@@ -1,12 +1,14 @@
 ---
 title: "**2026년 7월, AI Agent의 “Tool Use + Function Calling”을 프로덕션에 넣는 법: 루프·계약·오케스트레이션 패턴 총정리**"
+description: "2026년 기준으로 Agent를 “똑똑한 챗봇”에서 “업무를 실제로 처리하는 소프트웨어”로 끌어올리는 핵심은 tool use(function calling) 입니다."
 date: 2026-07-19 03:35:08 +0900
 categories: [AI, Agent]
-tags: [ai, agent, trend, 2026-07]
+tags: [ai, agent]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -16,13 +18,13 @@ tags: [ai, agent, trend, 2026-07]
 </script>
 
 ## 들어가며
-2026년 기준으로 Agent를 “똑똑한 챗봇”에서 “업무를 실제로 처리하는 소프트웨어”로 끌어올리는 핵심은 **tool use(function calling)** 입니다. 모델이 자연어로만 답하는 게 아니라, **정형화된 호출(JSON Schema)로 외부 시스템(DB/HTTP/파일/큐/브라우저)을 실행**하고 그 결과를 다시 추론에 반영하는 구조죠. OpenAI는 Agents SDK/Responses API를 중심으로 에이전트 실행·도구·추적(Tracing) 인프라를 표준화했고, “샌드박스/워크스페이스에서 안전하게 파일·커맨드·툴을 다루는 harness”를 강조합니다. ([openai.com](https://openai.com/index/the-next-evolution-of-the-agents-sdk/?utm_source=openai))
+2026년 기준으로 Agent를 “똑똑한 챗봇”에서 “업무를 실제로 처리하는 소프트웨어”로 끌어올리는 핵심은 **tool use(function calling)** 입니다. 모델이 자연어로만 답하는 게 아니라, **정형화된 호출(JSON Schema)로 외부 시스템(DB/HTTP/파일/큐/브라우저)을 실행**하고 그 결과를 다시 추론에 반영하는 구조죠. OpenAI는 Agents SDK/Responses API를 중심으로 에이전트 실행·도구·추적(Tracing) 인프라를 표준화했고, “샌드박스/워크스페이스에서 안전하게 파일·커맨드·툴을 다루는 harness”를 강조합니다.[^1]
 
 하지만 프로덕션에서 바로 마주치는 현실은 이겁니다.
 
-- 도구 호출이 늘수록 **latency, token, 실패 지점**이 기하급수로 늘어남(“tool-use tax”). ([arxiv.org](https://arxiv.org/abs/2605.00136?utm_source=openai))  
+- 도구 호출이 늘수록 **latency, token, 실패 지점**이 기하급수로 늘어남(“tool-use tax”).[^2]  
 - 모델이 *도구를 호출할 수 있다* ≠ *항상 도구를 올바른 순서/형식으로 호출한다* (오케스트레이션/가드레일 필요).
-- “에이전트가 알아서”에 맡기면 디버깅이 악몽이 되므로, **루프·상태·계약**을 코드로 명시해야 함. ([platform.claude.com](https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works?utm_source=openai))
+- “에이전트가 알아서”에 맡기면 디버깅이 악몽이 되므로, **루프·상태·계약**을 코드로 명시해야 함.[^3]
 
 ### 언제 쓰면 좋은가
 - **실시간 진실 소스**가 필요한 작업(가격/재고/정책/사용자 데이터)  
@@ -31,18 +33,18 @@ tags: [ai, agent, trend, 2026-07]
 
 ### 언제 쓰지 말아야 하는가
 - 답이 모델 내부 지식/추론만으로 충분하고, 도구 호출이 오히려 비용/지연만 키우는 경우  
-- 도구 호출 1회당 비용·지연이 큰데(외부 API/DB), 정확도 이득이 불확실한 경우(“tool-use tax” 구간) ([arxiv.org](https://arxiv.org/abs/2605.00136?utm_source=openai))  
+- 도구 호출 1회당 비용·지연이 큰데(외부 API/DB), 정확도 이득이 불확실한 경우(“tool-use tax” 구간)[^2]  
 - “항상 deterministic 해야 하는” 파이프라인(정산, 회계)에서 **모델이 호출 순서를 결정**하게 두는 경우
 
 ---
 
 ## 🔧 핵심 개념
 ### 1) Tool Use/Function Calling은 “계약(Contract)”이다
-도구 호출은 *모델이 코드를 실행하는 것*이 아니라, 모델이 **“이 이름의 tool을 이 JSON args로 호출해줘”**라고 요청하면 **애플리케이션이 실행하고 결과를 되돌려주는 계약**입니다. 이때 신뢰의 경계(trust boundary)는 명확합니다: 모델은 실행 권한이 없고, 실행은 항상 당신의 런타임/인프라에서 합니다. ([platform.claude.com](https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works?utm_source=openai))
+도구 호출은 *모델이 코드를 실행하는 것*이 아니라, 모델이 **“이 이름의 tool을 이 JSON args로 호출해줘”**라고 요청하면 **애플리케이션이 실행하고 결과를 되돌려주는 계약**입니다. 이때 신뢰의 경계(trust boundary)는 명확합니다: 모델은 실행 권한이 없고, 실행은 항상 당신의 런타임/인프라에서 합니다.[^3]
 
 OpenAI 쪽에서 실무적으로 중요한 포인트는:
-- tool은 “설명+스키마”로 정의되고, Agents SDK는 Python 함수 시그니처/Docstring에서 스키마를 자동 생성할 수 있음 ([openai.github.io](https://openai.github.io/openai-agents-python/tools/?utm_source=openai))  
-- **Structured Outputs(strict: true)** 를 쓰면, 모델이 생성하는 tool args가 스키마와 정확히 일치하도록 강제 가능(= 파서/검증 비용과 실패를 줄이는 핵심 장치) ([help.openai.com](https://help.openai.com/en/articles/8555517?utm_source=openai))
+- tool은 “설명+스키마”로 정의되고, Agents SDK는 Python 함수 시그니처/Docstring에서 스키마를 자동 생성할 수 있음[^4]  
+- **Structured Outputs(strict: true)** 를 쓰면, 모델이 생성하는 tool args가 스키마와 정확히 일치하도록 강제 가능(= 파서/검증 비용과 실패를 줄이는 핵심 장치)[^5]
 
 ### 2) 내부 작동 방식: “agentic loop”가 본체다
 도구 사용 에이전트는 결국 다음 루프로 구현됩니다.
@@ -52,8 +54,8 @@ OpenAI 쪽에서 실무적으로 중요한 포인트는:
 3. tool result를 다시 모델에 제공
 4. 더 이상 tool call이 없을 때까지 반복
 
-Anthropic 문서가 이 루프를 **`while stop_reason == "tool_use"`** 형태로 아주 명확히 설명하는데, 이 구조가 사실상 업계 표준에 가깝습니다. ([platform.claude.com](https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works?utm_source=openai))  
-OpenAI Agents SDK도 “running agents”에서 **tool_execution(동시성 제한 등)** 같은 실행 레벨 설정을 제공하면서, 결국 같은 문제(루프/동시성/실패)를 SDK 차원에서 다루게 합니다. ([openai.github.io](https://openai.github.io/openai-agents-python/running_agents/?utm_source=openai))
+Anthropic 문서가 이 루프를 **`while stop_reason == "tool_use"`** 형태로 아주 명확히 설명하는데, 이 구조가 사실상 업계 표준에 가깝습니다.[^3]  
+OpenAI Agents SDK도 “running agents”에서 **tool_execution(동시성 제한 등)** 같은 실행 레벨 설정을 제공하면서, 결국 같은 문제(루프/동시성/실패)를 SDK 차원에서 다루게 합니다.[^6]
 
 여기서 실전 차이를 만드는 건 “루프가 있냐 없냐”가 아니라:
 
@@ -63,8 +65,8 @@ OpenAI Agents SDK도 “running agents”에서 **tool_execution(동시성 제�
 
 ### 3) 다른 접근과의 차이점
 - **프롬프트 기반(“API를 호출했다고 가정하고…” )**: 빠르고 싸지만, 진실 소스/부작용/감사 추적이 필요하면 즉시 한계.
-- **워크플로우 엔진(LangGraph류) 기반**: 모델의 자유도를 줄이고 상태 기계로 안정성을 얻는 방향. tool calling이 가능한 모델을 노드로 두고, persistence/debugging/배포를 강점으로 내세움. ([langchain-ai.github.io](https://langchain-ai.github.io/langgraph/how-tos/tool-calling/?h=tool&utm_source=openai))  
-- **Agents SDK 기반**: OpenAI 모델/Responses API에 맞춘 도구/실행/추적 표준화 쪽. “컴퓨터/워크스페이스 harness”와 샌드박스 실행을 제품 방향으로 강하게 밀고 있음. ([openai.com](https://openai.com/index/the-next-evolution-of-the-agents-sdk/?utm_source=openai))
+- **워크플로우 엔진(LangGraph류) 기반**: 모델의 자유도를 줄이고 상태 기계로 안정성을 얻는 방향. tool calling이 가능한 모델을 노드로 두고, persistence/debugging/배포를 강점으로 내세움.[^7]  
+- **Agents SDK 기반**: OpenAI 모델/Responses API에 맞춘 도구/실행/추적 표준화 쪽. “컴퓨터/워크스페이스 harness”와 샌드박스 실행을 제품 방향으로 강하게 밀고 있음.[^1]
 
 ---
 
@@ -79,7 +81,7 @@ source .venv/bin/activate
 pip install "openai-agents>=0.14.0" pydantic
 export OPENAI_API_KEY="..."
 ```
-(OpenAI Agents SDK는 tool/agent 실행과 tracing을 포함한 인프라를 제공하는 방향으로 진화 중입니다. ([openai.com](https://openai.com/index/the-next-evolution-of-the-agents-sdk/?utm_source=openai)))
+(OpenAI Agents SDK는 tool/agent 실행과 tracing을 포함한 인프라를 제공하는 방향으로 진화 중입니다.[^1])
 
 ### 1) 기본 동작: “의도 분류 tool”로 라우팅 강제
 - 많은 팀이 겪는 문제: 모델이 바로 `close_ticket()` 같은 side effect tool을 호출해버림  
@@ -102,14 +104,12 @@ TICKETS: Dict[str, Dict[str, Any]] = {
 
 AUDIT_LOG = []
 
-
 class Intent(BaseModel):
     intent: Literal["triage", "answer_only", "request_more_info", "close_ticket"] = Field(
         description="사용자 요청을 처리하기 위한 1차 의도. side effect(종결)는 바로 하지 말고 close_ticket 의도로만 분류."
     )
     ticket_id: Optional[str] = Field(default=None, description="티켓 ID가 있으면 추출")
     reason: str = Field(description="왜 이 의도인지 한 줄 근거(감사/디버깅용)")
-
 
 @function_tool
 def classify_intent(user_message: str) -> dict:
@@ -138,14 +138,12 @@ def classify_intent(user_message: str) -> dict:
 
     return Intent(intent=intent, ticket_id=ticket_id, reason=reason).model_dump()
 
-
 @function_tool
 def get_ticket(ticket_id: str) -> dict:
     """티켓 정보를 조회한다. 읽기 전용."""
     if ticket_id not in TICKETS:
         return {"ok": False, "error": "NOT_FOUND", "ticket_id": ticket_id}
     return {"ok": True, "ticket_id": ticket_id, "ticket": TICKETS[ticket_id]}
-
 
 @function_tool
 def propose_close_ticket(ticket_id: str, closing_note: str) -> dict:
@@ -161,7 +159,6 @@ def propose_close_ticket(ticket_id: str, closing_note: str) -> dict:
         },
     }
 
-
 @function_tool
 def commit_close_ticket(ticket_id: str, closing_note: str, approved_by: str) -> dict:
     """
@@ -176,7 +173,6 @@ def commit_close_ticket(ticket_id: str, closing_note: str, approved_by: str) -> 
         {"event": "ticket_closed", "ticket_id": ticket_id, "note": closing_note, "approved_by": approved_by}
     )
     return {"ok": True, "ticket_id": ticket_id, "new_status": "closed"}
-
 
 triage_agent = Agent(
     name="support-triage-agent",
@@ -197,7 +193,6 @@ commit_agent = Agent(
     ),
     tools=[commit_close_ticket],
 )
-
 
 def main():
     user = "TCK-1042 이거 이제 해결됐으니 닫아줘. 사용자에게 안내도 남겨줘."
@@ -225,7 +220,6 @@ def main():
     print("=== audit ===")
     print(AUDIT_LOG)
 
-
 if __name__ == "__main__":
     main()
 ```
@@ -243,37 +237,37 @@ if __name__ == "__main__":
 
 ## ⚡ 실전 팁 & 함정
 ### Best Practice 1) “strict schema + 의미 있는 description”에 시간을 써라
-OpenAI는 `strict: true`(Structured Outputs)로 스키마 적합성을 강제할 수 있다고 명시합니다. 이걸 안 쓰면 args 파싱 실패/유효성 검증/리트라이로 비용이 새나갑니다. ([help.openai.com](https://help.openai.com/en/articles/8555517?utm_source=openai))  
-또, Agents SDK는 docstring/시그니처에서 스키마를 자동 생성하니(편함) “설명 문구가 곧 모델의 UI”라는 감각으로 작성해야 합니다. ([openai.github.io](https://openai.github.io/openai-agents-python/tools/?utm_source=openai))
+OpenAI는 `strict: true`(Structured Outputs)로 스키마 적합성을 강제할 수 있다고 명시합니다. 이걸 안 쓰면 args 파싱 실패/유효성 검증/리트라이로 비용이 새나갑니다.[^5]  
+또, Agents SDK는 docstring/시그니처에서 스키마를 자동 생성하니(편함) “설명 문구가 곧 모델의 UI”라는 감각으로 작성해야 합니다.[^4]
 
 ### Best Practice 2) Tool calling은 “오케스트레이션”이 절반이다
 - 모델에게 모든 선택을 맡기면, 재현 불가한 실패 케이스가 쌓입니다.
 - 대신 **(a) 의도 분류 단계**, **(b) 단계별 tool set**, **(c) 정책 엔진/승인 게이트**를 넣으면 안정성이 급상승합니다.
-- LangGraph 같은 상태기계/그래프 오케스트레이션도 같은 문제의 해법을 제공(상태, 디버깅, persistence). ([langchain-ai.github.io](https://langchain-ai.github.io/langgraph/how-tos/tool-calling/?h=tool&utm_source=openai))
+- LangGraph 같은 상태기계/그래프 오케스트레이션도 같은 문제의 해법을 제공(상태, 디버깅, persistence).[^7]
 
 ### Best Practice 3) 동시성/리트라이/타임아웃은 “모델 밖”에서 결정
-Anthropic의 tool-use loop 설명이 말해주듯, tool은 결국 애플리케이션이 실행합니다. 그러면 **타임아웃, circuit breaker, idempotency key** 같은 건 전통적인 분산시스템 규칙을 그대로 적용해야 합니다. ([platform.claude.com](https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works?utm_source=openai))  
-OpenAI Agents SDK도 tool_execution으로 로컬 function tool 실행 동시성을 제한하는 식의 제어 포인트를 제공합니다. ([openai.github.io](https://openai.github.io/openai-agents-python/running_agents/?utm_source=openai))
+Anthropic의 tool-use loop 설명이 말해주듯, tool은 결국 애플리케이션이 실행합니다. 그러면 **타임아웃, circuit breaker, idempotency key** 같은 건 전통적인 분산시스템 규칙을 그대로 적용해야 합니다.[^3]  
+OpenAI Agents SDK도 tool_execution으로 로컬 function tool 실행 동시성을 제한하는 식의 제어 포인트를 제공합니다.[^6]
 
 ### 흔한 함정/안티패턴
-- **“도구를 많이 달면 더 똑똑해지겠지”**: 오히려 tool-use tax로 성능이 떨어질 수 있음(프로토콜/노이즈/왕복 비용). ([arxiv.org](https://arxiv.org/abs/2605.00136?utm_source=openai))  
+- **“도구를 많이 달면 더 똑똑해지겠지”**: 오히려 tool-use tax로 성능이 떨어질 수 있음(프로토콜/노이즈/왕복 비용).[^2]  
 - **side effect tool을 단일 함수로 제공**: `close_ticket()` 같은 도구 하나만 주면, 잘못된 호출이 곧 사고입니다. *propose/commit 분리*가 기본.
 - **도구 실패를 모델에게만 떠넘김**: “다시 시도해”를 모델이 말하게 두지 말고, 백엔드에서 재시도 정책/백오프/대체 경로를 설계하세요.
 
 ### 비용/성능/안정성 트레이드오프
 - tool call 1회는 보통 **LLM 왕복 + 외부 IO**라서 latency가 커집니다.
 - 병렬화는 빨라지지만, **부분 실패 처리**(어떤 tool 결과만 도착, 어떤 건 타임아웃) 때문에 상태 관리가 어려워집니다.
-- “도구 호출을 줄이는 방향”(캐시, 사전 질의, lightweight classifier로 라우팅)은 연구/현업 모두에서 반복되는 최적화 포인트입니다. ([arxiv.org](https://arxiv.org/abs/2605.00136?utm_source=openai))
+- “도구 호출을 줄이는 방향”(캐시, 사전 질의, lightweight classifier로 라우팅)은 연구/현업 모두에서 반복되는 최적화 포인트입니다.[^2]
 
 ---
 
 ## 🚀 마무리
 2026년 7월 시점의 Agent tool use/function calling 구현에서 중요한 건 “어떤 모델/SDK를 쓰냐”보다도:
 
-1) **Tool은 계약**이고, 실행/정책/안전은 애플리케이션 책임 ([platform.claude.com](https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works?utm_source=openai))  
-2) **agentic loop**는 필수이며, 실패/동시성/상태를 코드로 다뤄야 함 ([openai.github.io](https://openai.github.io/openai-agents-python/running_agents/?utm_source=openai))  
+1) **Tool은 계약**이고, 실행/정책/안전은 애플리케이션 책임[^3]  
+2) **agentic loop**는 필수이며, 실패/동시성/상태를 코드로 다뤄야 함[^6]  
 3) 프로덕션에서는 **propose/commit**, **단계별 tool surface**, **승인 게이트**로 side effect를 통제해야 함  
-4) 도구가 많아질수록 좋아지는 게 아니라, **tool-use tax**로 악화될 수 있으니 “정확도 이득 vs 왕복 비용”을 측정해야 함 ([arxiv.org](https://arxiv.org/abs/2605.00136?utm_source=openai))
+4) 도구가 많아질수록 좋아지는 게 아니라, **tool-use tax**로 악화될 수 있으니 “정확도 이득 vs 왕복 비용”을 측정해야 함[^2]
 
 ### 도입 판단 기준(실무 체크리스트)
 - 우리 문제는 “최신 데이터/부작용 작업”이 핵심인가?
@@ -282,8 +276,14 @@ OpenAI Agents SDK도 tool_execution으로 로컬 function tool 실행 동시성�
 - tool call 수를 줄이는 최적화(캐시/라우팅/단계별 tool set)를 넣을 수 있는가?
 
 ### 다음 학습 추천
-- OpenAI Agents SDK의 tool 카탈로그/실행 옵션(특히 tool types, running agents, sandbox/harness 방향) ([openai.github.io](https://openai.github.io/openai-agents-python/tools/?utm_source=openai))  
-- Anthropic의 tool-use loop 문서(루프/stop_reason 중심으로 설계를 정리하는 데 도움) ([platform.claude.com](https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works?utm_source=openai))  
-- “tool-use tax”류 연구를 참고해, 도구 호출이 실제로 이득인지 평가 지표를 먼저 만들 것 ([arxiv.org](https://arxiv.org/abs/2605.00136?utm_source=openai))
+- OpenAI Agents SDK의 tool 카탈로그/실행 옵션(특히 tool types, running agents, sandbox/harness 방향)[^4]  
+- Anthropic의 tool-use loop 문서(루프/stop_reason 중심으로 설계를 정리하는 데 도움)[^3]  
+- “tool-use tax”류 연구를 참고해, 도구 호출이 실제로 이득인지 평가 지표를 먼저 만들 것[^2]
 
-원하시면, 위 예제를 **(1) DB 트랜잭션 + idempotency key**, **(2) 병렬 tool call + 부분 실패 처리**, **(3) LangGraph 스타일 상태기계로 재구성**한 버전으로 확장해 드릴게요.
+[^1]: <https://openai.com/index/the-next-evolution-of-the-agents-sdk/>
+[^2]: <https://arxiv.org/abs/2605.00136>
+[^3]: <https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works>
+[^4]: <https://openai.github.io/openai-agents-python/tools/>
+[^5]: <https://help.openai.com/en/articles/8555517>
+[^6]: <https://openai.github.io/openai-agents-python/running_agents/>
+[^7]: <https://langchain-ai.github.io/langgraph/how-tos/tool-calling/?h=tool>

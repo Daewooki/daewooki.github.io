@@ -1,12 +1,14 @@
 ---
-title: "LLM 시대(2026년 5월)의 OCR Document AI: “레이아웃 + 스키마 + 검증”으로 표·PDF를 구조화 추출하는 법"
+title: "LLM 시대의 OCR Document AI: “레이아웃 + 스키마 + 검증”으로 표·PDF를 구조화 추출하는 법"
+description: "문서 OCR/이해 파이프라인에서 진짜 어려운 문제는 “텍스트를 읽는 것”이 아니라, 표/레이아웃을 깨뜨리지 않고 업무 스키마(JSON) 로 일관되게 뽑아내는 겁니다."
 date: 2026-05-29 04:20:09 +0900
 categories: [AI, Multimodal]
-tags: [ai, multimodal, trend, 2026-05]
+tags: [ai, multimodal]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -28,7 +30,7 @@ tags: [ai, multimodal, trend, 2026-05]
 
 - **언제 쓰면 안 되는가**
   - 초고정형 서식(레이아웃이 99% 동일) + 초대량(일 수십만 건)이라면, LLM은 비용이 과합니다. 전통 Document AI(템플릿/모델) + 규칙 기반이 더 싸고 안정적일 수 있어요.
-  - “표 전체를 그대로 DB로” 같은 요구는 LLM 단독으로는 재현성이 낮습니다. (예: Textract Queries는 “표 전체/행·열 전체를 질의로 뽑기”가 제한적이라는 점도 명시되어 있습니다. ([docs.aws.amazon.com](https://docs.aws.amazon.com/textract/latest/dg/bestqueries.html?utm_source=openai)))
+  - “표 전체를 그대로 DB로” 같은 요구는 LLM 단독으로는 재현성이 낮습니다. (예: Textract Queries는 “표 전체/행·열 전체를 질의로 뽑기”가 제한적이라는 점도 명시되어 있습니다.[^1])
   - 규제/감사 대응으로 **완전한 결정 경로 설명**이 필요한 경우: LLM은 설명 가능성 확보를 위해 추가 설계(근거 스팬, 좌표 링크, 규칙 검증)가 필요합니다.
 
 ---
@@ -45,23 +47,23 @@ tags: [ai, multimodal, trend, 2026-05]
 2026년에는 여기에 **LLM(특히 멀티모달)** 이 들어오면서 두 가지 전략이 공존합니다.
 
 - **A. OCR 없이 이미지/PDF를 LLM에 바로 넣기**  
-  최근 연구들은 “강한 MLLM이면 OCR이 꼭 필요하지 않을 수도 있다”는 결과를 내기도 합니다. ([arxiv.org](https://arxiv.org/abs/2603.02789?utm_source=openai))  
+  최근 연구들은 “강한 MLLM이면 OCR이 꼭 필요하지 않을 수도 있다”는 결과를 내기도 합니다.[^2]  
   다만 실무에서는 *좌표/근거/셀 단위 정합성* 때문에 OCR/Layout를 완전히 빼기 어렵습니다.
 
 - **B. OCR/Layout로 ‘구조’를 잡고, LLM은 ‘의미를 스키마로’ 정렬**  
-  이 접근이 현업에서 가장 재현성이 좋습니다. Azure Document Intelligence v4.0이 문서 구조/표/그림을 Markdown 등으로 내보내 RAG/후처리에 쓰는 방향을 강조한 것도 같은 맥락입니다. ([techcommunity.microsoft.com](https://techcommunity.microsoft.com/blog/azure-ai-foundry-blog/announcing-the-general-availability-of-document-intelligence-v4-0-api/4357988/?utm_source=openai))  
-  Google Document AI도 Layout parser로 텍스트·표·리스트를 추출하고 “context-aware chunk”를 만들어 검색/생성형 워크플로우에 붙이는 흐름을 문서로 제공합니다. ([docs.cloud.google.com](https://docs.cloud.google.com/document-ai/docs/layout-parse-chunk?utm_source=openai))
+  이 접근이 현업에서 가장 재현성이 좋습니다. Azure Document Intelligence v4.0이 문서 구조/표/그림을 Markdown 등으로 내보내 RAG/후처리에 쓰는 방향을 강조한 것도 같은 맥락입니다.[^3]  
+  Google Document AI도 Layout parser로 텍스트·표·리스트를 추출하고 “context-aware chunk”를 만들어 검색/생성형 워크플로우에 붙이는 흐름을 문서로 제공합니다.[^4]
 
 핵심은: **Layout(좌표/구조)은 deterministic하게**, **의미 매핑/정규화는 LLM으로**.
 
 ### 2) 스키마 기반 추출: “프롬프트”가 아니라 “계약(Contract)”
-LLM을 문서 추출에 붙이면 늘 터지는 문제가 “JSON이 깨짐 / 누락 / 타입 틀림”입니다. 이걸 막는 장치가 **Structured Outputs(= JSON Schema 기반 제약 디코딩)** 입니다. OpenAI는 API 레벨에서 JSON Schema 기반 Structured Outputs를 제공하고, 특정 모델 스냅샷에서 지원 범위를 명시합니다. ([platform.openai.com](https://platform.openai.com/docs/guides/structured-outputs?api-mode=chat&utm_source=openai))
+LLM을 문서 추출에 붙이면 늘 터지는 문제가 “JSON이 깨짐 / 누락 / 타입 틀림”입니다. 이걸 막는 장치가 **Structured Outputs(= JSON Schema 기반 제약 디코딩)** 입니다. OpenAI는 API 레벨에서 JSON Schema 기반 Structured Outputs를 제공하고, 특정 모델 스냅샷에서 지원 범위를 명시합니다.[^5]
 
 이게 실무에서 바꾸는 게임의 룰:
 - “모델이 JSON을 잘 찍어주길 바란다”가 아니라
 - **스키마를 계약으로 고정**하고,
 - 모델은 **채우기(fill)** 만 하게 만들 수 있습니다.
-- 그리고 마지막에 **validator-guided repair**(검증기 기반 수선)까지 붙이면, 파이프라인이 견고해집니다(유사 접근이 2026년 논문/아키텍처에서도 반복됩니다). ([arxiv.org](https://arxiv.org/abs/2604.06571?utm_source=openai))
+- 그리고 마지막에 **validator-guided repair**(검증기 기반 수선)까지 붙이면, 파이프라인이 견고해집니다(유사 접근이 2026년 논문/아키텍처에서도 반복됩니다).[^6]
 
 ### 3) 표/페이지 처리에서 중요한 내부 흐름(구조/흐름)
 표·PDF에서 안정적으로 구조화하려면, 보통 아래 순서를 권합니다.
@@ -74,7 +76,7 @@ LLM을 문서 추출에 붙이면 늘 터지는 문제가 “JSON이 깨짐 / �
    - tables: cell grid + row/col span + header candidates
 3. **Chunking(문서 분할)**
    - “페이지 n” 단위가 아니라 **섹션/표 단위**로 자르는 게 포인트  
-   - Google Layout parser가 “chunk”를 강조하는 것도 같은 이유입니다. ([docs.cloud.google.com](https://docs.cloud.google.com/document-ai/docs/layout-parse-chunk?utm_source=openai))
+   - Google Layout parser가 “chunk”를 강조하는 것도 같은 이유입니다.[^4]
 4. **LLM Schema Extraction**
    - 입력: (a) 표의 셀 텍스트 + (b) 주변 캡션/제목 + (c) 좌표 요약
    - 출력: JSON schema(라인아이템 배열, totals, vendor, dates…)
@@ -95,10 +97,10 @@ LLM을 문서 추출에 붙이면 늘 터지는 문제가 “JSON이 깨짐 / �
 아래 예시는 **“PDF 인보이스/거래명세서에서 라인아이템 + 합계 + 세금”**을 뽑아 **DB에 넣기 좋은 JSON**을 만드는 현실형 파이프라인입니다.
 
 - OCR/Layout: (예시로) Azure Document Intelligence Layout을 호출해 텍스트/테이블 구조 확보
-- LLM: OpenAI `gpt-4o-2024-08-06` + **Structured Outputs(JSON Schema)** 로 스키마 강제 ([developers.openai.com](https://developers.openai.com/api/docs/models/gpt-4o?utm_source=openai))
+- LLM: OpenAI `gpt-4o-2024-08-06` + **Structured Outputs(JSON Schema)** 로 스키마 강제[^7]
 - 검증: Pydantic + 합계 일치 검사
 
-> 주의: Azure DI v4.0이 GA이며, 최신 API 버전 업데이트가 권장됩니다. ([learn.microsoft.com](https://learn.microsoft.com/en-us/azure/applied-ai-services/form-recognizer/whats-new?utm_source=openai))
+> 주의: Azure DI v4.0이 GA이며, 최신 API 버전 업데이트가 권장됩니다.[^8]
 
 ### 0) 의존성/환경
 ```bash
@@ -331,10 +333,10 @@ if __name__ == "__main__":
 
 ## ⚡ 실전 팁 & 함정
 ### Best Practice 1) “표 전체를 LLM에 맡기지 말고, 표를 ‘덤프’해서 스키마만 채우게”
-표 추출에서 LLM이 강한 건 “이 셀들이 어떤 의미인지”를 매핑하는 능력이지, 픽셀에서 그리드를 재구성하는 능력이 아닙니다. 그래서 **Layout/OCR 엔진으로 셀을 확보**하고, LLM은 **스키마 필드 채우기**에 집중시키는 게 비용/성능/재현성 균형이 좋습니다. (Google Layout parser가 테이블/리스트를 뽑아 chunk를 만드는 방향도 이 철학과 맞습니다. ([docs.cloud.google.com](https://docs.cloud.google.com/document-ai/docs/layout-parse-chunk?utm_source=openai)))
+표 추출에서 LLM이 강한 건 “이 셀들이 어떤 의미인지”를 매핑하는 능력이지, 픽셀에서 그리드를 재구성하는 능력이 아닙니다. 그래서 **Layout/OCR 엔진으로 셀을 확보**하고, LLM은 **스키마 필드 채우기**에 집중시키는 게 비용/성능/재현성 균형이 좋습니다. (Google Layout parser가 테이블/리스트를 뽑아 chunk를 만드는 방향도 이 철학과 맞습니다.[^4])
 
 ### Best Practice 2) “스키마 강제 + validator-guided repair”를 기본값으로
-- Structured Outputs로 1차 방어(스키마 일탈 차단) ([platform.openai.com](https://platform.openai.com/docs/guides/structured-outputs?api-mode=chat&utm_source=openai))
+- Structured Outputs로 1차 방어(스키마 일탈 차단)[^5]
 - 그 다음 **비즈니스 검증(합계/세금/통화)** 를 2차 방어로 둡니다.
 - 실패 시 재시도는 “같은 프롬프트 반복”이 아니라:
   - chunk를 다르게 구성(표 + 캡션만)
@@ -344,15 +346,15 @@ if __name__ == "__main__":
 이런 식으로 “실패 원인”을 바꾸는 재시도가 효율적입니다.
 
 ### Best Practice 3) Chunking은 “페이지”가 아니라 “의미 단위(표/섹션)”로
-200페이지 PDF를 통으로 넣고 JSON 한 번에 뽑으려다 깨지는 사례는 커뮤니티에서도 반복됩니다(대개 invalid schema / truncation). ([reddit.com](https://www.reddit.com/r/GeminiAI/comments/1p59pkq/vertex_ai_gemini_fails_on_large_200_page_pdfs/?utm_source=openai))  
+200페이지 PDF를 통으로 넣고 JSON 한 번에 뽑으려다 깨지는 사례는 커뮤니티에서도 반복됩니다(대개 invalid schema / truncation).[^9]  
 **문서→섹션→표**로 분할하고, 마지막에 머지(merge)하세요.
 
 ### 흔한 함정/안티패턴
-- **“Queries로 표 전체를 뽑자”**: Textract Queries는 표 전체/행·열 전체 추출이 지원되지 않는 제한이 문서에 명시돼 있습니다. ([docs.aws.amazon.com](https://docs.aws.amazon.com/textract/latest/dg/bestqueries.html?utm_source=openai))  
+- **“Queries로 표 전체를 뽑자”**: Textract Queries는 표 전체/행·열 전체 추출이 지원되지 않는 제한이 문서에 명시돼 있습니다.[^1]  
   → Queries는 *특정 키-값*이나 제한된 질의에 쓰고, 표는 TABLES 기능/레이아웃 기반으로 처리하는 식으로 역할 분담이 필요합니다.
-- **모델/엔진 업그레이드를 단순 버전업으로 취급**: Document AI 계열은 버전업 시 레이아웃 가정이 바뀌어 추출 결과가 달라질 수 있습니다(실무 체감 이슈로 자주 나옵니다). ([reddit.com](https://www.reddit.com/r/AZURE/comments/1s2i5gr/experiencing_decreased_accuracy_with_doc/?utm_source=openai))  
+- **모델/엔진 업그레이드를 단순 버전업으로 취급**: Document AI 계열은 버전업 시 레이아웃 가정이 바뀌어 추출 결과가 달라질 수 있습니다(실무 체감 이슈로 자주 나옵니다).[^10]  
   → “리그레션 테스트 세트(실제 문서 100~500개)”를 고정해 CI에서 비교하세요.
-- **LLM 단독 OCR로 비용 폭발**: “LLM OCR이 표에서 전통 OCR보다 낫다”는 주장도 있으나, 벤더/문서 특성/비용 구조에 따라 다릅니다. ([parsli.co](https://parsli.co/blog/llm-ocr-vs-traditional-ocr?utm_source=openai))  
+- **LLM 단독 OCR로 비용 폭발**: “LLM OCR이 표에서 전통 OCR보다 낫다”는 주장도 있으나, 벤더/문서 특성/비용 구조에 따라 다릅니다.[^11]  
   → 고정형 대량은 전통 OCR이 유리, 변형 많은 표-heavy는 하이브리드/LLM이 유리인 경우가 많습니다.
 
 ### 비용/성능/안정성 트레이드오프(현실적 가이드)
@@ -374,8 +376,18 @@ if __name__ == "__main__":
 3) 운영 요구(비용, SLA, 감사/재현성)가 빡센가? → Structured Outputs + validator + 리그레션 테스트가 필수
 
 다음 학습 추천:
-- Google Document AI Layout parser 기반 chunking/테이블 추출 흐름(“layout → chunk”) ([docs.cloud.google.com](https://docs.cloud.google.com/document-ai/docs/layout-parse-chunk?utm_source=openai))
-- OpenAI Structured Outputs(JSON Schema)로 “추출 결과를 계약화”하는 패턴 ([platform.openai.com](https://platform.openai.com/docs/guides/structured-outputs?api-mode=chat&utm_source=openai))
-- Azure Document Intelligence v4.0의 구조/표 중심 출력과 RAG 결합 방향 ([techcommunity.microsoft.com](https://techcommunity.microsoft.com/blog/azure-ai-foundry-blog/announcing-the-general-availability-of-document-intelligence-v4-0-api/4357988/?utm_source=openai))
+- Google Document AI Layout parser 기반 chunking/테이블 추출 흐름(“layout → chunk”)[^4]
+- OpenAI Structured Outputs(JSON Schema)로 “추출 결과를 계약화”하는 패턴[^5]
+- Azure Document Intelligence v4.0의 구조/표 중심 출력과 RAG 결합 방향[^3]
 
-원하면, (1) “인보이스/거래명세서/재무제표” 중 어떤 문서인지, (2) 월 처리량과 허용 비용, (3) 반드시 맞아야 하는 필드(예: line_items vs total) 3가지만 알려주시면 위 코드/아키텍처를 그 조건에 맞춰 더 구체적으로 튜닝해드릴게요.
+[^1]: <https://docs.aws.amazon.com/textract/latest/dg/bestqueries.html>
+[^2]: <https://arxiv.org/abs/2603.02789>
+[^3]: <https://techcommunity.microsoft.com/blog/azure-ai-foundry-blog/announcing-the-general-availability-of-document-intelligence-v4-0-api/4357988/>
+[^4]: <https://docs.cloud.google.com/document-ai/docs/layout-parse-chunk>
+[^5]: <https://platform.openai.com/docs/guides/structured-outputs?api-mode=chat>
+[^6]: <https://arxiv.org/abs/2604.06571>
+[^7]: <https://developers.openai.com/api/docs/models/gpt-4o>
+[^8]: <https://learn.microsoft.com/en-us/azure/applied-ai-services/form-recognizer/whats-new>
+[^9]: <https://www.reddit.com/r/GeminiAI/comments/1p59pkq/vertex_ai_gemini_fails_on_large_200_page_pdfs/>
+[^10]: <https://www.reddit.com/r/AZURE/comments/1s2i5gr/experiencing_decreased_accuracy_with_doc/>
+[^11]: <https://parsli.co/blog/llm-ocr-vs-traditional-ocr>

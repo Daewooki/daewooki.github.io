@@ -1,12 +1,14 @@
 ---
-title: "LLM Batch Inference API “대량 처리 비용” 실전 가이드 (2026년 7월 기준): 50% 할인만 믿었다가 망하는 지점들"
+title: "LLM Batch Inference API “대량 처리 비용” 실전 가이드: 50% 할인만 믿었다가 망하는 지점들"
+description: "대량 LLM 작업(문서 요약/분류/정규화, 로그·CS 티켓 라벨링, 카탈로그 정제, 대규모 RAG 인덱싱 전처리)을 synchronous API로 밀어 넣으면 보통 두 가지가 먼저 터집니다."
 date: 2026-07-25 03:25:00 +0900
 categories: [AI, MLOps]
-tags: [ai, mlops, trend, 2026-07]
+tags: [ai, mlops]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -21,7 +23,7 @@ tags: [ai, mlops, trend, 2026-07]
 - **비용**: “토큰 단가 × 요청 수”가 직선으로 증가
 - **처리량**: RPM/TPM 제한 + 워커 수를 늘릴수록 재시도 폭탄
 
-여기서 Batch inference API(비동기 배치 추론)는 “실시간 응답”을 포기하는 대신, **단가(대체로 ~50% 할인) + 더 큰 throughput**을 얻는 선택지입니다. OpenAI Batch API는 *synchronous 대비 50% 할인*을 명시하고 있고, AWS Bedrock도 *batch inference가 on-demand 대비 50% 저렴*하다고 안내합니다. ([help.openai.com](https://help.openai.com/en/articles/9197833-batch-api-faq%3F.gz))
+여기서 Batch inference API(비동기 배치 추론)는 “실시간 응답”을 포기하는 대신, **단가(대체로 ~50% 할인) + 더 큰 throughput**을 얻는 선택지입니다. OpenAI Batch API는 *synchronous 대비 50% 할인*을 명시하고 있고, AWS Bedrock도 *batch inference가 on-demand 대비 50% 저렴*하다고 안내합니다.[^1]
 
 언제 쓰면 좋은가
 - 결과를 **몇 분~몇 시간 뒤** 받아도 되는 오프라인/비동기성 파이프라인
@@ -57,12 +59,12 @@ Batch API는 보통 다음 흐름입니다.
 - 데이터 레지던시/geo 옵션(일부는 가산)
 - 실패/재시도/중복 처리(파이프라인 설계 비용)
 
-예를 들어 OpenAI 쪽 문서에는 특정 모델의 **Batch API token 가격(예: GPT-5.5: input $5 / cached input $0.5 / output $30 per 1M tokens)** 이 표기되어 있어, “캐시를 얼마나 먹이느냐”가 배치 비용의 체감에 직결됩니다. ([developers.openai.com](https://developers.openai.com/api/docs/models/gpt-5.5))  
-그리고 OpenAI Batch API FAQ는 **synchronous 대비 50% 할인**을 명시합니다. ([help.openai.com](https://help.openai.com/en/articles/9197833-batch-api-faq%3F.gz))
+예를 들어 OpenAI 쪽 문서에는 특정 모델의 **Batch API token 가격(예: GPT-5.5: input $5 / cached input $0.5 / output $30 per 1M tokens)** 이 표기되어 있어, “캐시를 얼마나 먹이느냐”가 배치 비용의 체감에 직결됩니다.[^2]  
+그리고 OpenAI Batch API FAQ는 **synchronous 대비 50% 할인**을 명시합니다.[^1]
 
-Anthropic 쪽도 “Batch processing tier” 단가를 별도로 두고(예: Claude 3.7 Sonnet 기준 input/output가 standard의 절반 수준으로 표기) 토큰·캐시 항목을 분리해 가격표에 제공합니다. ([www-cdn.anthropic.com](https://www-cdn.anthropic.com/files/4zrzovbb/website/3684c2faafb97418665782cea0001f439f74b1d2.pdf))
+Anthropic 쪽도 “Batch processing tier” 단가를 별도로 두고(예: Claude 3.7 Sonnet 기준 input/output가 standard의 절반 수준으로 표기) 토큰·캐시 항목을 분리해 가격표에 제공합니다.[^3]
 
-AWS Bedrock도 batch inference는 on-demand 대비 **50% 낮은 가격**이라고 안내하며, 특정 기간 프로모션 가격(예: 2026-08-31 종료)처럼 **날짜에 따른 가격 변화**도 있으니 “이번 달 견적”은 항상 고정값이 아닙니다. ([aws.amazon.com](https://aws.amazon.com/bedrock/pricing/?linkId=766764308&sc_campaign=Support&sc_channel=sm&sc_content=Support&sc_country=global&sc_geo=GLOBAL&sc_outcome=AWS+Support&sc_publisher=REDDIT&trk=Support))
+AWS Bedrock도 batch inference는 on-demand 대비 **50% 낮은 가격**이라고 안내하며, 특정 기간 프로모션 가격(예: 2026-08-31 종료)처럼 **날짜에 따른 가격 변화**도 있으니 “이번 달 견적”은 항상 고정값이 아닙니다.[^4]
 
 ### 3) “Batch vs Streaming/Sync”의 구조적 차이
 - Sync: 클라이언트가 latency를 직접 부담, 공급자는 피크 대비 용량을 확보해야 함 → 단가↑
@@ -252,8 +254,8 @@ downloaded results.jsonl
 배치 비용 사고의 80%는 “요약인데 모델이 장문을 써버린 케이스”입니다. `max_output_tokens`를 박고, JSON schema(또는 엄격한 포맷)로 출력 폭을 제한하세요.
 
 2) **공통 prefix는 prompt caching/cached input을 강제 활용**  
-OpenAI는 cached input이 일반 input 대비 훨씬 저렴한 가격 항목으로 분리돼 있고(모델별 표 참조), 캐시를 먹이면 배치 할인보다 체감이 더 커질 수 있습니다. ([developers.openai.com](https://developers.openai.com/api/docs/models/gpt-5.5))  
-Anthropic도 cache write/read가 별도 항목이며 batch tier와 함께 고려하게 되어 있습니다. ([www-cdn.anthropic.com](https://www-cdn.anthropic.com/files/4zrzovbb/website/3684c2faafb97418665782cea0001f439f74b1d2.pdf))
+OpenAI는 cached input이 일반 input 대비 훨씬 저렴한 가격 항목으로 분리돼 있고(모델별 표 참조), 캐시를 먹이면 배치 할인보다 체감이 더 커질 수 있습니다.[^2]  
+Anthropic도 cache write/read가 별도 항목이며 batch tier와 함께 고려하게 되어 있습니다.[^3]
 
 3) **멱등성 키 + “재배치 전용 파이프”**를 분리  
 배치는 “언젠가 완료” 모델이라 운영 중 타임아웃/부분 실패는 정상입니다. `custom_id`를 DB primary key로 매핑하고, (a) 최초 대량 배치 (b) 실패 재배치 (c) 포맷 검증 실패 재처리 를 워크플로 레벨에서 분리하면 운영 난이도가 급감합니다.
@@ -264,7 +266,7 @@ Anthropic도 cache write/read가 별도 항목이며 batch tier와 함께 고려
 - 배치 파일을 너무 크게 만들고 **관측/리트라이 단위를 잃는 것**  
   10만 건 1잡보다, 1만 건 × 10잡이 장애 격리와 재처리에 유리한 경우가 많습니다(특히 출력 포맷 검증이 빡센 작업).
 - US-only/geo 제약, 프로모션 종료일을 무시한 비용 산정  
-  Bedrock은 2026-08-31 같은 **프로모션 종료일**이 명시된 항목이 있습니다. 견적서에 “언제 가격이 바뀌는지” 날짜를 같이 박아두세요. ([aws.amazon.com](https://aws.amazon.com/bedrock/pricing/?linkId=766764308&sc_campaign=Support&sc_channel=sm&sc_content=Support&sc_country=global&sc_geo=GLOBAL&sc_outcome=AWS+Support&sc_publisher=REDDIT&trk=Support))
+  Bedrock은 2026-08-31 같은 **프로모션 종료일**이 명시된 항목이 있습니다. 견적서에 “언제 가격이 바뀌는지” 날짜를 같이 박아두세요.[^4]
 
 ### 비용/성능/안정성 트레이드오프 한 줄 요약
 - **비용↓**: batch + caching + 출력 상한
@@ -278,11 +280,14 @@ Anthropic도 cache write/read가 별도 항목이며 batch tier와 함께 고려
 
 1) 워크로드가 **비동기 완료**를 허용한다  
 2) `custom_id` 기반으로 **부분 실패를 재처리**할 수 있다  
-3) prompt caching/cached input + output cap으로 **토큰 구조를 통제**한다 ([developers.openai.com](https://developers.openai.com/api/docs/models/gpt-5.5))
+3) prompt caching/cached input + output cap으로 **토큰 구조를 통제**한다[^2]
 
 다음 학습 추천(바로 실무 적용 관점)
 - 워크플로 엔진(Temporal/Airflow)로 “배치 제출→폴링→수거→재배치”를 상태 머신으로 만들기
 - 결과 JSON schema 검증(예: jsonschema) + validation fail 전용 재처리 큐 설계
 - 비용 모델링: 문서 길이 분포 기반으로 input/output 토큰 p50/p95를 추정하고, batch 단위(1k/5k/10k)별 실패 격리 비용까지 포함한 TCO 산정
 
-원하시면, **(1) OpenAI/Anthropic/Bedrock 중 어떤 벤더를 쓰는지**, **(2) 평균 input/output 토큰 분포**, **(3) 허용 가능한 완료 시간(SLA)** 을 알려주시면, 그 조건으로 “월 1M/10M/100M 요청” 수준의 **비용 시뮬레이션 표 + 권장 배치 크기**까지 같이 만들어드릴게요.
+[^1]: <https://help.openai.com/en/articles/9197833-batch-api-faq%3F.gz>
+[^2]: <https://developers.openai.com/api/docs/models/gpt-5.5>
+[^3]: <https://www-cdn.anthropic.com/files/4zrzovbb/website/3684c2faafb97418665782cea0001f439f74b1d2.pdf>
+[^4]: <https://aws.amazon.com/bedrock/pricing/?linkId=766764308&sc_campaign=Support&sc_channel=sm&sc_content=Support&sc_country=global&sc_geo=GLOBAL&sc_outcome=AWS+Support&sc_publisher=REDDIT&trk=Support>

@@ -1,12 +1,14 @@
 ---
 title: "LLM 앱이 ‘왜/어디서’ 무너지는지 한 번에 추적하기: 2026년 OpenTelemetry GenAI Tracing 실전 가이드"
+description: "LLM 앱이 프로덕션에 올라가면 장애 형태가 전통적인 웹/백엔드와 달라집니다. “요청이 느리다”가 아니라 어떤 프롬프트/도구 호출/검색 결과 조합에서 지연·비용 폭증·환각·루프(반복 tool call)·컨텍스트 누락이 발생합니다."
 date: 2026-05-12 03:54:11 +0900
 categories: [AI, MLOps]
-tags: [ai, mlops, trend, 2026-05]
+tags: [ai, mlops]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -18,7 +20,7 @@ tags: [ai, mlops, trend, 2026-05]
 ## 들어가며
 LLM 앱이 프로덕션에 올라가면 장애 형태가 전통적인 웹/백엔드와 달라집니다. “요청이 느리다”가 아니라 **어떤 프롬프트/도구 호출/검색 결과 조합에서** 지연·비용 폭증·환각·루프(반복 tool call)·컨텍스트 누락이 발생합니다. 이때 로그만으로는 원인 추적이 거의 불가능하고, 벤더별 대시보드만으로는 **서비스 전체(HTTP → queue → worker → DB/vectorDB → LLM → tool)** 흐름을 하나의 실행 맥락으로 보기도 어렵습니다.
 
-그래서 2025년 말~2026년 초에 업계가 빠르게 합의한 방향이 **OpenTelemetry(OTel) tracing + GenAI semantic conventions**입니다. LLM 호출을 “특수한 외부 API”가 아니라, 분산 트레이스의 **표준 span**으로 모델/토큰/캐시/안전필터/툴 호출까지 구조적으로 남겨서, Jaeger/Tempo/Uptrace/SigNoz/LangSmith 등 어디로든 보낼 수 있게 만드는 접근입니다. ([opentelemetry.io](https://opentelemetry.io/docs/specs/semconv/gen-ai/?utm_source=openai))
+그래서 2025년 말~2026년 초에 업계가 빠르게 합의한 방향이 **OpenTelemetry(OTel) tracing + GenAI semantic conventions**입니다. LLM 호출을 “특수한 외부 API”가 아니라, 분산 트레이스의 **표준 span**으로 모델/토큰/캐시/안전필터/툴 호출까지 구조적으로 남겨서, Jaeger/Tempo/Uptrace/SigNoz/LangSmith 등 어디로든 보낼 수 있게 만드는 접근입니다.[^1]
 
 **언제 쓰면 좋나**
 - RAG/Agent처럼 단계가 많고(검색→정제→LLM→툴→재질문…), 장애가 “특정 단계”에서 난다.
@@ -26,7 +28,7 @@ LLM 앱이 프로덕션에 올라가면 장애 형태가 전통적인 웹/백엔
 - LLM 벤더/프레임워크를 자주 바꾸거나(멀티 LLM, 라우팅), 팀/서비스 경계(마이크로서비스, 워커, 메시지큐)를 넘는다.
 
 **언제는 오히려 독이 되나**
-- PII/기밀 프롬프트가 많고, 조직적으로 “content capture 금지”가 확고한데(감사/컴플라이언스) 아직 redaction 파이프라인이 없다. GenAI conventions는 프롬프트/완성 텍스트를 event로 남길 수 있어 위험합니다. ([uptrace.dev](https://uptrace.dev/blog/opentelemetry-ai-systems?utm_source=openai))
+- PII/기밀 프롬프트가 많고, 조직적으로 “content capture 금지”가 확고한데(감사/컴플라이언스) 아직 redaction 파이프라인이 없다. GenAI conventions는 프롬프트/완성 텍스트를 event로 남길 수 있어 위험합니다.[^2]
 - 트래픽이 너무 큰데(대량 챗봇) 샘플링/필터링 없이 span을 모두 수집하려 한다 → 비용/성능이 관측 자체 때문에 터집니다(collector/스토리지 포함).
 
 ---
@@ -49,20 +51,20 @@ OTel은 원래 HTTP/DB 같은 범용 semantic conventions가 강합니다. GenAI
 - `gen_ai.operation.name` (chat, embeddings 등)
 - `gen_ai.system` (openai, anthropic 등)
 - `gen_ai.request.model` (요청한 모델)
-- (선택) prompt/completion content를 span event로 남기는 구조(프라이버시 이슈로 기본 비활성 권장) ([opentelemetry.io](https://opentelemetry.io/docs/specs/semconv/gen-ai/?utm_source=openai))
+- (선택) prompt/completion content를 span event로 남기는 구조(프라이버시 이슈로 기본 비활성 권장)[^1]
 
 이 표준화가 없으면 팀마다 `model`, `llm_model`, `openai_model` 같은 태그 난립 → 검색/알람/대시보드가 깨집니다.
 
 ### 3) OpenAI Agents SDK / LangChain 생태계의 변화(2026년 5월 관점)
-- OpenAI Agents SDK는 tracing 표면을 제공하고, 민감 데이터 포함 여부를 환경변수로 제어하는 등 “기본값은 보수적으로” 설계되어 있습니다. ([openai.github.io](https://openai.github.io/openai-agents-python/tracing/?utm_source=openai))  
-- Grafana는 Agents SDK + OTel로 Tempo(또는 Grafana Cloud Traces)로 보내는 예시를 공식 블로그로 안내했습니다. ([grafana.com](https://grafana.com/blog/observing-agentic-ai-workflows-with-grafana-cloud-opentelemetry-and-the-openai-agents-sdk/?utm_source=openai))  
-- LangSmith는 OTel을 end-to-end로 지원해, “OTel로 표준화”한 뒤 LangChain 런을 관측하는 흐름을 제공합니다. ([blog.langchain.dev](https://blog.langchain.dev/end-to-end-opentelemetry-langsmith/?utm_source=openai))  
-- 관측 글들에서 공통으로 강조하는 포인트는 **content capture/샘플링/컨텍스트 전파**(특히 멀티 워커·큐·멀티 에이전트)입니다. ([uptrace.dev](https://uptrace.dev/blog/opentelemetry-ai-systems?utm_source=openai))
+- OpenAI Agents SDK는 tracing 표면을 제공하고, 민감 데이터 포함 여부를 환경변수로 제어하는 등 “기본값은 보수적으로” 설계되어 있습니다.[^3]  
+- Grafana는 Agents SDK + OTel로 Tempo(또는 Grafana Cloud Traces)로 보내는 예시를 공식 블로그로 안내했습니다.[^4]  
+- LangSmith는 OTel을 end-to-end로 지원해, “OTel로 표준화”한 뒤 LangChain 런을 관측하는 흐름을 제공합니다.[^5]  
+- 관측 글들에서 공통으로 강조하는 포인트는 **content capture/샘플링/컨텍스트 전파**(특히 멀티 워커·큐·멀티 에이전트)입니다.[^2]
 
 ---
 
 ## 💻 실전 코드
-아래는 “웹 API + 워커” 구조에서 **하나의 trace로** (1) HTTP 요청, (2) RAG retrieval, (3) OpenAI Agents SDK 에이전트 실행, (4) 결과 반환을 연결해 보는 현실형 예제입니다. 백엔드는 **OTel Collector → Grafana Tempo**로 가정합니다(벤더는 Uptrace/SigNoz 등으로 바꿔도 동일). Grafana가 Agents SDK + OTel 내보내기를 안내한 흐름을 그대로 따라가되, RAG span/속성/민감정보 전략까지 포함합니다. ([grafana.com](https://grafana.com/blog/observing-agentic-ai-workflows-with-grafana-cloud-opentelemetry-and-the-openai-agents-sdk/?utm_source=openai))
+아래는 “웹 API + 워커” 구조에서 **하나의 trace로** (1) HTTP 요청, (2) RAG retrieval, (3) OpenAI Agents SDK 에이전트 실행, (4) 결과 반환을 연결해 보는 현실형 예제입니다. 백엔드는 **OTel Collector → Grafana Tempo**로 가정합니다(벤더는 Uptrace/SigNoz 등으로 바꿔도 동일). Grafana가 Agents SDK + OTel 내보내기를 안내한 흐름을 그대로 따라가되, RAG span/속성/민감정보 전략까지 포함합니다.[^4]
 
 ### 1) 로컬 실행 구성(Collector + Tempo)
 ```bash
@@ -168,7 +170,7 @@ tracer = trace.get_tracer("demo")
 
 # 민감 데이터(프롬프트/응답)를 trace에 포함할지: 기본은 false 권장
 # SDK가 환경변수로 제어 가능하다고 명시
-os.environ.setdefault("OPENAI_AGENTS_TRACE_INCLUDE_SENSITIVE_DATA", "0")  # ([openai.github.io](https://openai.github.io/openai-agents-python/tracing/?utm_source=openai))
+os.environ.setdefault("OPENAI_AGENTS_TRACE_INCLUDE_SENSITIVE_DATA", "0")  #[^3]
 
 # ---- App ----
 app = FastAPI()
@@ -223,14 +225,14 @@ async def chat(req: ChatReq):
 
 **예상 출력/관측 포인트**
 - Tempo/Jaeger UI에서 하나의 trace 안에 `chat.request` → `rag.retrieve` → (Agents SDK가 생성한) `chat openai`/tool spans가 트리로 보여야 합니다.
-- `OPENAI_AGENTS_TRACE_INCLUDE_SENSITIVE_DATA=0`이면 prompt/completion 전문이 이벤트로 찍히지 않거나 최소화되어야 합니다. ([openai.github.io](https://openai.github.io/openai-agents-python/tracing/?utm_source=openai))
+- `OPENAI_AGENTS_TRACE_INCLUDE_SENSITIVE_DATA=0`이면 prompt/completion 전문이 이벤트로 찍히지 않거나 최소화되어야 합니다.[^3]
 
 ### 3) 확장: “GenAI 표준 속성”을 내 파이프라인 span에도 연결하기
 LLM span만 표준화하면 “retrieval이 어떤 모델 호출로 이어졌는지”를 쿼리하기 어렵습니다. 실무에서는 상위 span에 아래 같은 correlation 속성을 같이 넣습니다.
 - `gen_ai.request.model`(실제 선택된 모델)
 - `gen_ai.operation.name`(chat/embeddings)
 - `llm.route`(router 결정: cheap vs smart)
-이렇게 하면 “특정 모델 선택 시 retrieval p95가 왜 늘었지?” 같은 교차 분석이 쉬워집니다. GenAI conventions 자체가 표준 키를 제공한다는 점이 이득입니다. ([opentelemetry.io](https://opentelemetry.io/docs/specs/semconv/gen-ai/?utm_source=openai))
+이렇게 하면 “특정 모델 선택 시 retrieval p95가 왜 늘었지?” 같은 교차 분석이 쉬워집니다. GenAI conventions 자체가 표준 키를 제공한다는 점이 이득입니다.[^1]
 
 ---
 
@@ -239,10 +241,10 @@ LLM span만 표준화하면 “retrieval이 어떤 모델 호출로 이어졌는
 프롬프트/응답을 trace 이벤트로 남기면 디버깅은 쉬워지지만, 저장·전송·접근권한이 전부 사고 지점이 됩니다. 실무 팁:
 - 기본값은 **미수집**(또는 최소 수집)으로 두고, 장애 세션에만 “승인된 토큰/기간”으로 활성화
 - Collector에서 **redaction/필터링/샘플링**을 중앙 통제(앱 코드에 흩뿌리지 말기)
-Uptrace 쪽 가이드도 “기본 비활성 + redaction/필터링/샘플링”을 강하게 권장합니다. ([uptrace.dev](https://uptrace.dev/blog/opentelemetry-ai-systems?utm_source=openai))
+Uptrace 쪽 가이드도 “기본 비활성 + redaction/필터링/샘플링”을 강하게 권장합니다.[^2]
 
 ### Best Practice 2) 컨텍스트 전파가 ‘멀티 에이전트/큐’에서 제일 자주 깨진다
-요즘 장애의 1순위는 LLM 자체보다 “워크플로우 연결”입니다. 한 에이전트가 다른 워커에 작업을 던지면 trace가 두 동강 나서, 원인 분석이 불가능해집니다. 메시지큐 헤더/메타데이터로 W3C tracecontext를 전파하고, 소비자 쪽에서 parent를 이어붙이세요. 멀티 에이전트에서 이걸 강조하는 글이 많습니다. ([zylos.ai](https://zylos.ai/research/2026-02-28-opentelemetry-ai-agent-observability?utm_source=openai))
+요즘 장애의 1순위는 LLM 자체보다 “워크플로우 연결”입니다. 한 에이전트가 다른 워커에 작업을 던지면 trace가 두 동강 나서, 원인 분석이 불가능해집니다. 메시지큐 헤더/메타데이터로 W3C tracecontext를 전파하고, 소비자 쪽에서 parent를 이어붙이세요. 멀티 에이전트에서 이걸 강조하는 글이 많습니다.[^6]
 
 ### 함정 1) “LLM span만” 찍고 끝내기
 LLM 호출 span은 눈에 잘 띄지만, 실제 병목은 retrieval(느린 vector search), rerank, tool(외부 API rate limit), DB 트랜잭션인 경우가 더 많습니다. LLM 주변 단계도 **같은 trace 트리 안에** 있어야 “내가 고칠 지점”이 보입니다.
@@ -256,11 +258,18 @@ LLM 트래픽은 span당 attribute가 많고(모델/토큰/에러/재시도…),
 ---
 
 ## 🚀 마무리
-2026년 5월 기준 LLM/Agent observability의 실전 해답은 “특정 벤더 툴”이 아니라 **OpenTelemetry tracing 위에 GenAI semantic conventions로 표준화**하는 쪽으로 빠르게 수렴하고 있습니다. ([opentelemetry.io](https://opentelemetry.io/docs/specs/semconv/gen-ai/?utm_source=openai))  
+2026년 5월 기준 LLM/Agent observability의 실전 해답은 “특정 벤더 툴”이 아니라 **OpenTelemetry tracing 위에 GenAI semantic conventions로 표준화**하는 쪽으로 빠르게 수렴하고 있습니다.[^1]  
 도입 판단 기준은 간단합니다.
 
 - **워크플로우가 3단계 이상**(RAG/Agent/tool)이고, 장애 원인이 “조합”에서 발생한다 → OTel tracing이 거의 필수
 - 프롬프트/응답이 민감하다 → content capture는 기본 off, collector에서 redaction/샘플링 체계를 먼저
 - 조직 내 서비스가 여러 개다 → tracecontext 전파(HTTP/queue)까지 설계에 포함
 
-다음 학습으로는 (1) OTel GenAI semantic conventions 문서로 표준 attribute/event를 확정하고, ([opentelemetry.io](https://opentelemetry.io/docs/specs/semconv/gen-ai/?utm_source=openai)) (2) OpenAI Agents SDK tracing 옵션과 민감 데이터 플래그의 동작을 실제로 검증한 뒤 ([openai.github.io](https://openai.github.io/openai-agents-python/tracing/?utm_source=openai)) (3) collector에서 tail sampling + redaction 파이프라인을 구축하는 순서를 추천합니다.
+다음 학습으로는 (1) OTel GenAI semantic conventions 문서로 표준 attribute/event를 확정하고,[^1] (2) OpenAI Agents SDK tracing 옵션과 민감 데이터 플래그의 동작을 실제로 검증한 뒤[^3] (3) collector에서 tail sampling + redaction 파이프라인을 구축하는 순서를 추천합니다.
+
+[^1]: <https://opentelemetry.io/docs/specs/semconv/gen-ai/>
+[^2]: <https://uptrace.dev/blog/opentelemetry-ai-systems>
+[^3]: <https://openai.github.io/openai-agents-python/tracing/>
+[^4]: <https://grafana.com/blog/observing-agentic-ai-workflows-with-grafana-cloud-opentelemetry-and-the-openai-agents-sdk/>
+[^5]: <https://blog.langchain.dev/end-to-end-opentelemetry-langsmith/>
+[^6]: <https://zylos.ai/research/2026-02-28-opentelemetry-ai-agent-observability>

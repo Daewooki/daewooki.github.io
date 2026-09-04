@@ -1,12 +1,14 @@
 ---
-title: "2026년 7월 기준: FastAPI로 LLM API 서버 “진짜” 스트리밍(SSE) 구축하기 — 끊김/버퍼링/취소까지 엔드투엔드로 잡는 법"
+title: "FastAPI로 LLM API 서버 “진짜” 스트리밍(SSE) 구축하기 — 끊김/버퍼링/취소까지 엔드투엔드로 잡는 법"
+description: "LLM API 서버에서 “스트리밍”은 단순히 yield로 토큰을 흘려보내는 문제가 아닙니다. 실무에서는 다음이 같이 터집니다."
 date: 2026-07-28 03:19:37 +0900
 categories: [Backend, API]
-tags: [backend, api, trend, 2026-07]
+tags: [backend, api]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -23,7 +25,7 @@ LLM API 서버에서 “스트리밍”은 단순히 `yield`로 토큰을 흘려
 - **동시 접속이 늘면** worker/connection이 잠기고 tail latency가 폭증 (SSE는 “연결을 오래 잡는” 모델)
 - **관측/재시도/에러 모델**이 없어서 운영 중 디버깅이 불가능
 
-2026년 7월 기준으로는, 브라우저 호환성과 운영 난이도를 감안하면 **SSE(Server-Sent Events)** 가 “LLM 텍스트 스트리밍”의 기본 선택지가 되는 경우가 많습니다(특히 OpenAI류 API처럼 토큰/델타 이벤트를 흘리고 싶을 때). FastAPI 공식 문서도 SSE 튜토리얼을 제공하고, Nginx 버퍼링 방지 헤더(`X-Accel-Buffering: no`) 같은 실전 포인트를 명시합니다. ([fastapi.tiangolo.com](https://fastapi.tiangolo.com/tutorial/server-sent-events/?utm_source=openai))
+2026년 7월 기준으로는, 브라우저 호환성과 운영 난이도를 감안하면 **SSE(Server-Sent Events)** 가 “LLM 텍스트 스트리밍”의 기본 선택지가 되는 경우가 많습니다(특히 OpenAI류 API처럼 토큰/델타 이벤트를 흘리고 싶을 때). FastAPI 공식 문서도 SSE 튜토리얼을 제공하고, Nginx 버퍼링 방지 헤더(`X-Accel-Buffering: no`) 같은 실전 포인트를 명시합니다.[^1]
 
 **언제 쓰면 좋은가**
 - 브라우저/모바일에서 **실시간 생성 UX**(typing effect, 부분 결과 표시)가 필요
@@ -38,7 +40,7 @@ LLM API 서버에서 “스트리밍”은 단순히 `yield`로 토큰을 흘려
 
 ## 🔧 핵심 개념
 ### 1) SSE vs 일반 StreamingResponse: “프레이밍”이 핵심
-FastAPI의 `StreamingResponse`는 바이트 청크를 그대로 흘려보내는 저수준 도구입니다. FastAPI 문서도 “그대로 chunk를 전달하며 JSON 변환 같은 건 안 한다”고 명시합니다. ([fastapi.tiangolo.com](https://fastapi.tiangolo.com/advanced/stream-data/?utm_source=openai))  
+FastAPI의 `StreamingResponse`는 바이트 청크를 그대로 흘려보내는 저수준 도구입니다. FastAPI 문서도 “그대로 chunk를 전달하며 JSON 변환 같은 건 안 한다”고 명시합니다.[^2]  
 하지만 LLM 스트리밍에서 클라이언트가 기대하는 건 대개 **이벤트 프레이밍**입니다.
 
 - SSE는 `text/event-stream` 포맷으로
@@ -47,13 +49,13 @@ FastAPI의 `StreamingResponse`는 바이트 청크를 그대로 흘려보내는 
   - 빈 줄로 이벤트 경계
 - 브라우저 `EventSource`/각종 SDK가 이 포맷을 자동 처리
 
-FastAPI SSE 튜토리얼은 `EventSourceResponse`를 사용해 `yield`로 이벤트를 내보내는 패턴을 안내합니다. ([fastapi.tiangolo.com](https://fastapi.tiangolo.com/tutorial/server-sent-events/?utm_source=openai))  
+FastAPI SSE 튜토리얼은 `EventSourceResponse`를 사용해 `yield`로 이벤트를 내보내는 패턴을 안내합니다.[^1]  
 (현장에서 “StreamingResponse로 SSE 흉내”를 내면, keep-alive/ping, disconnect 처리, 포맷 경계에서 사고가 자주 납니다.)
 
 ### 2) “진짜 스트리밍”을 망치는 1순위: 프록시 버퍼링
-Uvicorn 자체는 ASGI `send`에서 **write buffer의 high/low water mark 기반 흐름 제어**를 하며, 무한정 메모리에 쌓지 않도록 설계되어 있습니다. ([uvicorn.org](https://www.uvicorn.org/server-behavior/?utm_source=openai))  
-그런데 앞단에 Nginx 같은 프록시가 있으면 이야기가 달라집니다. Uvicorn 배포 문서 예시에서도 `proxy_buffering off;`를 넣는 구성이 등장합니다. ([uvicorn.org](https://www.uvicorn.org/deployment/?utm_source=openai))  
-FastAPI SSE 튜토리얼은 특히 **`X-Accel-Buffering: no` 헤더**를 언급하며, 일부 프록시에서 버퍼링을 끄지 않으면 SSE가 “중간중간 안 나오고” 뭉쳐 나온다고 짚습니다. ([fastapi.tiangolo.com](https://fastapi.tiangolo.com/tutorial/server-sent-events/?utm_source=openai))
+Uvicorn 자체는 ASGI `send`에서 **write buffer의 high/low water mark 기반 흐름 제어**를 하며, 무한정 메모리에 쌓지 않도록 설계되어 있습니다.[^3]  
+그런데 앞단에 Nginx 같은 프록시가 있으면 이야기가 달라집니다. Uvicorn 배포 문서 예시에서도 `proxy_buffering off;`를 넣는 구성이 등장합니다.[^4]  
+FastAPI SSE 튜토리얼은 특히 **`X-Accel-Buffering: no` 헤더**를 언급하며, 일부 프록시에서 버퍼링을 끄지 않으면 SSE가 “중간중간 안 나오고” 뭉쳐 나온다고 짚습니다.[^1]
 
 즉, 스트리밍 품질은 “앱 코드”만이 아니라 **(클라)–(CDN/LB)–(Nginx)–(ASGI서버)** 전체 체인의 합성 결과입니다.
 
@@ -62,11 +64,11 @@ LLM 스트리밍은 대개 “서버가 모델 제공자(OpenAI 등)로부터 SS
 - **업스트림 LLM 호출을 즉시 중단**해야 비용과 자원을 절약
 - 서버는 **연결 종료 시그널**을 감지하고, 태스크/소켓/큐를 정리해야 함
 
-AnyIO의 `CancelScope` 같은 취소 메커니즘은 FastAPI/Starlette 생태계에서 매우 중요합니다. ([anyio.readthedocs.io](https://anyio.readthedocs.io/en/stable/api.html?utm_source=openai))  
-또 Starlette는 sync 코드를 thread pool로 돌리는데, 이 풀은 FastAPI 의존성 처리와도 공유되어 병목이 될 수 있어(스트리밍 중 실수로 blocking 호출을 넣는 순간) 전체 서비스가 느려질 수 있습니다. ([starlette.dev](https://starlette.dev/threadpool/?utm_source=openai))
+AnyIO의 `CancelScope` 같은 취소 메커니즘은 FastAPI/Starlette 생태계에서 매우 중요합니다.[^5]  
+또 Starlette는 sync 코드를 thread pool로 돌리는데, 이 풀은 FastAPI 의존성 처리와도 공유되어 병목이 될 수 있어(스트리밍 중 실수로 blocking 호출을 넣는 순간) 전체 서비스가 느려질 수 있습니다.[^6]
 
 ### 4) 업스트림(OpenAI) 스트리밍 이벤트 모델을 그대로 “중계”할지, “내 도메인 이벤트”로 재정의할지
-OpenAI Python SDK는 2026년 7월에도 SSE 기반 스트리밍을 지원하고, 이벤트를 순회(iteration)하는 형태를 제공합니다. ([github.com](https://github.com/openai/openai-python?utm_source=openai))  
+OpenAI Python SDK는 2026년 7월에도 SSE 기반 스트리밍을 지원하고, 이벤트를 순회(iteration)하는 형태를 제공합니다.[^7]  
 여기서 실무 판단 포인트는:
 
 - **그대로 패스스루**: 구현이 빠르나, 클라/서버 버전 결합도가 커지고 이벤트 스키마 변경 영향이 큼
@@ -78,7 +80,7 @@ OpenAI Python SDK는 2026년 7월에도 SSE 기반 스트리밍을 지원하고,
 요구사항을 “현실적으로” 잡아보겠습니다.
 
 - FastAPI로 `/v1/chat/stream` SSE 엔드포인트 제공
-- 업스트림은 OpenAI Responses API를 `stream=True`로 호출해 이벤트를 받음 ([github.com](https://github.com/openai/openai-python?utm_source=openai))
+- 업스트림은 OpenAI Responses API를 `stream=True`로 호출해 이벤트를 받음[^7]
 - 서버는 이벤트를 **SSE로 재포장**해서 전송
 - 클라이언트 disconnect 시 업스트림 스트림을 닫고 정리
 - Nginx 뒤에서도 스트리밍이 깨지지 않게 헤더/설정 포함
@@ -108,14 +110,12 @@ from openai import AsyncOpenAI
 app = FastAPI()
 client = AsyncOpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
-
 def sse_event(event: str, data: Dict[str, Any]) -> Dict[str, Any]:
     """
     sse-starlette는 dict 형태로 event/data를 받습니다.
     data는 문자열이 안전하므로 JSON serialize해서 보냅니다.
     """
     return {"event": event, "data": json.dumps(data, ensure_ascii=False)}
-
 
 @app.post("/v1/chat/stream")
 async def chat_stream(request: Request):
@@ -169,7 +169,7 @@ async def chat_stream(request: Request):
     # SSE 핵심 헤더: 일부 프록시에서 버퍼링 방지
     headers = {
         "Cache-Control": "no-cache",
-        "X-Accel-Buffering": "no",  # Nginx 버퍼링 방지(중요) ([fastapi.tiangolo.com](https://fastapi.tiangolo.com/tutorial/server-sent-events/?utm_source=openai))
+        "X-Accel-Buffering": "no",  # Nginx 버퍼링 방지(중요)[^1]
     }
 
     return EventSourceResponse(event_iter(), headers=headers)
@@ -180,7 +180,7 @@ async def chat_stream(request: Request):
 - `event: done` → `event: eos`로 종료
 
 ### 3) Nginx (또는 프록시) 설정 포인트
-Uvicorn 배포 문서 예시처럼, Nginx를 쓴다면 `proxy_buffering off;`가 스트리밍에 결정적입니다. ([uvicorn.org](https://www.uvicorn.org/deployment/?utm_source=openai))
+Uvicorn 배포 문서 예시처럼, Nginx를 쓴다면 `proxy_buffering off;`가 스트리밍에 결정적입니다.[^4]
 
 ```nginx
 location / {
@@ -189,7 +189,7 @@ location / {
   proxy_set_header X-Forwarded-Proto $scheme;
 
   proxy_http_version 1.1;
-  proxy_buffering off;          # 스트리밍 필수 ([uvicorn.org](https://www.uvicorn.org/deployment/?utm_source=openai))
+  proxy_buffering off;          # 스트리밍 필수[^4]
   proxy_read_timeout 3600s;     # 장시간 스트림이면 늘려야 함
   proxy_send_timeout 3600s;
 
@@ -201,7 +201,7 @@ location / {
 
 ## ⚡ 실전 팁 & 함정
 ### Best Practice 1) “이벤트 스키마를 내가 소유”하라
-OpenAI 이벤트 타입이 풍부하지만(예: `response.output_text.delta` 등) ([fastapi.ai](https://www.fastapi.ai/api/response/streaming.html?utm_source=openai))  
+OpenAI 이벤트 타입이 풍부하지만(예: `response.output_text.delta` 등)[^8]  
 클라이언트가 정말 필요한 건 보통:
 - `token` (delta)
 - `done` (완료)
@@ -217,17 +217,17 @@ SSE는 사용자가 탭을 닫으면 조용히 끊깁니다. 이때 업스트림
 - **업스트림 스트림 close + 태스크 취소**
 - finally에서 **큐/채널/파일 핸들 정리**
 
-AnyIO 기반 취소 모델을 이해하고(예: `CancelScope`) ([anyio.readthedocs.io](https://anyio.readthedocs.io/en/stable/api.html?utm_source=openai))  
+AnyIO 기반 취소 모델을 이해하고(예: `CancelScope`)[^5]  
 “예외가 나도 항상 정리되는 구조”로 짜는 게 중요합니다.
 
 ### Best Practice 3) “버퍼링 끄기”는 앱/프록시 둘 다 설정
-- 앱: `X-Accel-Buffering: no` ([fastapi.tiangolo.com](https://fastapi.tiangolo.com/tutorial/server-sent-events/?utm_source=openai))
-- 프록시: `proxy_buffering off` ([uvicorn.org](https://www.uvicorn.org/deployment/?utm_source=openai))
+- 앱: `X-Accel-Buffering: no`[^1]
+- 프록시: `proxy_buffering off`[^4]
 
 둘 중 하나만 해도 환경에 따라 실패합니다(특히 CDN/LB를 하나 더 끼면 더 복잡해짐).
 
 ### 흔한 함정 1) 스트리밍 중 sync/blocking 코드 호출
-Starlette는 sync 코드를 thread pool로 돌립니다. ([starlette.dev](https://starlette.dev/threadpool/?utm_source=openai))  
+Starlette는 sync 코드를 thread pool로 돌립니다.[^6]  
 스트리밍 경로에서 실수로 blocking I/O(파일, DB, requests)를 호출하면:
 - thread pool 고갈
 - 다른 요청(심지어 비스트리밍 요청)도 같이 느려짐
@@ -256,9 +256,9 @@ FastAPI/Starlette의 `BackgroundTasks`는 **응답이 끝난 뒤** 실행됩니�
 ## 🚀 마무리
 핵심은 3가지입니다.
 
-1) LLM 스트리밍은 **SSE 프레이밍 + 프록시 버퍼링 제어**가 절반입니다. (`X-Accel-Buffering: no`, `proxy_buffering off`) ([fastapi.tiangolo.com](https://fastapi.tiangolo.com/tutorial/server-sent-events/?utm_source=openai))  
-2) “스트리밍 중계 서버”는 **취소/정리**가 비용과 안정성의 핵심이고, AnyIO/ASGI 취소 흐름을 전제로 설계해야 합니다. ([anyio.readthedocs.io](https://anyio.readthedocs.io/en/stable/api.html?utm_source=openai))  
-3) 제공자 이벤트를 그대로 노출하기보다, **내 서비스 이벤트 스키마를 소유**하면 장기 운영이 쉬워집니다(OpenAI SDK의 스트리밍 이벤트를 선별/재포장). ([github.com](https://github.com/openai/openai-python?utm_source=openai))
+1) LLM 스트리밍은 **SSE 프레이밍 + 프록시 버퍼링 제어**가 절반입니다. (`X-Accel-Buffering: no`, `proxy_buffering off`)[^1]  
+2) “스트리밍 중계 서버”는 **취소/정리**가 비용과 안정성의 핵심이고, AnyIO/ASGI 취소 흐름을 전제로 설계해야 합니다.[^5]  
+3) 제공자 이벤트를 그대로 노출하기보다, **내 서비스 이벤트 스키마를 소유**하면 장기 운영이 쉬워집니다(OpenAI SDK의 스트리밍 이벤트를 선별/재포장).[^7]
 
 **도입 판단 기준**
 - 브라우저 기반 실시간 생성 UX가 필요하고, 단방향이면 → **SSE 추천**
@@ -266,8 +266,15 @@ FastAPI/Starlette의 `BackgroundTasks`는 **응답이 끝난 뒤** 실행됩니�
 - 프록시 체인이 복잡하거나(CloudFront/API Gateway 등), SRE 리소스가 부족하면 → “스트리밍 품질” 운영이 생각보다 비쌉니다. 먼저 PoC로 **실제 프로덕션 경로에서** 토큰이 200~500ms 단위로 내려오는지 검증하세요.
 
 **다음 학습 추천**
-- FastAPI SSE 튜토리얼(헤더/프록시 버퍼링 포인트 포함) ([fastapi.tiangolo.com](https://fastapi.tiangolo.com/tutorial/server-sent-events/?utm_source=openai))  
-- Uvicorn의 flow control/버퍼 동작 이해(스트리밍 메모리/역압) ([uvicorn.org](https://www.uvicorn.org/server-behavior/?utm_source=openai))  
-- OpenAI Python SDK 스트리밍 이벤트 모델 파악(어떤 이벤트를 중계할지 결정) ([github.com](https://github.com/openai/openai-python?utm_source=openai))  
+- FastAPI SSE 튜토리얼(헤더/프록시 버퍼링 포인트 포함)[^1]  
+- Uvicorn의 flow control/버퍼 동작 이해(스트리밍 메모리/역압)[^3]  
+- OpenAI Python SDK 스트리밍 이벤트 모델 파악(어떤 이벤트를 중계할지 결정)[^7]
 
-원하면, 위 예제를 **(1) Redis pub/sub로 멀티워커 SSE 브로드캐스트**, **(2) 클라이언트 재연결(Last-Event-ID) + 서버 측 재전송**, **(3) OpenTelemetry로 토큰 지연/끊김 구간 계측**까지 확장한 “운영형 템플릿”으로도 이어서 작성해드릴게요.
+[^1]: <https://fastapi.tiangolo.com/tutorial/server-sent-events/>
+[^2]: <https://fastapi.tiangolo.com/advanced/stream-data/>
+[^3]: <https://www.uvicorn.org/server-behavior/>
+[^4]: <https://www.uvicorn.org/deployment/>
+[^5]: <https://anyio.readthedocs.io/en/stable/api.html>
+[^6]: <https://starlette.dev/threadpool/>
+[^7]: <https://github.com/openai/openai-python>
+[^8]: <https://www.fastapi.ai/api/response/streaming.html>

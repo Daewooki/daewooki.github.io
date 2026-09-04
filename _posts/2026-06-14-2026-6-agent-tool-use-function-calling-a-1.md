@@ -1,12 +1,14 @@
 ---
-title: "2026년 6월 기준, “Agent tool use + Function Calling”을 프로덕션에 넣는 법: Agents SDK/Responses API 패턴 심층 분석"
+title: "“Agent tool use + Function Calling”을 프로덕션에 넣는 법: Agents SDK/Responses API 패턴 심층 분석"
+description: "LLM을 제품에 붙이다 보면 빠르게 “텍스트 생성”을 넘어 “행동”이 필요해집니다. 예를 들어 내부 DB 조회, 권한이 필요한 사내 API 호출, 배치 실행, 파일 편집/패치, 웹 리서치, 워크스페이스에서 코드 실행 같은 것들입니다. 이때 가장 큰 문제는 두 가지입니다."
 date: 2026-06-14 04:54:15 +0900
 categories: [AI, Agent]
-tags: [ai, agent, trend, 2026-06]
+tags: [ai, agent]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -21,12 +23,12 @@ LLM을 제품에 붙이다 보면 빠르게 “텍스트 생성”을 넘어 “
 1) **모델이 언제 어떤 도구를 써야 하는지**를 안정적으로 결정하게 만들기  
 2) **도구 호출 결과를 다시 컨텍스트로 안전하게 합쳐** 다음 스텝을 진행하기
 
-2026년의 실무 해법은 대체로 “tool use loop(think → call tool → observe → repeat)”를 **Function Calling(= JSON Schema 기반 도구 호출)**로 표준화하고, 그 루프를 돌리는 **harness(런타임)** 를 갖추는 쪽으로 수렴했습니다. OpenAI는 이를 Agents SDK/Responses API 중심으로 “모델이 자연스럽게 일하는 패턴”에 맞춘 런타임을 제공하는 방향을 강조합니다. ([openai.com](https://openai.com/index/the-next-evolution-of-the-agents-sdk))
+2026년의 실무 해법은 대체로 “tool use loop(think → call tool → observe → repeat)”를 **Function Calling(= JSON Schema 기반 도구 호출)**로 표준화하고, 그 루프를 돌리는 **harness(런타임)** 를 갖추는 쪽으로 수렴했습니다. OpenAI는 이를 Agents SDK/Responses API 중심으로 “모델이 자연스럽게 일하는 패턴”에 맞춘 런타임을 제공하는 방향을 강조합니다.[^1]
 
 ### 언제 쓰면 좋나
 - **불확실한 입력 + 복수의 시스템 연동**(CRM/결제/재고/티켓 등)에서 “조건 분기 + 실행”이 필요한 경우
 - 사람 대신 “툴을 쓰는” 작업(리서치, triage, 운영 자동화, 코드 수정/테스트)을 만들고 싶은 경우
-- 관찰 가능성(tracing), 승인(approval), 중단/재개(pause/resume) 같은 **운영 기능**이 중요한 경우 ([openai.github.io](https://openai.github.io/openai-agents-python/tools/))
+- 관찰 가능성(tracing), 승인(approval), 중단/재개(pause/resume) 같은 **운영 기능**이 중요한 경우[^2]
 
 ### 언제 쓰면 안 되나
 - 순수 생성(카피라이팅/요약)처럼 **툴 호출이 필요 없는 문제**
@@ -40,10 +42,10 @@ LLM을 제품에 붙이다 보면 빠르게 “텍스트 생성”을 넘어 “
 - **Tool use**: “모델이 행동을 선택하고 결과를 이용해 다음 행동/응답을 만든다”는 루프 전체
 - **Function Calling**: 그 행동을 **정형화된 wire format(JSON Schema)** 로 표현해, 런타임이 실제 함수를 실행하도록 만드는 인터페이스
 
-즉, Function Calling은 *프로토콜/표현*이고, Tool use는 *오케스트레이션 패턴*입니다. 2026년 프레임워크들은 대부분 여기로 수렴했습니다. ([taskade.com](https://www.taskade.com/wiki/ai/tool-use?utm_source=openai))
+즉, Function Calling은 *프로토콜/표현*이고, Tool use는 *오케스트레이션 패턴*입니다. 2026년 프레임워크들은 대부분 여기로 수렴했습니다.[^3]
 
 ### 2) “Agent harness”가 하는 일 (왜 SDK가 필요한가)
-OpenAI가 2026년 4월 발표에서 강조한 포인트는 “개발자 glue code를 줄이고, 장기 실행/다도구/파일/샌드박스 작업을 모델의 자연스러운 패턴에 맞춰” 돌리는 **표준 런타임(harness)** 입니다. 여기에는 memory, sandbox-aware orchestration, 파일 도구, MCP, shell/apply_patch 같은 프리미티브가 포함됩니다. ([openai.com](https://openai.com/index/the-next-evolution-of-the-agents-sdk))
+OpenAI가 2026년 4월 발표에서 강조한 포인트는 “개발자 glue code를 줄이고, 장기 실행/다도구/파일/샌드박스 작업을 모델의 자연스러운 패턴에 맞춰” 돌리는 **표준 런타임(harness)** 입니다. 여기에는 memory, sandbox-aware orchestration, 파일 도구, MCP, shell/apply_patch 같은 프리미티브가 포함됩니다.[^1]
 
 실무적으로 harness는 다음을 책임집니다.
 - 도구 스키마 등록/노출(최소권한, progressive disclosure)
@@ -53,7 +55,7 @@ OpenAI가 2026년 4월 발표에서 강조한 포인트는 “개발자 glue cod
 - 트레이싱(어느 턴에서 어떤 툴을 왜 썼는지)
 
 ### 3) 오케스트레이션: LLM이 할 일 vs 코드가 할 일
-OpenAI Agents SDK 문서가 명확히 나누는 기준이 있습니다. ([openai.github.io](https://openai.github.io/openai-agents-js/guides/multi-agent/))
+OpenAI Agents SDK 문서가 명확히 나누는 기준이 있습니다.[^4]
 
 - **Orchestrating via LLM(자율)**  
   장점: 유연, 복잡한 문제에 강함  
@@ -67,7 +69,7 @@ OpenAI Agents SDK 문서가 명확히 나누는 기준이 있습니다. ([openai
 - “파라미터 구성/요약/해석” 같은 **데이터-plane은 LLM**
 
 ### 4) Multi-agent에서 “Agents as tools” vs “Handoffs”
-Agents SDK는 대표 패턴을 두 개로 정리합니다. ([openai.github.io](https://openai.github.io/openai-agents-js/guides/multi-agent/))
+Agents SDK는 대표 패턴을 두 개로 정리합니다.[^4]
 - **Agents as tools(매니저-워커)**: 매니저가 대화 소유권을 유지하고, 전문 에이전트를 `asTool()`로 호출
 - **Handoffs(트리아주-전문가)**: 트리아주가 라우팅 후 전문 에이전트가 대화 소유권을 가져감
 
@@ -84,7 +86,7 @@ Function Calling 관점에서 중요한 차이는:
 - 핵심: `function_tool`로 도구 스키마 노출 + 에이전트가 필요 시 호출
 - 시나리오: “결제 실패율 급증” 알림이 오면 최근 지표 조회 → 원인 후보 분석 → 완화 조치(토글/레이트리밋) 제안 → **승인 후** 실행 → 티켓 코멘트
 
-> 참고: OpenAI Agents SDK의 tool 분류/승인 게이트/Runner 패턴은 공식 문서에 기반합니다. ([openai.github.io](https://openai.github.io/openai-agents-python/tools/))
+> 참고: OpenAI Agents SDK의 tool 분류/승인 게이트/Runner 패턴은 공식 문서에 기반합니다.[^2]
 
 ```bash
 # 의존성(예시)
@@ -223,7 +225,7 @@ if __name__ == "__main__":
 - 승인 후 재개 → 변경 적용 결과 수신  
 - `post_ticket_comment(...)`로 티켓에 “증거/결정/다음 체크” 코멘트 남김
 
-이 패턴에서 중요한 점은 “위험한 행동”을 **항상 tool로 분리**하고, 승인/멱등성/타임아웃을 런타임에서 강제하는 것입니다. Agents SDK는 승인 게이트와 pause/resume를 1급으로 다룹니다. ([openai.github.io](https://openai.github.io/openai-agents-python/tools/))
+이 패턴에서 중요한 점은 “위험한 행동”을 **항상 tool로 분리**하고, 승인/멱등성/타임아웃을 런타임에서 강제하는 것입니다. Agents SDK는 승인 게이트와 pause/resume를 1급으로 다룹니다.[^2]
 
 ---
 
@@ -235,32 +237,39 @@ if __name__ == "__main__":
 
 2) **제어-plane을 코드로 고정: retries/timeout/circuit breaker**
 - 툴 에러를 그대로 던지지 말고, “재시도 가능/불가능”을 구분해 모델에게 전달하세요.
-- Agents SDK 문서도 툴 구현에서 `Runner.run`을 호출해 고급 오케스트레이션(조건부 재시도/폴백/체이닝)을 하라고 가이드합니다. ([openai.github.io](https://openai.github.io/openai-agents-python/tools/))
+- Agents SDK 문서도 툴 구현에서 `Runner.run`을 호출해 고급 오케스트레이션(조건부 재시도/폴백/체이닝)을 하라고 가이드합니다.[^2]
 
 3) **Agents as tools vs Handoffs를 섞어라**
-- 사용자 응답은 한 에이전트(매니저)가 통제하고, 전문 작업만 서브에이전트를 tool로 호출하는 구성이 운영 난이도가 낮습니다. ([openai.github.io](https://openai.github.io/openai-agents-js/guides/multi-agent/))  
+- 사용자 응답은 한 에이전트(매니저)가 통제하고, 전문 작업만 서브에이전트를 tool로 호출하는 구성이 운영 난이도가 낮습니다.[^4]  
 - 라우팅 UX가 핵심(상담/CS)이라면 handoff가 낫지만, 정책 강제(톤/형식/규정)는 별도 계층이 필요합니다.
 
 ### 흔한 함정/안티패턴
-- **“한 번에 모든 걸 하는 만능 에이전트”**: 툴이 5개만 넘어가도 선택 오류가 급증하고, 실패가 실행 이후에야 드러납니다(특히 잘못된 툴 선택은 비용/사고로 직결). 최근 연구들도 “툴 선택 오류는 실행 전에는 잘 안 보인다”는 문제의식을 다룹니다. ([arxiv.org](https://arxiv.org/abs/2605.07990?utm_source=openai))
+- **“한 번에 모든 걸 하는 만능 에이전트”**: 툴이 5개만 넘어가도 선택 오류가 급증하고, 실패가 실행 이후에야 드러납니다(특히 잘못된 툴 선택은 비용/사고로 직결). 최근 연구들도 “툴 선택 오류는 실행 전에는 잘 안 보인다”는 문제의식을 다룹니다.[^5]
 - **승인/멱등성 없는 변경 툴**: 재시도 한 번에 중복 적용됩니다. `Idempotency-Key`는 거의 필수입니다.
 - **툴 결과를 컨텍스트에 ‘원문 그대로’ 붙이기**: 토큰 폭발 + 민감정보 노출. “요약/정규화된 결과”만 반환하거나, 결과를 파일/DB에 저장하고 “핵심 핸들”만 모델에 주는 방식을 고려하세요(비용/보안 모두 개선).
 
 ### 비용/성능/안정성 트레이드오프
 - **LLM 자율 루프**는 구현은 빠르지만, 운영 단계에서 토큰/지연이 증가합니다.
 - **코드 오케스트레이션**은 빠르고 싸지만, 예외 케이스를 사람이 계속 추가해야 합니다.
-- 현실적인 결론: *“라우팅/승인/안전장치=코드, 파라미터/요약/해석=LLM”* 로 경계선을 긋는 게 가장 유지보수성이 좋습니다. ([openai.github.io](https://openai.github.io/openai-agents-js/guides/multi-agent/))
+- 현실적인 결론: *“라우팅/승인/안전장치=코드, 파라미터/요약/해석=LLM”* 로 경계선을 긋는 게 가장 유지보수성이 좋습니다.[^4]
 
 ---
 
 ## 🚀 마무리
-정리하면, 2026년 6월의 “AI Agent tool use + Function Calling 구현”은 단순히 function schema를 붙이는 문제가 아니라, **agent loop를 돌리는 harness**(승인, 중단/재개, 샌드박스, 트레이싱, 메모리)까지 포함한 운영 설계 문제로 이동했습니다. OpenAI도 Agents SDK를 “모델의 자연스러운 작업 패턴에 맞춘 런타임”으로 강화하는 방향을 명확히 하고 있습니다. ([openai.com](https://openai.com/index/the-next-evolution-of-the-agents-sdk))
+정리하면, 2026년 6월의 “AI Agent tool use + Function Calling 구현”은 단순히 function schema를 붙이는 문제가 아니라, **agent loop를 돌리는 harness**(승인, 중단/재개, 샌드박스, 트레이싱, 메모리)까지 포함한 운영 설계 문제로 이동했습니다. OpenAI도 Agents SDK를 “모델의 자연스러운 작업 패턴에 맞춘 런타임”으로 강화하는 방향을 명확히 하고 있습니다.[^1]
 
 ### 도입 판단 기준(체크리스트)
 - 도구 호출이 2개 이상이고, **분기/예외**가 많다 → Agent tool use 적합
 - 변경/결제/삭제 등 위험 액션이 있다 → 승인 게이트 + 멱등성 + 감사로그 없으면 도입 보류
-- 장기 실행/파일 작업/격리 실행이 필요 → sandbox 기반 설계 고려(Agents SDK의 방향성 참고) ([openai.com](https://openai.com/index/the-next-evolution-of-the-agents-sdk))
+- 장기 실행/파일 작업/격리 실행이 필요 → sandbox 기반 설계 고려(Agents SDK의 방향성 참고)[^1]
 
 ### 다음 학습 추천
-- Agents SDK의 **Tools / Orchestration / 승인(pause-resume)** 흐름을 먼저 체화한 뒤 ([openai.github.io](https://openai.github.io/openai-agents-python/tools/))  
-- “단일 에이전트 + 툴 추가”로 시작하고, 병목이 생길 때 **Agents as tools(매니저-워커)** 로 확장하는 순서를 권합니다. ([cdn.openai.com](https://cdn.openai.com/business-guides-and-resources/a-practical-guide-to-building-agents.pdf))
+- Agents SDK의 **Tools / Orchestration / 승인(pause-resume)** 흐름을 먼저 체화한 뒤[^2]  
+- “단일 에이전트 + 툴 추가”로 시작하고, 병목이 생길 때 **Agents as tools(매니저-워커)** 로 확장하는 순서를 권합니다.[^6]
+
+[^1]: <https://openai.com/index/the-next-evolution-of-the-agents-sdk>
+[^2]: <https://openai.github.io/openai-agents-python/tools/>
+[^3]: <https://www.taskade.com/wiki/ai/tool-use>
+[^4]: <https://openai.github.io/openai-agents-js/guides/multi-agent/>
+[^5]: <https://arxiv.org/abs/2605.07990>
+[^6]: <https://cdn.openai.com/business-guides-and-resources/a-practical-guide-to-building-agents.pdf>

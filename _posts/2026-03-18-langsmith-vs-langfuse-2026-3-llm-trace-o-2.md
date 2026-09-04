@@ -1,12 +1,14 @@
 ---
 title: "LangSmith vs Langfuse: 2026년 3월, LLM 앱 모니터링/디버깅/비용 추적을 “Trace 표준(OTel)”로 통합하는 법"
+description: "2026년의 LLM 앱은 “모델 호출 한 번”으로 끝나지 않습니다. Agent가 tool을 여러 번 호출하고, RAG가 retrieval을 반복하며, streaming 응답 중간에 재시도/폴백이 발생합니다."
 date: 2026-03-18 02:52:18 +0900
 categories: [AI, MLOps]
-tags: [ai, mlops, trend, 2026-03]
+tags: [ai, mlops]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -18,7 +20,7 @@ tags: [ai, mlops, trend, 2026-03]
 ## 들어가며
 2026년의 LLM 앱은 “모델 호출 한 번”으로 끝나지 않습니다. Agent가 tool을 여러 번 호출하고, RAG가 retrieval을 반복하며, streaming 응답 중간에 재시도/폴백이 발생합니다. 이때 장애의 원인은 대개 **프롬프트/모델**이 아니라 **실행 그래프 어딘가의 상태 전파 실패, 타임아웃, 잘못된 캐시, 과도한 토큰 사용** 같은 “시스템 문제”로 나타납니다.
 
-그래서 요즘 LLM Observability의 핵심은 단순 로그가 아니라 **Trace(분산 추적)** 입니다. 특히 **OpenTelemetry(OTel)** 로 표준화하면, LLM 앱 내부 실행(프롬프트·tool·retrieval)과 인프라 계층(HTTP, DB, queue)을 **한 개의 trace_id로 이어 붙여** 병목/오류/비용을 같이 봅니다. LangSmith는 OTel 기반 end-to-end 지원을 공식적으로 강화했고, Langfuse는 “OpenTelemetry 기반”을 전면에 내세우며 SDK/통합을 확장하는 흐름입니다. ([blog.langchain.com](https://blog.langchain.com/end-to-end-opentelemetry-langsmith?utm_source=openai))
+그래서 요즘 LLM Observability의 핵심은 단순 로그가 아니라 **Trace(분산 추적)** 입니다. 특히 **OpenTelemetry(OTel)** 로 표준화하면, LLM 앱 내부 실행(프롬프트·tool·retrieval)과 인프라 계층(HTTP, DB, queue)을 **한 개의 trace_id로 이어 붙여** 병목/오류/비용을 같이 봅니다. LangSmith는 OTel 기반 end-to-end 지원을 공식적으로 강화했고, Langfuse는 “OpenTelemetry 기반”을 전면에 내세우며 SDK/통합을 확장하는 흐름입니다.[^1]
 
 ---
 
@@ -26,12 +28,12 @@ tags: [ai, mlops, trend, 2026-03]
 ### 주요 개념 정의
 - **Trace / Span**: 한 사용자 요청(Request) = 1 trace, 그 안의 단계(LLM call, tool call, retrieval 등) = span. span에는 latency, error, attributes(예: model, prompt version, user_id), 그리고 **token/cost** 같은 도메인 지표를 붙입니다.
 - **Context propagation**: async/멀티서비스 환경에서 “지금 이 span이 어떤 trace에 속하는지”를 자동으로 이어주는 메커니즘. Agent/worker로 넘어가도 trace가 끊기면 디버깅이 급격히 어려워집니다.
-- **Semantic conventions(GenAI)**: LLM 호출/프롬프트/응답/토큰을 span attribute로 표준화하려는 시도. LangSmith는 OpenLLMetry 등 OTel 포맷 기반 ingest를 지원하고, OTel GenAI 컨벤션 진화에 맞춰 확장하겠다는 방향을 명시했습니다. ([blog.langchain.com](https://blog.langchain.com/opentelemetry-langsmith/?utm_source=openai))
+- **Semantic conventions(GenAI)**: LLM 호출/프롬프트/응답/토큰을 span attribute로 표준화하려는 시도. LangSmith는 OpenLLMetry 등 OTel 포맷 기반 ingest를 지원하고, OTel GenAI 컨벤션 진화에 맞춰 확장하겠다는 방향을 명시했습니다.[^2]
 - **Ingest vs SDK instrumentation**
   - *Ingest*: “OTel로 만든 trace를 받아서 대시보드에 보여줌”
   - *Instrumentation*: “SDK가 앱 코드를 계측해서 trace를 만듦”
-  LangSmith는 초기엔 ingest 중심 → 이후 SDK 레벨의 end-to-end OTel 지원을 강화했습니다. ([blog.langchain.com](https://blog.langchain.com/end-to-end-opentelemetry-langsmith?utm_source=openai))
-  Langfuse는 관측 데코레이터/드롭인 wrapper 패턴으로 nested call을 자동 링크하는 경험을 강조합니다. ([langfuse.com](https://langfuse.com/?utm_source=openai))
+  LangSmith는 초기엔 ingest 중심 → 이후 SDK 레벨의 end-to-end OTel 지원을 강화했습니다.[^1]
+  Langfuse는 관측 데코레이터/드롭인 wrapper 패턴으로 nested call을 자동 링크하는 경험을 강조합니다.[^3]
 
 ### 어떻게 작동하는지 (LLM 비용 추적까지)
 1. 요청 진입 시 root span 생성(예: `handle_request`)
@@ -43,7 +45,7 @@ tags: [ai, mlops, trend, 2026-03]
 ---
 
 ## 💻 실전 코드
-아래 예시는 **Langfuse**의 `@observe()`로 request 단위를 trace로 만들고, “드롭인 OpenAI wrapper”로 LLM span을 자동 생성하는 형태입니다(중첩 호출 자동 링크). 또한 trace 메타데이터에 사용자/릴리즈 정보를 태깅해 **디버깅과 비용 분석의 필터 축**으로 씁니다. ([langfuse.com](https://langfuse.com/?utm_source=openai))
+아래 예시는 **Langfuse**의 `@observe()`로 request 단위를 trace로 만들고, “드롭인 OpenAI wrapper”로 LLM span을 자동 생성하는 형태입니다(중첩 호출 자동 링크). 또한 trace 메타데이터에 사용자/릴리즈 정보를 태깅해 **디버깅과 비용 분석의 필터 축**으로 씁니다.[^3]
 
 ```python
 # python
@@ -55,7 +57,7 @@ tags: [ai, mlops, trend, 2026-03]
 #   LANGFUSE_HOST=... (cloud 또는 self-host URL)
 
 from langfuse import observe
-from langfuse.openai import openai  # drop-in wrapper: OpenTelemetry 기반 tracing을 추가 ([langfuse.com](https://langfuse.com/?utm_source=openai))
+from langfuse.openai import openai  # drop-in wrapper: OpenTelemetry 기반 tracing을 추가[^3]
 
 # 1) "요청 단위"를 trace로 묶는다.
 @observe(name="handle_request")
@@ -93,21 +95,20 @@ def handle_request(user_id: str, text: str) -> str:
 
     return answer
 
-
 if __name__ == "__main__":
     out = handle_request("u_123", "Explain why distributed tracing matters for LLM agents.")
     print(out)
 ```
 
-LangSmith 쪽은 OTel을 “받는 것”을 넘어서, LangChain/LangGraph 앱에서 OTel 기반 end-to-end tracing을 표준화해 **기존 Datadog/Grafana/Jaeger 같은 OTel 생태계와 상호운용**하는 방향을 강조합니다. ([blog.langchain.com](https://blog.langchain.com/end-to-end-opentelemetry-langsmith?utm_source=openai))
+LangSmith 쪽은 OTel을 “받는 것”을 넘어서, LangChain/LangGraph 앱에서 OTel 기반 end-to-end tracing을 표준화해 **기존 Datadog/Grafana/Jaeger 같은 OTel 생태계와 상호운용**하는 방향을 강조합니다.[^1]
 
 ---
 
 ## ⚡ 실전 팁
-- **Trace 표준을 먼저 정하라(OTel)**: “LangSmith냐 Langfuse냐”보다 중요한 건, 조직 내에서 trace_id로 모든 것을 엮는 기준입니다. LangSmith도 OTel 상호운용성을 전면에 두고 있고, Langfuse도 OTel 기반을 명확히 합니다. ([blog.langchain.com](https://blog.langchain.com/end-to-end-opentelemetry-langsmith?utm_source=openai))
+- **Trace 표준을 먼저 정하라(OTel)**: “LangSmith냐 Langfuse냐”보다 중요한 건, 조직 내에서 trace_id로 모든 것을 엮는 기준입니다. LangSmith도 OTel 상호운용성을 전면에 두고 있고, Langfuse도 OTel 기반을 명확히 합니다.[^1]
 - **비용 추적의 함정: ‘의도치 않은 계측 범위’**
   - eval runner, 배치 작업, 다른 라이브러리의 span까지 한 번에 잡히면 **트래픽/스팬이 폭증**하고 비용/저장소가 튈 수 있습니다.
-  - 최근 커뮤니티에서도 “SDK가 다른 툴 trace까지 잡아 과금/사용량이 늘 수 있으니 설정을 확인하라”는 경고가 공유되었습니다. 계측 범위를 **route/서비스/샘플링**으로 통제하세요. ([reddit.com](https://www.reddit.com/r/LocalLLaMA/comments/1rs2r2u/psa_check_your_langfuse_traces_their_sdk/?utm_source=openai))
+  - 최근 커뮤니티에서도 “SDK가 다른 툴 trace까지 잡아 과금/사용량이 늘 수 있으니 설정을 확인하라”는 경고가 공유되었습니다. 계측 범위를 **route/서비스/샘플링**으로 통제하세요.[^4]
 - **PII/시크릿 마스킹은 ‘전송 전’에**: 대시보드 기능을 믿기보다, instrumentation 단계에서 prompt/툴 파라미터를 마스킹하는 게 안전합니다(특히 규제/감사 환경).
 - **운영에서는 100% tracing이 답이 아닐 때가 많다**
   - 모든 요청을 full detail로 남기면 비용이 큽니다.
@@ -118,10 +119,15 @@ LangSmith 쪽은 OTel을 “받는 것”을 넘어서, LangChain/LangGraph 앱�
 ---
 
 ## 🚀 마무리
-2026년 3월 기준으로 LangSmith와 Langfuse 모두 “LLM Observability = Trace + OTel” 방향성이 뚜렷합니다. LangSmith는 LangChain/LangGraph 중심의 end-to-end OTel 지원과 생태계 상호운용성을 강조하고, Langfuse는 OTel 기반 관측 모델과 드롭인 wrapper/데코레이터로 개발 경험을 강하게 밀고 있습니다. ([blog.langchain.com](https://blog.langchain.com/end-to-end-opentelemetry-langsmith?utm_source=openai))
+2026년 3월 기준으로 LangSmith와 Langfuse 모두 “LLM Observability = Trace + OTel” 방향성이 뚜렷합니다. LangSmith는 LangChain/LangGraph 중심의 end-to-end OTel 지원과 생태계 상호운용성을 강조하고, Langfuse는 OTel 기반 관측 모델과 드롭인 wrapper/데코레이터로 개발 경험을 강하게 밀고 있습니다.[^1]
 
 다음 단계로는:
 1) OTel로 trace_id를 서비스 전반에 관통시키고  
 2) LLM span에 cost/token/quality 신호를 표준 attribute로 붙인 뒤  
 3) 샘플링·PII 마스킹·메타데이터 규칙을 팀 표준으로 고정하는 것  
 이 순서가 가장 ROI가 좋습니다.
+
+[^1]: <https://blog.langchain.com/end-to-end-opentelemetry-langsmith>
+[^2]: <https://blog.langchain.com/opentelemetry-langsmith/>
+[^3]: <https://langfuse.com/>
+[^4]: <https://www.reddit.com/r/LocalLLaMA/comments/1rs2r2u/psa_check_your_langfuse_traces_their_sdk/>

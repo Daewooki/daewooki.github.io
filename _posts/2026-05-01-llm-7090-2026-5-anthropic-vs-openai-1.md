@@ -1,12 +1,14 @@
 ---
 title: "프롬프트 캐싱으로 LLM 비용 70~90% 줄이는 법 (2026년 5월 기준: Anthropic vs OpenAI 실전 설계)"
+description: "에이전트/챗봇/코드리뷰 같은 “긴 컨텍스트를 매 호출마다 반복”하는 시스템에서, 비용의 본질은 (1) 출력 토큰과 (2) 반복되는 입력 토큰(prefix) 입니다."
 date: 2026-05-01 04:02:24 +0900
 categories: [AI, LLM]
-tags: [ai, llm, trend, 2026-05]
+tags: [ai, llm]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -26,35 +28,35 @@ tags: [ai, llm, trend, 2026-05]
   - 캐시가 **짧은 TTL**(특히 5분) 안에 재사용되지 않는 배치성 트래픽
   - 개인정보/규정상 “캐시 자체”가 정책적으로 부담인 조직(대부분은 공급자 문서의 범위 내에서 안전하지만, 내부 컴플라이언스 검토는 필요)
 
-2026년 5월 기준으로, OpenAI와 Anthropic은 둘 다 캐싱을 “입력 토큰 비용 절감”의 핵심 수단으로 밀고 있고, **작동 방식/가격 모델이 꽤 다릅니다**. OpenAI는 “자동 prefix 캐시 + cached_tokens로 측정”에 가깝고, Anthropic은 “내가 cache breakpoint를 선언하고, write/read 과금이 분리”된 구조입니다. ([openai.com](https://openai.com/index/api-prompt-caching/?utm_source=openai))
+2026년 5월 기준으로, OpenAI와 Anthropic은 둘 다 캐싱을 “입력 토큰 비용 절감”의 핵심 수단으로 밀고 있고, **작동 방식/가격 모델이 꽤 다릅니다**. OpenAI는 “자동 prefix 캐시 + cached_tokens로 측정”에 가깝고, Anthropic은 “내가 cache breakpoint를 선언하고, write/read 과금이 분리”된 구조입니다.[^1]
 
 ---
 
 ## 🔧 핵심 개념
 ### 1) Prompt caching의 정의: “prefix 재사용”
-두 회사 모두 공통적으로 **프롬프트의 앞부분(prefix)** 이 이전 요청과 같으면, 그 구간을 재계산하지 않고(또는 내부 상태를 재사용해) **더 싸고 빠르게 처리**합니다. 중요한 건 “완전히 동일한 요청”이 아니라 **‘앞에서부터 어디까지 동일하냐’** 입니다. ([openai.com](https://openai.com/index/api-prompt-caching/?utm_source=openai))
+두 회사 모두 공통적으로 **프롬프트의 앞부분(prefix)** 이 이전 요청과 같으면, 그 구간을 재계산하지 않고(또는 내부 상태를 재사용해) **더 싸고 빠르게 처리**합니다. 중요한 건 “완전히 동일한 요청”이 아니라 **‘앞에서부터 어디까지 동일하냐’** 입니다.[^1]
 
 ### 2) OpenAI: “자동 prefix 캐시 + 최소 길이 + usage로 계측”
-OpenAI는 개발자가 별도 플래그를 넣지 않아도, **최근에 본 프롬프트의 가장 긴 공통 prefix**를 자동 캐시하고, 응답 `usage` 안에 `cached_tokens`(정확히는 `prompt_tokens_details.cached_tokens`)로 히트를 보여줍니다. 캐시는 보통 **5~10분 비활성 시 정리**, 늦어도 **마지막 사용 후 1시간 내 제거**로 안내됩니다. ([openai.com](https://openai.com/index/api-prompt-caching/?utm_source=openai))
+OpenAI는 개발자가 별도 플래그를 넣지 않아도, **최근에 본 프롬프트의 가장 긴 공통 prefix**를 자동 캐시하고, 응답 `usage` 안에 `cached_tokens`(정확히는 `prompt_tokens_details.cached_tokens`)로 히트를 보여줍니다. 캐시는 보통 **5~10분 비활성 시 정리**, 늦어도 **마지막 사용 후 1시간 내 제거**로 안내됩니다.[^1]
 
 구조적으로는:
 - 동일 org 범위 내에서 “최근 처리한 prefix”를 재사용
-- **1,024 토큰 이상** 등 “캐시가 걸리기 위한 최소 길이/단위”가 존재(세부 증분 규칙도 존재) ([openai.com](https://openai.com/index/api-prompt-caching/?utm_source=openai))
-- 가격표에는 **Cached input 단가**가 별도로 명시(모델별로 할인율이 다름: 2026년 가격표는 cached input이 매우 싸게 책정된 모델들이 있음) ([openai.com](https://openai.com/api/pricing/?utm_source=openai))
+- **1,024 토큰 이상** 등 “캐시가 걸리기 위한 최소 길이/단위”가 존재(세부 증분 규칙도 존재)[^1]
+- 가격표에는 **Cached input 단가**가 별도로 명시(모델별로 할인율이 다름: 2026년 가격표는 cached input이 매우 싸게 책정된 모델들이 있음)[^2]
 
 핵심 차이점:
 - **“캐시 write 비용”을 개발자가 의식하지 않아도 된다**(자동 적용/자동 할인)
 - 대신, “내가 어떤 구간을 캐시할지”를 Anthropic만큼 정교하게 통제하기는 어렵고, 결국 **prefix 안정성**(템플릿/정렬/툴 정의 순서)이 승부처입니다.
 
 ### 3) Anthropic: “cache_control breakpoint + read/write 분리 과금”
-Anthropic은 요청 안의 특정 content block에 `cache_control`을 넣어 **여기까지는 캐시해도 좋다**는 “breakpoint”를 표시합니다. 캐시는 `tools → system → messages` 순서로 prefix가 구성되고, **가장 긴 매칭 prefix**를 찾되, 내부적으로 “이전 블록 경계들”에서도 자동으로 히트 체크를 수행합니다. ([docs.anthropic.com](https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching?amp=&e45d281a_page=1&wtime=2418s&utm_source=openai))
+Anthropic은 요청 안의 특정 content block에 `cache_control`을 넣어 **여기까지는 캐시해도 좋다**는 “breakpoint”를 표시합니다. 캐시는 `tools → system → messages` 순서로 prefix가 구성되고, **가장 긴 매칭 prefix**를 찾되, 내부적으로 “이전 블록 경계들”에서도 자동으로 히트 체크를 수행합니다.[^3]
 
 중요한 실무 포인트는 과금:
 - **Cache write(생성)**: 기본 입력 단가 대비 **프리미엄(예: +25%)**
 - **Cache read(히트)**: 기본 입력 단가의 **10% 수준(=90% 할인)**  
-즉, Anthropic은 “한 번 써서 캐시 만들고, 여러 번 읽어야” 이득이 커집니다. ([docs.anthropic.com](https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching?amp=&e45d281a_page=1&wtime=2418s&utm_source=openai))
+즉, Anthropic은 “한 번 써서 캐시 만들고, 여러 번 읽어야” 이득이 커집니다.[^3]
 
-또한 TTL은 기본 5분이고, 문서(다국어 페이지 포함) 기준으로 **1시간 TTL 옵션**도 언급됩니다(모델/기능 상태는 계정/지역/시점에 따라 다를 수 있어 운영 전 계측 필수). ([docs.anthropic.com](https://docs.anthropic.com/ru/docs/build-with-claude/prompt-caching?utm_source=openai))
+또한 TTL은 기본 5분이고, 문서(다국어 페이지 포함) 기준으로 **1시간 TTL 옵션**도 언급됩니다(모델/기능 상태는 계정/지역/시점에 따라 다를 수 있어 운영 전 계측 필수).[^4]
 
 ### 4) 캐시 히트율 최적화의 본질: “고정 덩어리를 앞으로, 변동 덩어리를 뒤로”
 둘 다 prefix 캐시이므로, 히트율은 사실상 아래로 결정됩니다.
@@ -65,7 +67,7 @@ Anthropic은 요청 안의 특정 content block에 `cache_control`을 넣어 **�
 - **동적 입력(user message, tool result, 검색 결과)을 최대한 뒤로 미루고**
 - **정적 컨텍스트(정책/역할/툴 정의/공통 지식/긴 문서)를 최대한 앞으로 당기기**
 
-이건 단순 가이드가 아니라 “비용 모델”로 직결됩니다. 특히 Anthropic은 write/read가 분리 과금이라, **write를 자주 유발하는 구조**(조금만 바뀌어도 매번 새 캐시 생성)는 손해가 날 수 있습니다. ([docs.anthropic.com](https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching?amp=&e45d281a_page=1&wtime=2418s&utm_source=openai))
+이건 단순 가이드가 아니라 “비용 모델”로 직결됩니다. 특히 Anthropic은 write/read가 분리 과금이라, **write를 자주 유발하는 구조**(조금만 바뀌어도 매번 새 캐시 생성)는 손해가 날 수 있습니다.[^3]
 
 ---
 
@@ -157,7 +159,7 @@ def answer_with_anthropic(ticket_summary: str, user_message: str) -> dict:
         {
             "type": "text",
             "text": "=== Refund & Support Policy (static) ===\n" + STATIC.policy_doc,
-            "cache_control": {"type": "ephemeral"}  # 기본 5m TTL ([docs.anthropic.com](https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching?amp=&e45d281a_page=1&wtime=2418s&utm_source=openai))
+            "cache_control": {"type": "ephemeral"}  # 기본 5m TTL[^3]
         },
     ]
 
@@ -173,7 +175,7 @@ def answer_with_anthropic(ticket_summary: str, user_message: str) -> dict:
     resp = client.messages.create(
         model=MODEL,
         max_tokens=600,
-        tools=STATIC.tools,  # tools도 캐시 계층에 포함 ([docs.anthropic.com](https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching?amp=&e45d281a_page=1&wtime=2418s&utm_source=openai))
+        tools=STATIC.tools,  # tools도 캐시 계층에 포함[^3]
         system=system,
         messages=messages,
     )
@@ -194,10 +196,10 @@ if __name__ == "__main__":
 
 **예상 출력(형태 예시)**  
 - 첫 호출: `cache_creation_input_tokens`가 크고 `cache_read_input_tokens`는 0에 가깝다  
-- 두 번째 호출(5분 내): `cache_read_input_tokens`가 커지고, 전체 input 비용이 급감 ([docs.anthropic.com](https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching?amp=&e45d281a_page=1&wtime=2418s&utm_source=openai))
+- 두 번째 호출(5분 내): `cache_read_input_tokens`가 커지고, 전체 input 비용이 급감[^3]
 
 ### 3) OpenAI: “아무 설정 없이”도 prefix를 길게/안정적으로
-OpenAI는 별도 `cache_control`이 아니라, **동일한 prefix를 반복**하면 자동으로 할인/지표가 잡힙니다. 응답 `usage.prompt_tokens_details.cached_tokens`를 반드시 로깅해서 실제 히트를 확인하세요. ([openai.com](https://openai.com/index/api-prompt-caching/?utm_source=openai))
+OpenAI는 별도 `cache_control`이 아니라, **동일한 prefix를 반복**하면 자동으로 할인/지표가 잡힙니다. 응답 `usage.prompt_tokens_details.cached_tokens`를 반드시 로깅해서 실제 히트를 확인하세요.[^1]
 
 ```python
 # app/openai_cached_agent.py
@@ -219,7 +221,7 @@ def answer_with_openai(ticket_summary: str, user_message: str) -> dict:
     )
 
     # responses API가 아니라 chat.completions를 쓰는 경우도 많지만,
-    # 핵심은 usage에서 cached_tokens 확인하는 것 ([openai.com](https://openai.com/index/api-prompt-caching/?utm_source=openai))
+    # 핵심은 usage에서 cached_tokens 확인하는 것[^1]
     resp = client.chat.completions.create(
         model=MODEL,
         messages=[
@@ -253,11 +255,11 @@ if __name__ == "__main__":
 - **Static Prefix**: tools, system rules, few-shot, 장문 정책 문서, 고정 템플릿
 - **Dynamic Tail**: user message, tool result, 검색 결과, 세션별 state
 
-Anthropic은 breakpoint를 Static 끝에 두면 되고, OpenAI는 그냥 “앞부분이 항상 동일”하면 됩니다. ([docs.anthropic.com](https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching?amp=&e45d281a_page=1&wtime=2418s&utm_source=openai))
+Anthropic은 breakpoint를 Static 끝에 두면 되고, OpenAI는 그냥 “앞부분이 항상 동일”하면 됩니다.[^3]
 
 ### Best Practice 2) 캐시 히트율은 “로깅 지표”로 운영하라
-- OpenAI: `usage.prompt_tokens_details.cached_tokens`를 p50/p95로 수집 ([openai.com](https://openai.com/index/api-prompt-caching/?utm_source=openai))
-- Anthropic: `cache_read_input_tokens`, `cache_creation_input_tokens`(및 TTL별 분해 필드가 있으면 같이) 수집 ([docs.anthropic.com](https://docs.anthropic.com/ru/docs/build-with-claude/prompt-caching?utm_source=openai))
+- OpenAI: `usage.prompt_tokens_details.cached_tokens`를 p50/p95로 수집[^1]
+- Anthropic: `cache_read_input_tokens`, `cache_creation_input_tokens`(및 TTL별 분해 필드가 있으면 같이) 수집[^4]
 
 이걸 안 하면 “캐시 적용된 줄 알고” 비용이 그대로 나가는 상태로 몇 주를 태우게 됩니다.
 
@@ -268,17 +270,17 @@ Anthropic은 breakpoint를 Static 끝에 두면 되고, OpenAI는 그냥 “앞�
 - JSON 직렬화가 비결정적(키 순서 랜덤)인 상태로 tools를 생성
 
 ### 흔한 함정 1) Anthropic: “첫 호출이 캐시를 seed하기 전엔 병렬 호출이 다 miss”
-Anthropic 문서에 따르면 **캐시 엔트리는 첫 응답이 시작된 뒤에야 사용 가능**합니다. 그래서 같은 정적 prefix로 병렬 10개를 쏘면, 첫 번째가 seed되기 전에 나머지가 miss 날 수 있습니다. 해결책은 “워밍업 1회 후 fan-out” 또는 “큐로 1개 먼저 흘려보내기”입니다. ([docs.anthropic.com](https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching?amp=&e45d281a_page=1&wtime=2418s&utm_source=openai))
+Anthropic 문서에 따르면 **캐시 엔트리는 첫 응답이 시작된 뒤에야 사용 가능**합니다. 그래서 같은 정적 prefix로 병렬 10개를 쏘면, 첫 번째가 seed되기 전에 나머지가 miss 날 수 있습니다. 해결책은 “워밍업 1회 후 fan-out” 또는 “큐로 1개 먼저 흘려보내기”입니다.[^3]
 
 ### 흔한 함정 2) “최소 토큰 조건 미달”로 캐싱이 조용히 안 걸림
-- OpenAI는 1,024 토큰 이상에서 캐싱이 본격 적용되는 것으로 안내됩니다. ([openai.com](https://openai.com/index/api-prompt-caching/?utm_source=openai))
-- Anthropic도 모델별 최소 캐시 가능 토큰 조건이 있고, 그보다 짧으면 `cache_control`을 달아도 캐싱되지 않습니다. ([docs.anthropic.com](https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching?amp=&e45d281a_page=1&wtime=2418s&utm_source=openai))
+- OpenAI는 1,024 토큰 이상에서 캐싱이 본격 적용되는 것으로 안내됩니다.[^1]
+- Anthropic도 모델별 최소 캐시 가능 토큰 조건이 있고, 그보다 짧으면 `cache_control`을 달아도 캐싱되지 않습니다.[^3]
 
-따라서 “짧은 프롬프트” 서비스라면 캐싱보다 **Batch(-50%)**, 출력 축소, retrieval로 프롬프트 자체를 줄이는 게 더 큽니다(OpenAI는 Batch를 가격표에서 별도 안내). ([openai.com](https://openai.com/api/pricing/?utm_source=openai))
+따라서 “짧은 프롬프트” 서비스라면 캐싱보다 **Batch(-50%)**, 출력 축소, retrieval로 프롬프트 자체를 줄이는 게 더 큽니다(OpenAI는 Batch를 가격표에서 별도 안내).[^2]
 
 ### 비용/성능/안정성 트레이드오프(의사결정 기준)
-- OpenAI는 자동 할인이라 운영 단순성이 높지만, “내가 캐시 구간을 쪼개 통제”하기는 어렵습니다. 대신 usage로 히트가 보이므로 **관측 기반으로 템플릿을 다듬기** 좋습니다. ([openai.com](https://openai.com/index/api-prompt-caching/?utm_source=openai))
-- Anthropic은 설계 자유도가 높고 read 단가가 매우 낮아(히트 시 90% 할인) “정적 덩어리 큰 서비스”에서 폭발적인 절감이 가능하지만, **write 프리미엄** 때문에 hit rate이 낮으면 오히려 손해가 될 수 있습니다. ([docs.anthropic.com](https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching?amp=&e45d281a_page=1&wtime=2418s&utm_source=openai))
+- OpenAI는 자동 할인이라 운영 단순성이 높지만, “내가 캐시 구간을 쪼개 통제”하기는 어렵습니다. 대신 usage로 히트가 보이므로 **관측 기반으로 템플릿을 다듬기** 좋습니다.[^1]
+- Anthropic은 설계 자유도가 높고 read 단가가 매우 낮아(히트 시 90% 할인) “정적 덩어리 큰 서비스”에서 폭발적인 절감이 가능하지만, **write 프리미엄** 때문에 hit rate이 낮으면 오히려 손해가 될 수 있습니다.[^3]
 
 ---
 
@@ -287,13 +289,17 @@ Anthropic 문서에 따르면 **캐시 엔트리는 첫 응답이 시작된 뒤�
 
 도입 판단 기준(추천 체크리스트):
 1) 매 요청에 반복되는 입력(prefix)이 **1,000~2,000 토큰 이상**인가?  
-2) 같은 prefix가 **TTL(5분~) 내에 2회 이상** 재사용되는가? (Anthropic은 특히 중요) ([docs.anthropic.com](https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching?amp=&e45d281a_page=1&wtime=2418s&utm_source=openai))  
-3) `cached_tokens`(OpenAI) / `cache_read_input_tokens`(Anthropic)가 실제로 올라가는지 관측 가능한가? ([openai.com](https://openai.com/index/api-prompt-caching/?utm_source=openai))  
+2) 같은 prefix가 **TTL(5분~) 내에 2회 이상** 재사용되는가? (Anthropic은 특히 중요)[^3]  
+3) `cached_tokens`(OpenAI) / `cache_read_input_tokens`(Anthropic)가 실제로 올라가는지 관측 가능한가?[^1]  
 4) tool schema/system 문서가 “조금만 바뀌어도” 캐시가 깨지는 구조를 감당할 수 있는가?
 
 다음 학습 추천:
-- OpenAI의 prompt caching 동작/계측 필드와 TTL 특성(운영 관점) ([openai.com](https://openai.com/index/api-prompt-caching/?utm_source=openai))  
-- Anthropic의 breakpoint 설계(도메인 문서/툴 정의/대화 이력의 경계 설계) ([docs.anthropic.com](https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching?amp=&e45d281a_page=1&wtime=2418s&utm_source=openai))  
-- 장기 에이전트 워크로드에서 “캐시를 깨지 않게” 만드는 프롬프트 구성 전략(연구/평가) ([arxiv.org](https://arxiv.org/abs/2601.06007?utm_source=openai))
+- OpenAI의 prompt caching 동작/계측 필드와 TTL 특성(운영 관점)[^1]  
+- Anthropic의 breakpoint 설계(도메인 문서/툴 정의/대화 이력의 경계 설계)[^3]  
+- 장기 에이전트 워크로드에서 “캐시를 깨지 않게” 만드는 프롬프트 구성 전략(연구/평가)[^5]
 
-원하면, 당신의 실제 워크로드(요청당 평균 system/tool 토큰, QPS, 세션 길이, 모델, TTL 내 재사용 패턴)를 기준으로 **손익분기 hit rate**를 계산하는 템플릿(스프레드시트용 수식/파이썬 스크립트)까지 같이 만들어 드릴게요.
+[^1]: <https://openai.com/index/api-prompt-caching/>
+[^2]: <https://openai.com/api/pricing/>
+[^3]: <https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching?amp=&e45d281a_page=1&wtime=2418s>
+[^4]: <https://docs.anthropic.com/ru/docs/build-with-claude/prompt-caching>
+[^5]: <https://arxiv.org/abs/2601.06007>

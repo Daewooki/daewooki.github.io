@@ -1,5 +1,6 @@
 ---
 title: "FastAPI 프로젝트 구조 - 실무에서 쓰는 Best Practices"
+description: "FastAPI로 여러 프로젝트를 진행하면서 정립한 프로젝트 구조와 패턴을 공유합니다."
 date: 2025-12-18 09:00:00 +0900
 categories: [Backend, FastAPI]
 tags: [fastapi, python, backend, api, best-practices]

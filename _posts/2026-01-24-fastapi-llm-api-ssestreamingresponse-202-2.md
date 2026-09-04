@@ -1,12 +1,14 @@
 ---
-title: "FastAPI로 LLM API 서버 “진짜 스트리밍” 만들기: SSE/StreamingResponse 함정까지 (2026년 1월 기준)"
+title: "FastAPI로 LLM API 서버 “진짜 스트리밍” 만들기: SSE/StreamingResponse 함정까지"
+description: "LLM API 서버에서 “스트리밍”은 단순 UX 옵션이 아니라 서버 비용/지연/타임아웃을 좌우하는 핵심 설계입니다."
 date: 2026-01-24 02:12:14 +0900
 categories: [Backend, API]
-tags: [backend, api, trend, 2026-01]
+tags: [backend, api]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -20,10 +22,10 @@ LLM API 서버에서 “스트리밍”은 단순 UX 옵션이 아니라 **서�
 
 2026년 1월 시점에서 FastAPI로 스트리밍을 구현할 때는 크게 두 갈래가 실무에서 많이 쓰입니다.
 
-- **SSE(Server-Sent Events)**: 브라우저 친화적(자동 재연결), “서버 → 클라이언트” 단방향 토큰 스트리밍에 최적. FastAPI 생태계에서는 `sse-starlette`의 `EventSourceResponse`가 사실상 표준 도구처럼 쓰입니다. ([pypi.org](https://pypi.org/project/sse-starlette/?utm_source=openai))  
-- **StreamingResponse(바이트/텍스트 스트림)**: 프로토콜 제약이 적고 범용이지만, 프록시 버퍼링/클라이언트 구현에 따라 “스트리밍이 안 되는 것처럼” 보이는 문제가 자주 발생합니다(특히 브라우저/axios 조합). ([stackoverflow.com](https://stackoverflow.com/questions/75876640/fastapis-streamingresponse-doesnt-return-stream?utm_source=openai))  
+- **SSE(Server-Sent Events)**: 브라우저 친화적(자동 재연결), “서버 → 클라이언트” 단방향 토큰 스트리밍에 최적. FastAPI 생태계에서는 `sse-starlette`의 `EventSourceResponse`가 사실상 표준 도구처럼 쓰입니다.[^1]  
+- **StreamingResponse(바이트/텍스트 스트림)**: 프로토콜 제약이 적고 범용이지만, 프록시 버퍼링/클라이언트 구현에 따라 “스트리밍이 안 되는 것처럼” 보이는 문제가 자주 발생합니다(특히 브라우저/axios 조합).[^2]  
 
-또한, OpenAI API 자체도 스트리밍을 SSE 형태로 제공하므로(서버가 OpenAI SSE를 받아서 다시 클라이언트에 SSE로 중계하는 구조) 파이프라인을 깔끔하게 만들 수 있습니다. ([platform.openai.com](https://platform.openai.com/docs/guides/streaming-responses?utm_source=openai))  
+또한, OpenAI API 자체도 스트리밍을 SSE 형태로 제공하므로(서버가 OpenAI SSE를 받아서 다시 클라이언트에 SSE로 중계하는 구조) 파이프라인을 깔끔하게 만들 수 있습니다.[^3]  
 
 ---
 
@@ -37,7 +39,7 @@ HTTP에서 스트리밍은 응답을 끝까지 만든 뒤 보내는 게 아니�
 - gzip/압축/미들웨어가 바디를 다시 모아버리면  
 **사용자는 ‘한 번에 도착’하는 것처럼** 보게 됩니다.
 
-`sse-starlette` 문서/설명에서도 Nginx 버퍼링이 SSE를 망가뜨리는 대표 사례로 언급되며, `X-Accel-Buffering: no` 또는 `proxy_buffering off` 같은 대응이 중요하다고 말합니다. ([pypi.org](https://pypi.org/project/sse-starlette/?utm_source=openai))  
+`sse-starlette` 문서/설명에서도 Nginx 버퍼링이 SSE를 망가뜨리는 대표 사례로 언급되며, `X-Accel-Buffering: no` 또는 `proxy_buffering off` 같은 대응이 중요하다고 말합니다.[^1]  
 
 ### 2) SSE vs WebSocket: LLM 토큰에는 SSE가 더 “정답”인 경우가 많다
 LLM 채팅 UI의 대부분은 “서버가 토큰을 흘려주고 클라이언트는 표시”하는 단방향입니다. 이때 SSE는:
@@ -45,12 +47,12 @@ LLM 채팅 UI의 대부분은 “서버가 토큰을 흘려주고 클라이언�
 - 브라우저 `EventSource`가 기본 제공(자동 재연결)
 - 서버 구현이 단순(한 커넥션에서 이벤트를 계속 push)
 
-특히 `sse-starlette`는 **ping(heartbeat), disconnect 감지, send timeout** 같은 운영 요소를 라이브러리 레벨에서 다루는 방향으로 발전했습니다. ([github.com](https://github.com/sysid/sse-starlette?utm_source=openai))  
+특히 `sse-starlette`는 **ping(heartbeat), disconnect 감지, send timeout** 같은 운영 요소를 라이브러리 레벨에서 다루는 방향으로 발전했습니다.[^4]  
 
 ### 3) disconnect/cancel은 “옵션”이 아니라 비용 통제 장치
-스트리밍에서 가장 중요한 건 “클라이언트가 탭을 닫았는데도 서버가 계속 LLM을 돌리는” 상황을 막는 겁니다. FastAPI/Starlette에서는 `request.is_disconnected()`로 연결 종료를 감지해 루프를 끊는 패턴이 널리 쓰입니다. ([dev.to](https://dev.to/bobbyiliev/how-to-use-server-sent-events-sse-with-fastapi-52fo?utm_source=openai))  
+스트리밍에서 가장 중요한 건 “클라이언트가 탭을 닫았는데도 서버가 계속 LLM을 돌리는” 상황을 막는 겁니다. FastAPI/Starlette에서는 `request.is_disconnected()`로 연결 종료를 감지해 루프를 끊는 패턴이 널리 쓰입니다.[^5]  
 
-또 하나 실무 팁: StreamingResponse/SSE 응답에서 쿠키/헤더를 설정할 때는 **반드시 최종적으로 반환할 Response 객체에 설정**해야 합니다. 즉, FastAPI 라우트 인자로 받은 `response: Response`에 set_cookie 해놓고 `StreamingResponse(...)`를 반환하면 헤더가 안 나갈 수 있습니다. 반환할 streaming response 인스턴스에 직접 `set_cookie`를 해야 합니다. ([stackoverflow.com](https://stackoverflow.com/questions/79528427/cannot-set-cookies-when-using-streamingresponse-in-fastapi-route-for-sse-server?utm_source=openai))  
+또 하나 실무 팁: StreamingResponse/SSE 응답에서 쿠키/헤더를 설정할 때는 **반드시 최종적으로 반환할 Response 객체에 설정**해야 합니다. 즉, FastAPI 라우트 인자로 받은 `response: Response`에 set_cookie 해놓고 `StreamingResponse(...)`를 반환하면 헤더가 안 나갈 수 있습니다. 반환할 streaming response 인스턴스에 직접 `set_cookie`를 해야 합니다.[^6]  
 
 ---
 
@@ -133,27 +135,34 @@ uvicorn main:app --host 0.0.0.0 --port 8000
 
 ## ⚡ 실전 팁
 1) **SSE는 프록시/CDN 버퍼링이 ‘진짜 적’**  
-로컬에서는 잘 스트리밍되는데 운영에서 “한 번에 도착”하면, 대개 앱 문제가 아니라 **중간 계층 버퍼링**입니다. `sse-starlette`는 Nginx 기본 버퍼링과 해결책(`X-Accel-Buffering: no`, `proxy_buffering off`)을 구체적으로 언급합니다. ([pypi.org](https://pypi.org/project/sse-starlette/?utm_source=openai))  
+로컬에서는 잘 스트리밍되는데 운영에서 “한 번에 도착”하면, 대개 앱 문제가 아니라 **중간 계층 버퍼링**입니다. `sse-starlette`는 Nginx 기본 버퍼링과 해결책(`X-Accel-Buffering: no`, `proxy_buffering off`)을 구체적으로 언급합니다.[^1]  
 
 2) **heartbeat(ping) 주기는 LB timeout보다 짧게**  
-SSE는 연결을 오래 유지하므로, LB/Ingress idle timeout에 걸리지 않게 **주기적으로 comment ping**을 보내세요. `sse-starlette`는 ping을 기본 개념으로 제공하고 커스터마이즈도 지원합니다. ([pypi.org](https://pypi.org/project/sse-starlette/2.1.0/?utm_source=openai))  
+SSE는 연결을 오래 유지하므로, LB/Ingress idle timeout에 걸리지 않게 **주기적으로 comment ping**을 보내세요. `sse-starlette`는 ping을 기본 개념으로 제공하고 커스터마이즈도 지원합니다.[^7]  
 
 3) **disconnect 감지 없으면 LLM 비용이 새는 구조**  
-`request.is_disconnected()` 체크는 “예쁘게 종료”가 아니라 **요금 통제**입니다. 특히 upstream(OpenAI 등)에도 cancel을 전파할 수 있게 설계(요청 task cancel, 스트림 종료)하는 게 중요합니다. ([dev.to](https://dev.to/bobbyiliev/how-to-use-server-sent-events-sse-with-fastapi-52fo?utm_source=openai))  
+`request.is_disconnected()` 체크는 “예쁘게 종료”가 아니라 **요금 통제**입니다. 특히 upstream(OpenAI 등)에도 cancel을 전파할 수 있게 설계(요청 task cancel, 스트림 종료)하는 게 중요합니다.[^5]  
 
 4) **쿠키/헤더 설정은 ‘반환할 스트리밍 Response’에 직접**  
-StreamingResponse/SSE에서 `response.set_cookie()`를 했는데 반영이 안 되면, 라우트 파라미터 `Response`가 아니라 **실제 반환 객체(StreamingResponse/EventSourceResponse)**에 `set_cookie`를 해야 합니다. ([stackoverflow.com](https://stackoverflow.com/questions/79528427/cannot-set-cookies-when-using-streamingresponse-in-fastapi-route-for-sse-server?utm_source=openai))  
+StreamingResponse/SSE에서 `response.set_cookie()`를 했는데 반영이 안 되면, 라우트 파라미터 `Response`가 아니라 **실제 반환 객체(StreamingResponse/EventSourceResponse)**에 `set_cookie`를 해야 합니다.[^6]  
 
 5) **OpenAI upstream도 SSE라서 “SSE → SSE 중계”가 자연스럽다**  
-OpenAI는 스트리밍을 SSE 기반으로 문서화하고 있어, 서버가 upstream 이벤트를 받아 토큰 단위로 그대로(또는 변환해서) 흘려보내는 파이프라인이 깔끔합니다. ([platform.openai.com](https://platform.openai.com/docs/guides/streaming-responses?utm_source=openai))  
+OpenAI는 스트리밍을 SSE 기반으로 문서화하고 있어, 서버가 upstream 이벤트를 받아 토큰 단위로 그대로(또는 변환해서) 흘려보내는 파이프라인이 깔끔합니다.[^3]  
 
 ---
 
 ## 🚀 마무리
-FastAPI로 LLM API 서버를 만들 때 스트리밍은 “기능”이 아니라 **아키텍처 선택(SSE/StreamingResponse) + 운영 요소(버퍼링/heartbeat/disconnect/cancel)**의 조합입니다. 2026년 1월 기준으로는, 브라우저 토큰 스트리밍이라면 `sse-starlette`의 `EventSourceResponse`가 운영 친화적인 선택이고(핑/종료/헤더), 그 위에 **disconnect 즉시 중단**과 **프록시 버퍼링 차단**을 반드시 얹는 게 실무 정답에 가깝습니다. ([github.com](https://github.com/sysid/sse-starlette?utm_source=openai))  
+FastAPI로 LLM API 서버를 만들 때 스트리밍은 “기능”이 아니라 **아키텍처 선택(SSE/StreamingResponse) + 운영 요소(버퍼링/heartbeat/disconnect/cancel)**의 조합입니다. 2026년 1월 기준으로는, 브라우저 토큰 스트리밍이라면 `sse-starlette`의 `EventSourceResponse`가 운영 친화적인 선택이고(핑/종료/헤더), 그 위에 **disconnect 즉시 중단**과 **프록시 버퍼링 차단**을 반드시 얹는 게 실무 정답에 가깝습니다.[^4]  
 
 다음 학습으로는:
-- OpenAI(또는 다른 LLM) 스트림 이벤트를 **서버에서 어떻게 cancel 전파**할지(요청 스코프 cancel, 타임아웃 전략) ([platform.openai.com](https://platform.openai.com/docs/guides/streaming-responses?utm_source=openai))  
-- “토큰 유실/지연” 같은 네트워크 품질 문제까지 고려한 스트리밍 전송 방식(연구 관점) ([arxiv.org](https://arxiv.org/abs/2401.12961?utm_source=openai))  
+- OpenAI(또는 다른 LLM) 스트림 이벤트를 **서버에서 어떻게 cancel 전파**할지(요청 스코프 cancel, 타임아웃 전략)[^3]  
+- “토큰 유실/지연” 같은 네트워크 품질 문제까지 고려한 스트리밍 전송 방식(연구 관점)[^8]
 
-원하시면 위 코드에 **OpenAI Responses API 스트리밍을 실제로 붙이는 버전(Async client + 이벤트 매핑 + usage 집계 + 에러 이벤트 표준화)**까지 확장해서 작성해드릴게요.
+[^1]: <https://pypi.org/project/sse-starlette/>
+[^2]: <https://stackoverflow.com/questions/75876640/fastapis-streamingresponse-doesnt-return-stream>
+[^3]: <https://platform.openai.com/docs/guides/streaming-responses>
+[^4]: <https://github.com/sysid/sse-starlette>
+[^5]: <https://dev.to/bobbyiliev/how-to-use-server-sent-events-sse-with-fastapi-52fo>
+[^6]: <https://stackoverflow.com/questions/79528427/cannot-set-cookies-when-using-streamingresponse-in-fastapi-route-for-sse-server>
+[^7]: <https://pypi.org/project/sse-starlette/2.1.0/>
+[^8]: <https://arxiv.org/abs/2401.12961>

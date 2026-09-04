@@ -1,12 +1,14 @@
 ---
 title: "LLM 백엔드 “응답 대기열” 설계 2026: Celery+Redis로 비동기 처리의 병목·중복·유실을 없애는 법"
+description: "LLM을 백엔드에 붙이면 요청-응답이 “느리고 비싸고 변덕스럽다”는 문제가 한꺼번에 옵니다. 특히 (1) 모델 응답이 수 초~수 분까지 늘어나는 tail latency, (2) 재시도/타임아웃으로 인한 중복 호출(=비용 폭탄), (3) 워커 재시작/장애 시 작업 유실 또는 중복 처리,…"
 date: 2026-06-27 04:06:14 +0900
 categories: [Backend, Architecture]
-tags: [backend, architecture, trend, 2026-06]
+tags: [backend, architecture]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -18,7 +20,7 @@ tags: [backend, architecture, trend, 2026-06]
 ## 들어가며
 LLM을 백엔드에 붙이면 요청-응답이 “느리고 비싸고 변덕스럽다”는 문제가 한꺼번에 옵니다. 특히 (1) 모델 응답이 수 초~수 분까지 늘어나는 tail latency, (2) 재시도/타임아웃으로 인한 **중복 호출(=비용 폭탄)**, (3) 워커 재시작/장애 시 **작업 유실 또는 중복 처리**, (4) 스트리밍/폴링/웹훅 등 전달 방식이 섞이면서 생기는 상태 관리가 대표적입니다.
 
-그래서 “HTTP 요청은 빨리 끝내고, LLM 호출은 큐로 넘겨 워커가 처리”하는 패턴(Queue/Worker)이 여전히 정답인 경우가 많습니다. Celery+Redis는 구현 난이도 대비 생산성이 높지만, LLM 워크로드에서는 **ack, visibility timeout, prefetch, idempotency** 같은 설정이 조금만 어긋나도 3AM 장애를 부릅니다(특히 Redis broker). Celery 문서에서도 Redis를 broker+backend로 쓸 수 있음을 전제하면서도 설정을 명확히 하라고 가이드합니다. ([docs.celeryq.dev](https://docs.celeryq.dev/en/v5.5.0/getting-started/backends-and-brokers/?utm_source=openai))
+그래서 “HTTP 요청은 빨리 끝내고, LLM 호출은 큐로 넘겨 워커가 처리”하는 패턴(Queue/Worker)이 여전히 정답인 경우가 많습니다. Celery+Redis는 구현 난이도 대비 생산성이 높지만, LLM 워크로드에서는 **ack, visibility timeout, prefetch, idempotency** 같은 설정이 조금만 어긋나도 3AM 장애를 부릅니다(특히 Redis broker). Celery 문서에서도 Redis를 broker+backend로 쓸 수 있음을 전제하면서도 설정을 명확히 하라고 가이드합니다.[^1]
 
 **언제 쓰면 좋나**
 - LLM 호출/후처리(검증, DB write, 파일 생성, vector upsert)가 5초 이상 걸리거나 변동 폭이 큰 경우
@@ -41,7 +43,7 @@ LLM 호출은 대개 I/O-bound(외부 API 호출)이고, 결과를 저장/후처
 - **Worker**: LLM 호출 + 후처리 + 결과 저장
 - **Result store**: job 상태/결과 조회(폴링, 웹훅, SSE 재연결)
 
-Celery에서는 broker(메시지 전달)와 result backend(결과 저장)를 분리할 수 있고, Redis는 둘 다로 사용할 수 있습니다. ([docs.celeryq.dev](https://docs.celeryq.dev/en/v5.5.0/getting-started/backends-and-brokers/?utm_source=openai))
+Celery에서는 broker(메시지 전달)와 result backend(결과 저장)를 분리할 수 있고, Redis는 둘 다로 사용할 수 있습니다.[^1]
 
 ### 2) Celery+Redis에서 실무를 갈라먹는 내부 흐름(ack/visibility/prefetch)
 LLM 작업은 “길고” “재시도 가능성 높고” “중복이 곧 돈”이라서, 다음 3개가 사실상 설계의 전부입니다.
@@ -51,8 +53,8 @@ LLM 작업은 “길고” “재시도 가능성 높고” “중복이 곧 돈
 - **acks_late**: 작업 시작 시점이 아니라 **작업 성공 후 ack**  
   워커가 죽으면(또는 강제 종료) ack가 안 되니 재전달되어 “at-least-once”로 갑니다.
 - **visibility_timeout**(Redis transport): ack가 안 된 메시지를 “다른 워커가 다시 집어가도 되는 시간”  
-  기본이 1시간으로 알려져 있고(문서/레퍼런스에 언급), LLM이 길어지거나 워커가 죽었을 때 재전달 타이밍에 직접 영향이 있습니다. ([docs.celeryq.dev](https://docs.celeryq.dev/_/downloads/en/4.4.1/pdf/?utm_source=openai))  
-  이 값이 기대대로 동작하지 않는 사례/질문도 지속적으로 나옵니다(운영에서 자주 밟는 지뢰). ([stackoverflow.com](https://stackoverflow.com/questions/78368062/celery-with-redis-doesnt-seem-to-honor-visibility-timeout?utm_source=openai))
+  기본이 1시간으로 알려져 있고(문서/레퍼런스에 언급), LLM이 길어지거나 워커가 죽었을 때 재전달 타이밍에 직접 영향이 있습니다.[^2]  
+  이 값이 기대대로 동작하지 않는 사례/질문도 지속적으로 나옵니다(운영에서 자주 밟는 지뢰).[^3]
 
 **결론:** LLM 워커는 보통
 - `worker_prefetch_multiplier=1`
@@ -61,13 +63,13 @@ LLM 작업은 “길고” “재시도 가능성 높고” “중복이 곧 돈
 …가 기본 뼈대가 됩니다.
 
 ### 3) “큐로 비동기” vs “LLM 제공사의 비동기(Background mode)”
-2026년 기준 OpenAI Responses API에는 **background mode**가 있어, 장시간 작업을 연결 유지 없이 비동기로 돌리고 `response.id`를 폴링/취소할 수 있습니다. ([platform.openai.com](https://platform.openai.com/docs/guides/background?utm_source=openai))  
+2026년 기준 OpenAI Responses API에는 **background mode**가 있어, 장시간 작업을 연결 유지 없이 비동기로 돌리고 `response.id`를 폴링/취소할 수 있습니다.[^4]  
 이건 “LLM 호출 자체”의 타임아웃/연결 문제를 크게 완화하지만, 여전히 우리 시스템에는:
 - DB 트랜잭션/부작용(side effects) 처리
 - 재시도 정책(모델/네트워크 오류)
 - 멱등성 키, 비용 가드레일, rate limit
 - 멀티스텝 파이프라인(요약→검증→저장→후속 작업)
-이 남습니다. 즉 background mode는 **워커를 대체하기도** 하지만, 많은 팀에선 “워커 내부에서 LLM 호출을 더 안전하게” 만드는 옵션에 가깝습니다. (또한 background mode는 응답을 잠시 저장해 폴링하게 해주며, 저장/보존 제약이 있습니다. ([platform.openai.com](https://platform.openai.com/docs/guides/background?utm_source=openai)))
+이 남습니다. 즉 background mode는 **워커를 대체하기도** 하지만, 많은 팀에선 “워커 내부에서 LLM 호출을 더 안전하게” 만드는 옵션에 가깝습니다. (또한 background mode는 응답을 잠시 저장해 폴링하게 해주며, 저장/보존 제약이 있습니다.[^4])
 
 ---
 
@@ -218,7 +220,7 @@ def process_document(self, job_id: str):
         # (예시) input_ref로 파일을 읽어 텍스트를 추출했다고 가정
         document_text = "....(extracted text)...."
 
-        # OpenAI Responses API background mode: 긴 작업을 연결 유지 없이 수행 ([platform.openai.com](https://platform.openai.com/docs/guides/background?utm_source=openai))
+        # OpenAI Responses API background mode: 긴 작업을 연결 유지 없이 수행[^4]
         resp = client.responses.create(
             model="gpt-4.1-2025-04-14",
             input=[
@@ -279,10 +281,10 @@ def process_document(self, job_id: str):
 LLM 작업은 분산이 큽니다. prefetch를 크게 두면 어떤 워커는 긴 작업을 여러 개 잡고, 다른 워커는 놀아 전체 latency가 늘어납니다. 또한 재시작 시 “잡아둔 작업”이 풀리는 타이밍도 꼬입니다. LLM 워커는 대개 `worker_prefetch_multiplier=1`이 운영적으로 이깁니다.
 
 ### Best Practice 3) visibility_timeout은 “최대 실행시간”이 아니라 “복구 목표(RTO)”로 결정
-너무 짧으면 정상 실행 중인 작업이 “죽은 것으로 간주”되어 중복 실행이 늘고, 너무 길면 워커가 죽었을 때 재처리가 늦어집니다. Celery/Redis에서 visibility timeout이 운영 이슈로 자주 거론되는 이유가 여기 있습니다. ([stackoverflow.com](https://stackoverflow.com/questions/78368062/celery-with-redis-doesnt-seem-to-honor-visibility-timeout?utm_source=openai))  
+너무 짧으면 정상 실행 중인 작업이 “죽은 것으로 간주”되어 중복 실행이 늘고, 너무 길면 워커가 죽었을 때 재처리가 늦어집니다. Celery/Redis에서 visibility timeout이 운영 이슈로 자주 거론되는 이유가 여기 있습니다.[^3]  
 권장 접근:
 - 단일 작업을 30~120초 단위로 쪼개거나(파이프라인 단계화)
-- LLM 호출은 provider의 background/polling으로 안정화하고(가능하면) ([platform.openai.com](https://platform.openai.com/docs/guides/background?utm_source=openai))
+- LLM 호출은 provider의 background/polling으로 안정화하고(가능하면)[^4]
 - visibility_timeout은 “그 작업이 정말 멈췄다고 판단해도 되는 시간”으로 설정
 
 ### 흔한 함정/안티패턴
@@ -302,10 +304,13 @@ LLM 백엔드에서 Celery+Redis 비동기는 “그냥 비동기”가 아니�
 
 - LLM 호출이 길고(>5초) 실패/재시도가 현실적으로 발생한다 → 큐/워커로 분리할 가치가 큼
 - 중복 호출이 곧 돈이다 → `acks_late + idempotency + prefetch=1 + visibility_timeout 설계`가 필수
-- LLM 호출 자체의 연결/타임아웃이 문제다 → OpenAI Responses API의 background mode 같은 provider 비동기를 워커 내부에서 활용하면 안정성이 올라간다 ([platform.openai.com](https://platform.openai.com/docs/guides/background?utm_source=openai))
+- LLM 호출 자체의 연결/타임아웃이 문제다 → OpenAI Responses API의 background mode 같은 provider 비동기를 워커 내부에서 활용하면 안정성이 올라간다[^4]
 
 다음 학습 추천:
-- Celery 공식 문서에서 Redis broker/backend, transport 옵션(visibility timeout)과 worker 설정을 다시 한 번 정독 ([docs.celeryq.dev](https://docs.celeryq.dev/en/v5.5.0/getting-started/backends-and-brokers/?utm_source=openai))
-- OpenAI Responses API의 background mode/폴링/취소 플로우를 “우리 job 상태머신”에 어떻게 매핑할지 설계 ([platform.openai.com](https://platform.openai.com/docs/guides/background?utm_source=openai))
+- Celery 공식 문서에서 Redis broker/backend, transport 옵션(visibility timeout)과 worker 설정을 다시 한 번 정독[^1]
+- OpenAI Responses API의 background mode/폴링/취소 플로우를 “우리 job 상태머신”에 어떻게 매핑할지 설계[^4]
 
-원하시면, 위 예제를 기반으로 **(1) webhook 완료 알림**, **(2) SSE로 진행률 스트리밍**, **(3) 큐 분리(cheap vs expensive) + rate limit**, **(4) 작업 단계화(chord/chain)로 visibility_timeout 리스크 줄이기**까지 확장 버전으로 리팩터링해 드릴게요.
+[^1]: <https://docs.celeryq.dev/en/v5.5.0/getting-started/backends-and-brokers/>
+[^2]: <https://docs.celeryq.dev/_/downloads/en/4.4.1/pdf/>
+[^3]: <https://stackoverflow.com/questions/78368062/celery-with-redis-doesnt-seem-to-honor-visibility-timeout>
+[^4]: <https://platform.openai.com/docs/guides/background>

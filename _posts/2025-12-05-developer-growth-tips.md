@@ -1,5 +1,6 @@
 ---
 title: "10년차 개발자가 말하는 성장 팁 💪"
+description: "누군가에게는 당연한 이야기일 수 있고, 누군가에게는 새로운 관점이 될 수도 있겠죠."
 date: 2025-12-05 09:00:00 +0900
 categories: [Career, Growth]
 tags: [career, developer, growth, tips]

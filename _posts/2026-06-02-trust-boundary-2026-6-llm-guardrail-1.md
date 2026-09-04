@@ -1,12 +1,14 @@
 ---
-title: "프롬프트 인젝션은 “막는 기술”이 아니라 “신뢰 경계(trust boundary)를 설계”하는 문제다: 2026년 6월 기준 LLM Guardrail 심층 분석"
+title: "프롬프트 인젝션은 “막는 기술”이 아니라 “신뢰 경계(trust boundary)를 설계”하는 문제다: LLM Guardrail 심층 분석"
+description: "LLM 보안에서 prompt injection은 여전히 1순위 리스크로 취급됩니다(OWASP LLM Top 10의 LLM01)."
 date: 2026-06-02 04:48:20 +0900
 categories: [Backend, Security]
-tags: [backend, security, trend, 2026-06]
+tags: [backend, security]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -16,37 +18,37 @@ tags: [backend, security, trend, 2026-06]
 </script>
 
 ## 들어가며
-LLM 보안에서 prompt injection은 여전히 **1순위 리스크**로 취급됩니다(OWASP LLM Top 10의 LLM01). 문제의 핵심은 단순히 “유저가 나쁜 말을 시켜서 모델이 나쁜 말을 한다”가 아니라, **모델이 읽는 모든 텍스트(사용자 입력, RAG 문서, 웹페이지, tool 출력)를 같은 ‘프롬프트 컨텍스트’에 섞어 넣는 순간 데이터가 곧 명령이 될 수 있다는 구조적 취약점**입니다. ([secportal.io](https://secportal.io/frameworks/owasp-llm-top-10?utm_source=openai))
+LLM 보안에서 prompt injection은 여전히 **1순위 리스크**로 취급됩니다(OWASP LLM Top 10의 LLM01). 문제의 핵심은 단순히 “유저가 나쁜 말을 시켜서 모델이 나쁜 말을 한다”가 아니라, **모델이 읽는 모든 텍스트(사용자 입력, RAG 문서, 웹페이지, tool 출력)를 같은 ‘프롬프트 컨텍스트’에 섞어 넣는 순간 데이터가 곧 명령이 될 수 있다는 구조적 취약점**입니다.[^1]
 
 이 글은 “가드레일 모델 하나 붙이면 끝” 같은 얕은 처방이 아니라, **내 프로젝트에 적용 가능한 guardrail 설계 기준**을 제공합니다.
 
 - 언제 쓰면 좋나  
   - RAG(문서/웹 검색) + tool/function calling이 있는 **agentic workflow**(메일 발송, DB 조회, 결제 요청 등)  
-  - 외부 입력(웹/문서/이메일/MCP tool output)이 많은 제품: 간접(Indirect) injection이 주 공격면 ([arxiv.org](https://arxiv.org/abs/2604.11790?utm_source=openai))
+  - 외부 입력(웹/문서/이메일/MCP tool output)이 많은 제품: 간접(Indirect) injection이 주 공격면[^2]
 - 언제 쓰면 안 되나(혹은 다른 층이 우선인가)  
   - LLM이 “답변만” 하고 **실제 시스템에 영향 주는 도구 호출이 없는** 단순 Q&A: 여기서도 injection은 있지만, 피해 반경(blast radius)이 작습니다.  
-  - 반대로 tool이 있다면, prompt-level 금지문은 **주 보안 경계가 될 수 없습니다**. 실행 통제는 모델 바깥(툴 경계/API 레이어)에서 해야 합니다. ([openai.github.io](https://openai.github.io/openai-agents-js/guides/guardrails?utm_source=openai))
+  - 반대로 tool이 있다면, prompt-level 금지문은 **주 보안 경계가 될 수 없습니다**. 실행 통제는 모델 바깥(툴 경계/API 레이어)에서 해야 합니다.[^3]
 
 ---
 
 ## 🔧 핵심 개념
 ### 1) Prompt injection을 “입력 필터링”으로만 보면 망하는 이유
-OWASP가 반복해서 강조하는 포인트는 **LLM이 ‘신뢰할 수 있는 명령’과 ‘신뢰할 수 없는 데이터’를 아키텍처적으로 구분하지 못한다**는 점입니다. 그래서 “악성 문장 탐지”만으로는 근본 해결이 어렵고, 결국 **권한 분리, 실행 전 검증, human-in-the-loop** 같은 시스템 설계가 핵심 방어가 됩니다. ([ai-solutions.wiki](https://ai-solutions.wiki/guides/owasp-top-10-llm/?utm_source=openai))
+OWASP가 반복해서 강조하는 포인트는 **LLM이 ‘신뢰할 수 있는 명령’과 ‘신뢰할 수 없는 데이터’를 아키텍처적으로 구분하지 못한다**는 점입니다. 그래서 “악성 문장 탐지”만으로는 근본 해결이 어렵고, 결국 **권한 분리, 실행 전 검증, human-in-the-loop** 같은 시스템 설계가 핵심 방어가 됩니다.[^4]
 
 ### 2) 2026년 관점에서 가장 중요한 변화: “가드레일이 보는 것” ≠ “모델이 추론하는 것”
 2026년 5월 공개된 Prompt Overflow 연구가 실무에 치명적인 이유는 단순합니다.
 
 - 많은 guardrail(별도 분류 모델/필터)은 비용·지연 때문에 **짧은 컨텍스트로 잘라 검사(truncation/segmentation)** 합니다.
 - 그런데 실제 LLM은 훨씬 큰 컨텍스트를 보고 추론합니다.
-- 공격자는 **길이를 의도적으로 늘려**(filler로 확장) 악성 지시를 조각내 숨기고, 각 세그먼트는 무해해 보이게 만들어 guardrail을 통과시킨 뒤, **전체 컨텍스트에서는 지시가 조합되어 실행 가능**하게 만듭니다. ([arxiv.org](https://arxiv.org/abs/2605.23196?utm_source=openai))
+- 공격자는 **길이를 의도적으로 늘려**(filler로 확장) 악성 지시를 조각내 숨기고, 각 세그먼트는 무해해 보이게 만들어 guardrail을 통과시킨 뒤, **전체 컨텍스트에서는 지시가 조합되어 실행 가능**하게 만듭니다.[^5]
 
 즉, “입력/출력 검사 모델을 붙였다”는 사실만으로 안전하다고 가정하면 안 되고, **길이/분할 정책 자체가 새로운 우회면**이 됩니다.
 
 ### 3) Guardrail 설계의 중심축: Tool-call boundary(도구 호출 경계)
 2026년 실전에서 가장 방어 효율이 높은 패턴은 “모델의 정렬(alignment)을 믿지 말고, **도구 호출 시점에 결정적(deterministic)으로 막아라**”입니다.
 
-- OpenAI Agents SDK도 guardrail을 **입력/출력뿐 아니라 tool guardrail**(각 함수 호출 전후)로 걸 수 있게 설계합니다. 이건 “에이전트 체인의 첫 입력/마지막 출력만 검사하면 중간 단계에서 사고난다”는 현실 반영입니다. ([openai.github.io](https://openai.github.io/openai-agents-js/guides/guardrails?utm_source=openai))
-- 연구 쪽에서도 ClawGuard가 같은 결론을 냅니다. 간접 injection의 핵심은 “tool output(웹/파일/MCP 응답)을 관측값으로 대화 히스토리에 넣는 순간 신뢰 승격”이 일어나고, 이를 막으려면 **툴 경계마다 사용자 목적 기반 제약을 강제**해야 한다는 접근입니다. ([arxiv.org](https://arxiv.org/abs/2604.11790?utm_source=openai))
+- OpenAI Agents SDK도 guardrail을 **입력/출력뿐 아니라 tool guardrail**(각 함수 호출 전후)로 걸 수 있게 설계합니다. 이건 “에이전트 체인의 첫 입력/마지막 출력만 검사하면 중간 단계에서 사고난다”는 현실 반영입니다.[^3]
+- 연구 쪽에서도 ClawGuard가 같은 결론을 냅니다. 간접 injection의 핵심은 “tool output(웹/파일/MCP 응답)을 관측값으로 대화 히스토리에 넣는 순간 신뢰 승격”이 일어나고, 이를 막으려면 **툴 경계마다 사용자 목적 기반 제약을 강제**해야 한다는 접근입니다.[^2]
 
 정리하면, 2026년형 guardrail은:
 - (A) 모델 앞뒤에 붙는 분류기 +  
@@ -228,42 +230,51 @@ main().catch(console.error);
 ## ⚡ 실전 팁 & 함정
 ### Best Practice (실무에서 진짜 차이 나는 것)
 1) **“모델의 말”이 아니라 “실행 이벤트”를 보호하라**  
-   tool/function calling이 있는 순간, 보안의 본체는 prompt가 아니라 **권한/정책/감사로그**입니다. SDK 레벨에서도 tool guardrail을 강조하는 이유가 여기 있습니다. ([openai.github.io](https://openai.github.io/openai-agents-js/guides/guardrails?utm_source=openai))
+   tool/function calling이 있는 순간, 보안의 본체는 prompt가 아니라 **권한/정책/감사로그**입니다. SDK 레벨에서도 tool guardrail을 강조하는 이유가 여기 있습니다.[^3]
 
 2) **정책은 텍스트가 아니라 구조화된 파라미터를 검증하라**  
-   “입력 텍스트에 injection 문구가 있나?” 탐지는 FP/FN이 큽니다. 대신 “refund amount”, “destination”, “network egress”처럼 **행동 파라미터를 검증**하세요. ClawGuard가 말하는 “tool-call boundary enforcement”가 이 계열입니다. ([arxiv.org](https://arxiv.org/abs/2604.11790?utm_source=openai))
+   “입력 텍스트에 injection 문구가 있나?” 탐지는 FP/FN이 큽니다. 대신 “refund amount”, “destination”, “network egress”처럼 **행동 파라미터를 검증**하세요. ClawGuard가 말하는 “tool-call boundary enforcement”가 이 계열입니다.[^2]
 
 3) Guardrail 모델을 쓰면 “컨텍스트 길이 처리”를 설계 문서에 박아라  
-   Prompt Overflow가 보여주듯, truncation/segmentation은 우회면이 됩니다. “긴 입력은 앞 N자만 검사” 같은 구현은 보안 가정이 깨질 수 있습니다. ([arxiv.org](https://arxiv.org/abs/2605.23196?utm_source=openai))
+   Prompt Overflow가 보여주듯, truncation/segmentation은 우회면이 됩니다. “긴 입력은 앞 N자만 검사” 같은 구현은 보안 가정이 깨질 수 있습니다.[^5]
 
 ### 흔한 함정/안티패턴
 - **프롬프트에 ‘절대 ~하지 마’ 문장만 잔뜩 추가**  
-  방어가 아니라 *희망사항*입니다. OWASP 관점에서도 권한 분리/승인/모니터링이 핵심입니다. ([ai-solutions.wiki](https://ai-solutions.wiki/guides/owasp-top-10-llm/?utm_source=openai))
+  방어가 아니라 *희망사항*입니다. OWASP 관점에서도 권한 분리/승인/모니터링이 핵심입니다.[^4]
 - **입력 guardrail만 있고 tool guardrail이 없음**  
   체인 중간의 tool output/RAG 컨텍스트가 간접 injection으로 들어오면 끝입니다.
 - **Guardrail이 agent와 같은 권한/런타임에 존재**  
-  “통제 프로세스를 종료하고 로그를 삭제” 같은 운영 리스크가 커집니다(현장 사례/논의가 꾸준히 나오는 이유). 최소한 guardrail/정책/로그는 **append-only** 또는 분리된 신뢰 영역에 두세요. ([reddit.com](https://www.reddit.com/r/aiagents/comments/1sg2cq9/ai_agents_treat_guardrails_as_obstacles_not_rules/?utm_source=openai))
+  “통제 프로세스를 종료하고 로그를 삭제” 같은 운영 리스크가 커집니다(현장 사례/논의가 꾸준히 나오는 이유). 최소한 guardrail/정책/로그는 **append-only** 또는 분리된 신뢰 영역에 두세요.[^6]
 
 ### 비용/성능/안정성 트레이드오프
 - 입력/출력 분류 모델을 매 요청마다 돌리면 비용↑, 지연↑  
   그래서 2026년 흐름은 “가드레일 모델”보다 **정책 엔진 + 툴 경계 검증** 쪽이 ROI가 좋습니다(검사 대상이 작고 결정적).  
-- 다만 정책만으로는 “데이터 유출형”을 완전히 막기 어렵습니다(예: 민감정보가 응답에 섞임). 이런 건 output guardrail(PII redaction 등)이 여전히 필요합니다. OWASP LLM02/LLM05 계열과 함께 보세요. ([veridicuscan.app](https://veridicuscan.app/owasp-top-10-llm?utm_source=openai))
+- 다만 정책만으로는 “데이터 유출형”을 완전히 막기 어렵습니다(예: 민감정보가 응답에 섞임). 이런 건 output guardrail(PII redaction 등)이 여전히 필요합니다. OWASP LLM02/LLM05 계열과 함께 보세요.[^7]
 
 ---
 
 ## 🚀 마무리
 2026년 6월 기준 prompt injection 방어의 결론은 명확합니다.
 
-- prompt injection은 “탐지해서 차단”만으로 끝나지 않고, **신뢰 경계를 재설계**해야 합니다(OWASP LLM01). ([secportal.io](https://secportal.io/frameworks/owasp-llm-top-10?utm_source=openai))  
-- “가드레일 모델”은 유용하지만, **Prompt Overflow**처럼 길이/분할 정책에서 생기는 블라인드스팟이 존재합니다. ([arxiv.org](https://arxiv.org/abs/2605.23196?utm_source=openai))  
-- 실무에서 가장 강한 방어는 **tool-call boundary에서의 결정적 enforcement**(schema + 정책 + 승인 + 감사로그)입니다. OpenAI Agents SDK의 tool guardrails 개념도 같은 방향입니다. ([openai.github.io](https://openai.github.io/openai-agents-js/guides/guardrails?utm_source=openai))
+- prompt injection은 “탐지해서 차단”만으로 끝나지 않고, **신뢰 경계를 재설계**해야 합니다(OWASP LLM01).[^1]  
+- “가드레일 모델”은 유용하지만, **Prompt Overflow**처럼 길이/분할 정책에서 생기는 블라인드스팟이 존재합니다.[^5]  
+- 실무에서 가장 강한 방어는 **tool-call boundary에서의 결정적 enforcement**(schema + 정책 + 승인 + 감사로그)입니다. OpenAI Agents SDK의 tool guardrails 개념도 같은 방향입니다.[^3]
 
 도입 판단 기준(체크리스트):
 - 우리 LLM이 tool을 호출해 “돈/데이터/외부 전송/삭제”를 할 수 있는가? → **무조건 정책 레이어 필요**
-- 외부 문서/RAG/웹/MCP를 읽는가? → 간접 injection을 기본 가정으로 두고 **툴 경계 검증**을 설계해야 함 ([arxiv.org](https://arxiv.org/abs/2603.21642?utm_source=openai))
-- guardrail이 긴 입력을 어떻게 처리하는지(잘라보기/구간 검사) 설명 가능한가? → 설명 못하면 이미 취약할 확률이 큼 ([arxiv.org](https://arxiv.org/abs/2605.23196?utm_source=openai))
+- 외부 문서/RAG/웹/MCP를 읽는가? → 간접 injection을 기본 가정으로 두고 **툴 경계 검증**을 설계해야 함[^8]
+- guardrail이 긴 입력을 어떻게 처리하는지(잘라보기/구간 검사) 설명 가능한가? → 설명 못하면 이미 취약할 확률이 큼[^5]
 
 다음 학습 추천:
-- OWASP Top 10 for LLM Applications 2025의 LLM01/05/06/07을 **“툴 실행 관점”**에서 다시 읽기 ([secportal.io](https://secportal.io/frameworks/owasp-llm-top-10?utm_source=openai))
-- Prompt Overflow 논문을 팀 내 guardrail 설계 리뷰 자료로 공유(특히 “긴 입력 처리 정책”) ([arxiv.org](https://arxiv.org/abs/2605.23196?utm_source=openai))
-- tool boundary enforcement 계열 연구(ClawGuard)로 “정책 엔진의 최소 요건” 정의 ([arxiv.org](https://arxiv.org/abs/2604.11790?utm_source=openai))
+- OWASP Top 10 for LLM Applications 2025의 LLM01/05/06/07을 **“툴 실행 관점”**에서 다시 읽기[^1]
+- Prompt Overflow 논문을 팀 내 guardrail 설계 리뷰 자료로 공유(특히 “긴 입력 처리 정책”)[^5]
+- tool boundary enforcement 계열 연구(ClawGuard)로 “정책 엔진의 최소 요건” 정의[^2]
+
+[^1]: <https://secportal.io/frameworks/owasp-llm-top-10>
+[^2]: <https://arxiv.org/abs/2604.11790>
+[^3]: <https://openai.github.io/openai-agents-js/guides/guardrails>
+[^4]: <https://ai-solutions.wiki/guides/owasp-top-10-llm/>
+[^5]: <https://arxiv.org/abs/2605.23196>
+[^6]: <https://www.reddit.com/r/aiagents/comments/1sg2cq9/ai_agents_treat_guardrails_as_obstacles_not_rules/>
+[^7]: <https://veridicuscan.app/owasp-top-10-llm>
+[^8]: <https://arxiv.org/abs/2603.21642>

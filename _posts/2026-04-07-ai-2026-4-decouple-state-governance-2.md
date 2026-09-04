@@ -1,12 +1,14 @@
 ---
 title: "AI 앱 아키텍처, 2026년 4월의 정답은 “분리(Decouple) + 상태(State) + 거버넌스(Governance)”다"
+description: "2024~2025년의 AI 앱은 “LLM API 호출 + RAG”만 붙여도 제품이 됐습니다. 하지만 2026년 4월 기준, 현업에서 부딪히는 병목은 달라졌습니다."
 date: 2026-04-07 03:19:29 +0900
 categories: [Backend, Architecture]
-tags: [backend, architecture, trend, 2026-04]
+tags: [backend, architecture]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -22,7 +24,7 @@ tags: [backend, architecture, trend, 2026-04]
 - 도구(tool)·데이터 소스가 늘면서 통합이 파편화되고, 권한/감사/보안이 **아키텍처 레벨 문제**로 튀어나옴
 - 멀티스텝(계획→실행→검증) 워크플로우가 기본이 되며, “LLM 한 번 호출” 모델로는 **확장성(throughput)과 신뢰성**을 맞추기 어려워짐
 
-특히 도구 연결은 MCP(Model Context Protocol) 같은 표준을 중심으로 재편되는 흐름이 뚜렷하고, 동시에 agentic 보안 위협(Goal Hijack, Tool Misuse, Inter-agent comms 등)을 전제로 설계해야 합니다. ([modelcontextprotocol.io](https://modelcontextprotocol.io/docs/learn/architecture?utm_source=openai))
+특히 도구 연결은 MCP(Model Context Protocol) 같은 표준을 중심으로 재편되는 흐름이 뚜렷하고, 동시에 agentic 보안 위협(Goal Hijack, Tool Misuse, Inter-agent comms 등)을 전제로 설계해야 합니다.[^1]
 
 ---
 
@@ -32,7 +34,7 @@ tags: [backend, architecture, trend, 2026-04]
 
 - Orchestrator는 “무엇을/어떤 순서로”만 결정 → 프롬프트/정책/가드레일이 한 곳에 모여 **통제 가능**
 - Worker는 “한 가지 도구/책임”에 집중 → 병렬 실행, 재시도, 캐시가 쉬워 **스케일링 유리**
-- 워커 간 계약(contract)을 **schema(JSON Schema/Pydantic/Zod)** 로 고정하면, agent-to-agent 통신 품질이 급상승 ([sitepoint.com](https://www.sitepoint.com/the-definitive-guide-to-agentic-design-patterns-in-2026/?utm_source=openai))
+- 워커 간 계약(contract)을 **schema(JSON Schema/Pydantic/Zod)** 로 고정하면, agent-to-agent 통신 품질이 급상승[^2]
 
 핵심은 “LLM을 똑똑하게 만들기”보다, **LLM이 지휘하는 실행 시스템**을 클라우드 네이티브처럼 분해하는 겁니다.
 
@@ -43,17 +45,17 @@ tags: [backend, architecture, trend, 2026-04]
 - 여기서 상태(state)는 단순 채팅 히스토리가 아니라, **typed state(구조화된 실행 컨텍스트)** 여야 합니다.
 - 이 상태가 있어야 idempotency(중복 실행 방지), 재시도, 부분 실패 격리, 관측성(트레이싱)이 됩니다.
 
-Agentic RAG도 같은 방향으로 진화합니다. 단순 “retrieval 1회”가 아니라, 계획 기반으로 **iterative retrieval / memory 관리 / tool-invocation** 을 반복하는 구조가 정리되고 있습니다. ([arxiv.org](https://arxiv.org/abs/2603.07379?utm_source=openai))
+Agentic RAG도 같은 방향으로 진화합니다. 단순 “retrieval 1회”가 아니라, 계획 기반으로 **iterative retrieval / memory 관리 / tool-invocation** 을 반복하는 구조가 정리되고 있습니다.[^3]
 
 ### 3) Tool Interface 표준화(MCP): “연결을 코드가 아니라 프로토콜로”
-도구 통합을 SDK/어댑터로만 쌓으면 팀/서비스마다 연결 방식이 달라져 운영이 지옥이 됩니다. MCP는 이를 **클라이언트-호스트-서버 구조**로 표준화하고(JSON-RPC 기반), 한 앱(Host)이 여러 MCP Server(툴 제공자)에 연결하는 형태를 제시합니다. ([modelcontextprotocol.io](https://modelcontextprotocol.io/specification/2025-06-18/architecture?utm_source=openai))
+도구 통합을 SDK/어댑터로만 쌓으면 팀/서비스마다 연결 방식이 달라져 운영이 지옥이 됩니다. MCP는 이를 **클라이언트-호스트-서버 구조**로 표준화하고(JSON-RPC 기반), 한 앱(Host)이 여러 MCP Server(툴 제공자)에 연결하는 형태를 제시합니다.[^4]
 
 중요 포인트는 “도구를 붙인다”가 아니라:
 - 도구 목록/스키마/알림(notification) 등 컨텍스트 교환을 표준으로 다루고
-- 향후 transport scalability, agent communication, governance까지 로드맵에 포함되어 있다는 점입니다 ([blog.modelcontextprotocol.io](https://blog.modelcontextprotocol.io/posts/2026-mcp-roadmap/?utm_source=openai))
+- 향후 transport scalability, agent communication, governance까지 로드맵에 포함되어 있다는 점입니다[^5]
 
 ### 4) 거버넌스-퍼스트: OWASP가 말하는 “AI가 무엇을 하게 둘 것인가”
-2025 LLM 앱 보안은 Prompt Injection 등 “출력/프롬프트 중심”이 강했고, 2026 Agentic은 “AI가 실행하는 행위” 자체가 위협면입니다. ([owasp.org](https://owasp.org/www-project-top-10-for-large-language-model-applications/assets/PDF/OWASP-Top-10-for-LLMs-v2025.pdf?utm_source=openai))
+2025 LLM 앱 보안은 Prompt Injection 등 “출력/프롬프트 중심”이 강했고, 2026 Agentic은 “AI가 실행하는 행위” 자체가 위협면입니다.[^6]
 
 그래서 아키텍처 패턴도 바뀝니다:
 - 최소 권한 도구권한(least privilege) + 동적 승인(consent)
@@ -167,27 +169,27 @@ if __name__ == "__main__":
 - Compute: 모델 호출, 워커 실행
 - State: 대화/작업 상태(typed state), 장기 메모리, 벡터 인덱스
 - Governance: 정책/권한/감사/키관리  
-이 분리가 되어야 “모델 바꾸기”, “툴 추가”, “권한 강화”가 서로 발목을 안 잡습니다. (멀티에이전트 스케일링 글들이 반복해서 강조하는 지점도 결국 이 분리입니다.) ([nexaitech.com](https://nexaitech.com/multi-ai-agent-architecutre-patterns-for-scale/?utm_source=openai))
+이 분리가 되어야 “모델 바꾸기”, “툴 추가”, “권한 강화”가 서로 발목을 안 잡습니다. (멀티에이전트 스케일링 글들이 반복해서 강조하는 지점도 결국 이 분리입니다.)[^7]
 
 2) **Structured Output을 ‘옵션’이 아니라 ‘기본 계약’으로**
 - agent-to-agent / agent-to-tool 모두 스키마로 고정
 - 실패 시: (a) 자동 재요청 (b) 부분 수정 (c) fallback 모델  
-멀티에이전트에서 “한 에이전트 출력이 다른 에이전트 입력”이 되면, 포맷 흔들림이 곧 장애입니다. ([androidcentral.com](https://www.androidcentral.com/apps-software/ai/google-is-making-it-easier-to-use-the-gemini-api-in-multi-agent-workflows?utm_source=openai))
+멀티에이전트에서 “한 에이전트 출력이 다른 에이전트 입력”이 되면, 포맷 흔들림이 곧 장애입니다.[^8]
 
 3) **RAG는 ‘검색’이 아니라 ‘제어 루프’로 설계**
 Agentic RAG 흐름에서는
 - 불확실하면 더 찾고
 - 충돌하면 재질의하고
 - 메모리를 갱신/폐기하는
-루프가 핵심입니다. 단발 retrieval로는 비용만 늘고 품질이 불안정해집니다. ([arxiv.org](https://arxiv.org/abs/2603.07379?utm_source=openai))
+루프가 핵심입니다. 단발 retrieval로는 비용만 늘고 품질이 불안정해집니다.[^3]
 
 4) **MCP 도입 시, “연결”보다 “신뢰 경계(trust boundary)”를 먼저 그리기**
-MCP는 통합을 가속하지만, 도구/서버가 늘수록 공격면도 커집니다. MCP 자체 공격면을 체계화한 위협 분류(MCP-38)처럼, 프로토콜/툴 계층의 위협을 별도로 모델링하세요. ([arxiv.org](https://arxiv.org/abs/2603.18063?utm_source=openai))
+MCP는 통합을 가속하지만, 도구/서버가 늘수록 공격면도 커집니다. MCP 자체 공격면을 체계화한 위협 분류(MCP-38)처럼, 프로토콜/툴 계층의 위협을 별도로 모델링하세요.[^9]
 
 5) **OWASP Top 10을 아키텍처 체크리스트로 “매핑”**
 LLM 앱(2025)과 Agentic 앱(2026)은 포커스가 다릅니다. “무슨 말을 하게 할 것인가”에서 “무슨 행동을 하게 둘 것인가”로 중심이 이동했습니다.  
 - 도구 오용/권한 남용/에이전트 목표 하이재킹을 전제로
-- 실행 전 정책 게이트, 인간 승인, 감사 로그를 설계에 포함하세요 ([owasp.org](https://owasp.org/www-project-top-10-for-large-language-model-applications/assets/PDF/OWASP-Top-10-for-LLMs-v2025.pdf?utm_source=openai))
+- 실행 전 정책 게이트, 인간 승인, 감사 로그를 설계에 포함하세요[^6]
 
 ---
 
@@ -198,4 +200,14 @@ LLM 앱(2025)과 Agentic 앱(2026)은 포커스가 다릅니다. “무슨 말�
 - **상태는 typed state로, 워크플로우는 graph/plan으로**
 - **툴 통합은 표준(MCP)로, 보안은 OWASP Agentic 관점으로 거버넌스-퍼스트**
 
-다음 학습으로는 (1) MCP 기반 툴 카탈로그/권한 모델 설계, (2) agentic RAG의 planning+retrieval 루프 구현, (3) OWASP LLM(2025)·Agentic(2026) Top 10을 자사 아키텍처에 매핑한 보안 설계 문서화를 추천합니다. ([blog.modelcontextprotocol.io](https://blog.modelcontextprotocol.io/posts/2026-mcp-roadmap/?utm_source=openai))
+다음 학습으로는 (1) MCP 기반 툴 카탈로그/권한 모델 설계, (2) agentic RAG의 planning+retrieval 루프 구현, (3) OWASP LLM(2025)·Agentic(2026) Top 10을 자사 아키텍처에 매핑한 보안 설계 문서화를 추천합니다.[^5]
+
+[^1]: <https://modelcontextprotocol.io/docs/learn/architecture>
+[^2]: <https://www.sitepoint.com/the-definitive-guide-to-agentic-design-patterns-in-2026/>
+[^3]: <https://arxiv.org/abs/2603.07379>
+[^4]: <https://modelcontextprotocol.io/specification/2025-06-18/architecture>
+[^5]: <https://blog.modelcontextprotocol.io/posts/2026-mcp-roadmap/>
+[^6]: <https://owasp.org/www-project-top-10-for-large-language-model-applications/assets/PDF/OWASP-Top-10-for-LLMs-v2025.pdf>
+[^7]: <https://nexaitech.com/multi-ai-agent-architecutre-patterns-for-scale/>
+[^8]: <https://www.androidcentral.com/apps-software/ai/google-is-making-it-easier-to-use-the-gemini-api-in-multi-agent-workflows>
+[^9]: <https://arxiv.org/abs/2603.18063>

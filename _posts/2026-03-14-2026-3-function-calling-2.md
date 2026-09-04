@@ -1,12 +1,14 @@
 ---
-title: "도구를 “잘 쓰는” 에이전트 만들기: 2026년 3월 기준 Function Calling 구현 심층 분석"
+title: "도구를 “잘 쓰는” 에이전트 만들기: Function Calling 구현 심층 분석"
+description: "2026년 들어 AI Agent는 단순 Q&A를 넘어, 외부 시스템을 호출(tool use)해 실제 작업을 끝내는 방향으로 빠르게 표준화되고 있습니다."
 date: 2026-03-14 02:42:20 +0900
 categories: [AI, Agent]
-tags: [ai, agent, trend, 2026-03]
+tags: [ai, agent]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -16,21 +18,21 @@ tags: [ai, agent, trend, 2026-03]
 </script>
 
 ## 들어가며
-2026년 들어 AI Agent는 단순 Q&A를 넘어, **외부 시스템을 호출(tool use)해 실제 작업을 끝내는** 방향으로 빠르게 표준화되고 있습니다. 문제는 “모델이 똑똑하게 말하느냐”가 아니라, **언제 어떤 도구를 어떤 인자로 호출하고, 실패를 어떻게 복구하며, 호출 결과를 어떻게 상태로 축적하느냐**에서 품질이 갈린다는 점입니다. 커뮤니티에서도 “에이전트는 추론보다 tool calling에서 더 자주 실패한다”는 경험담이 반복되고, 실제로 `tool_choice` 같은 파라미터 하나로 도구를 아예 안 부르는 경우도 빈번합니다. ([reddit.com](https://www.reddit.com/r/aiagents/comments/1rjlzsk/tool_calling_is_where_agents_fail_most/?utm_source=openai))
+2026년 들어 AI Agent는 단순 Q&A를 넘어, **외부 시스템을 호출(tool use)해 실제 작업을 끝내는** 방향으로 빠르게 표준화되고 있습니다. 문제는 “모델이 똑똑하게 말하느냐”가 아니라, **언제 어떤 도구를 어떤 인자로 호출하고, 실패를 어떻게 복구하며, 호출 결과를 어떻게 상태로 축적하느냐**에서 품질이 갈린다는 점입니다. 커뮤니티에서도 “에이전트는 추론보다 tool calling에서 더 자주 실패한다”는 경험담이 반복되고, 실제로 `tool_choice` 같은 파라미터 하나로 도구를 아예 안 부르는 경우도 빈번합니다.[^1]
 
-또한 OpenAI는 Responses API를 중심으로 “단일 호출에서 여러 tool turn을 오케스트레이션”하는 설계를 강화하고, 컴퓨터 환경/런타임(컨테이너)까지 제공해 장기 실행 에이전트를 밀고 있습니다. 즉, 2026년 3월의 구현 포인트는 **Function Calling 자체**보다, “오케스트레이션 + 검증 + 상태 + 안전장치”입니다. ([openai.com](https://openai.com/index/new-tools-for-building-agents/?utm_source=openai))
+또한 OpenAI는 Responses API를 중심으로 “단일 호출에서 여러 tool turn을 오케스트레이션”하는 설계를 강화하고, 컴퓨터 환경/런타임(컨테이너)까지 제공해 장기 실행 에이전트를 밀고 있습니다. 즉, 2026년 3월의 구현 포인트는 **Function Calling 자체**보다, “오케스트레이션 + 검증 + 상태 + 안전장치”입니다.[^2]
 
 ---
 
 ## 🔧 핵심 개념
 ### 1) Function Calling vs Tool Use
 - **Function Calling**: 모델이 “호출 의도 + JSON arguments”를 생성하고, 실제 함수 실행은 **애플리케이션(런타임)이 담당**합니다. (모델이 직접 API를 때리지 않습니다.)
-- **Tool Use**: Function Calling을 포함한 상위 개념으로, Web Search/File Search/Computer Use 같은 **호스팅 도구**까지 포함해 “모델이 도구를 선택하고 결과를 받아 다음 행동을 결정”하는 루프 전체를 의미합니다. OpenAI는 Responses API에서 이를 통합적으로 제공하는 방향입니다. ([openai.com](https://openai.com/index/new-tools-for-building-agents/?utm_source=openai))
+- **Tool Use**: Function Calling을 포함한 상위 개념으로, Web Search/File Search/Computer Use 같은 **호스팅 도구**까지 포함해 “모델이 도구를 선택하고 결과를 받아 다음 행동을 결정”하는 루프 전체를 의미합니다. OpenAI는 Responses API에서 이를 통합적으로 제공하는 방향입니다.[^2]
 
 ### 2) JSON Schema 기반 “Typed Tool Contract”
 2026년 실전에서 가장 중요한 건 도구 정의를 “문서”가 아니라 **계약(contract)** 으로 다루는 겁니다.
-- OpenAI 진영: **Structured Outputs**(예: `strict: true`)로 “도구 인자(JSON)가 스키마와 정확히 일치”하도록 강제하는 흐름이 핵심입니다. ([help.openai.com](https://help.openai.com/en/articles/8555517-function-calling-in-the-openai-api?utm_source=openai))
-- Anthropic 진영도 tool 정의에 `input_schema`(JSON Schema)를 중심으로 시스템 프롬프트가 구성되고, 메시지 블록에 `tool_use`/`tool_result`가 오가도록 설계돼 있습니다. 즉, 스키마 중심 설계는 사실상 업계 공통 방향입니다. ([docs.anthropic.com](https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/implement-tool-use?utm_source=openai))
+- OpenAI 진영: **Structured Outputs**(예: `strict: true`)로 “도구 인자(JSON)가 스키마와 정확히 일치”하도록 강제하는 흐름이 핵심입니다.[^3]
+- Anthropic 진영도 tool 정의에 `input_schema`(JSON Schema)를 중심으로 시스템 프롬프트가 구성되고, 메시지 블록에 `tool_use`/`tool_result`가 오가도록 설계돼 있습니다. 즉, 스키마 중심 설계는 사실상 업계 공통 방향입니다.[^4]
 
 ### 3) 오케스트레이션 루프(Agent Loop)의 표준 형태
 구현을 단순화하면 다음 4단계가 반복됩니다.
@@ -39,7 +41,7 @@ tags: [ai, agent, trend, 2026-03]
 3. tool call이면 **검증(validate) → 실행(execute) → 결과를 tool_result로 주입**  
 4. 충분한 정보가 쌓이면 최종 답변 생성  
 
-여기서 실패 지점은 거의 항상 2~3단계(“도구를 안 부름 / 인자가 틀림 / 같은 도구를 무한 반복 / 실패를 성공으로 오해”)에서 터집니다. ([reddit.com](https://www.reddit.com/r/AI_Agents/comments/1q9vzsi/agent_calling_tools_multiple_times/?utm_source=openai))
+여기서 실패 지점은 거의 항상 2~3단계(“도구를 안 부름 / 인자가 틀림 / 같은 도구를 무한 반복 / 실패를 성공으로 오해”)에서 터집니다.[^5]
 
 ---
 
@@ -150,35 +152,44 @@ if __name__ == "__main__":
 ```
 
 핵심 주석을 다시 보면:
-- `tool_choice="auto"`: 도구를 “존재만” 시키고 모델이 절대 안 부르는 구성 실수를 방지합니다. ([reddit.com](https://www.reddit.com/r/n8nforbeginners/comments/1rnfpho/spent_8_hours_on_a_toolcalling_ai_agent_the_tool/?utm_source=openai))  
-- JSON Schema 검증: “모델이 만든 JSON”은 신뢰하면 안 됩니다. 스키마 검증 + 실패를 tool_result로 명시해야 에이전트가 복구 루프를 탑니다. ([help.openai.com](https://help.openai.com/en/articles/8555517-function-calling-in-the-openai-api?utm_source=openai))  
-- tool_result에 `ok`, `error`를 명확히: “첫 호출이 실패했는데 성공으로 오해”하면 같은 도구를 무한 재시도하는 패턴이 나옵니다. ([reddit.com](https://www.reddit.com/r/AI_Agents/comments/1q9vzsi/agent_calling_tools_multiple_times/?utm_source=openai))  
+- `tool_choice="auto"`: 도구를 “존재만” 시키고 모델이 절대 안 부르는 구성 실수를 방지합니다.[^6]  
+- JSON Schema 검증: “모델이 만든 JSON”은 신뢰하면 안 됩니다. 스키마 검증 + 실패를 tool_result로 명시해야 에이전트가 복구 루프를 탑니다.[^3]  
+- tool_result에 `ok`, `error`를 명확히: “첫 호출이 실패했는데 성공으로 오해”하면 같은 도구를 무한 재시도하는 패턴이 나옵니다.[^5]  
 
 ---
 
 ## ⚡ 실전 팁
 1) **도구 설명(description)은 “언제/왜/금지조건”까지 써라**  
-모델은 도구 선택을 설명 텍스트에 크게 의존합니다. “무엇을 하는지”만 쓰면 과다 호출/오호출이 늘고, “언제 써야 하는지 / 언제 쓰면 안 되는지 / 결과 형태가 무엇인지”를 적으면 안정성이 올라갑니다. (Anthropic도 tool definition을 바탕으로 시스템 프롬프트를 구성한다고 명시합니다.) ([docs.anthropic.com](https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/implement-tool-use?utm_source=openai))
+모델은 도구 선택을 설명 텍스트에 크게 의존합니다. “무엇을 하는지”만 쓰면 과다 호출/오호출이 늘고, “언제 써야 하는지 / 언제 쓰면 안 되는지 / 결과 형태가 무엇인지”를 적으면 안정성이 올라갑니다. (Anthropic도 tool definition을 바탕으로 시스템 프롬프트를 구성한다고 명시합니다.)[^4]
 
 2) **도구 인자 스키마는 좁게, additionalProperties는 막아라**  
-실무에서 가장 흔한 장애는 “모델이 멋대로 필드 추가”하는 경우입니다. `additionalProperties: false` + enum/minLength 같은 제약을 적극 사용하세요. OpenAI의 Structured Outputs 흐름은 이 방향을 강하게 밀고 있습니다. ([help.openai.com](https://help.openai.com/en/articles/8555517-function-calling-in-the-openai-api?utm_source=openai))
+실무에서 가장 흔한 장애는 “모델이 멋대로 필드 추가”하는 경우입니다. `additionalProperties: false` + enum/minLength 같은 제약을 적극 사용하세요. OpenAI의 Structured Outputs 흐름은 이 방향을 강하게 밀고 있습니다.[^3]
 
 3) **장기 실행 에이전트는 ‘상태’를 텍스트가 아니라 구조로 관리하라**  
-2026년형 에이전트는 한 번의 대화로 끝나지 않고, 컴퓨터 환경/컨테이너/스킬 레이어 등과 결합해 오래 달립니다. 이때 “지금까지의 사실/결정/도구 결과”를 대화 텍스트에만 누적하면 컨텍스트가 비대해지고 오류가 늘어납니다. OpenAI는 Responses API + 런타임/스킬/컨텍스트 컴팩션을 통해 장기 실행을 지원하는 그림을 제시합니다. ([openai.com](https://openai.com/index/equip-responses-api-computer-environment/?utm_source=openai))
+2026년형 에이전트는 한 번의 대화로 끝나지 않고, 컴퓨터 환경/컨테이너/스킬 레이어 등과 결합해 오래 달립니다. 이때 “지금까지의 사실/결정/도구 결과”를 대화 텍스트에만 누적하면 컨텍스트가 비대해지고 오류가 늘어납니다. OpenAI는 Responses API + 런타임/스킬/컨텍스트 컴팩션을 통해 장기 실행을 지원하는 그림을 제시합니다.[^7]
 
 4) **관측(Tracing) 없이는 디버깅 불가능**  
-툴 호출은 “모델 출력 → 런타임 실행 → 결과 주입”의 멀티 컴포넌트 경로라, 로그/트레이싱 없이 원인 분석이 거의 불가합니다. OpenAI도 Agents SDK와 tracing을 빌딩 블록으로 강조합니다. ([help.openai.com](https://help.openai.com/en/articles/8555517-function-calling-in-the-openai-api?utm_source=openai))
+툴 호출은 “모델 출력 → 런타임 실행 → 결과 주입”의 멀티 컴포넌트 경로라, 로그/트레이싱 없이 원인 분석이 거의 불가합니다. OpenAI도 Agents SDK와 tracing을 빌딩 블록으로 강조합니다.[^3]
 
 5) **도구가 많아질수록 ‘선택’ 문제는 Retrieval로 풀어라**  
-수십~수백 개 도구를 한 번에 프롬프트에 넣으면 토큰 비용이 폭발합니다(정의만으로 수만 토큰). 그래서 “관련 도구만 동적으로 주입”하는 접근이 중요해졌고, 이를 다루는 연구도 나옵니다. ([anthropic.com](https://www.anthropic.com/engineering/advanced-tool-use?utm_source=openai))
+수십~수백 개 도구를 한 번에 프롬프트에 넣으면 토큰 비용이 폭발합니다(정의만으로 수만 토큰). 그래서 “관련 도구만 동적으로 주입”하는 접근이 중요해졌고, 이를 다루는 연구도 나옵니다.[^8]
 
 ---
 
 ## 🚀 마무리
 2026년 3월 시점의 “Function Calling 구현”은 더 이상 단순 API 옵션이 아니라, **Typed contract(JSON Schema) + 오케스트레이션 루프 + 실패 복구 + 관측/추적**의 조합 문제입니다.  
-- 스키마로 인자를 강제(Structured Outputs)하고 ([help.openai.com](https://help.openai.com/en/articles/8555517-function-calling-in-the-openai-api?utm_source=openai))  
-- `tool_choice` 같은 실행 스위치를 명확히 하며 ([reddit.com](https://www.reddit.com/r/n8nforbeginners/comments/1rnfpho/spent_8_hours_on_a_toolcalling_ai_agent_the_tool/?utm_source=openai))  
-- tool_result에 성공/실패를 구조적으로 반환해 루프를 안정화하고 ([reddit.com](https://www.reddit.com/r/AI_Agents/comments/1q9vzsi/agent_calling_tools_multiple_times/?utm_source=openai))  
-- 장기 실행/다도구 환경에선 상태와 도구 주입을 “설계”해야 합니다. ([openai.com](https://openai.com/index/equip-responses-api-computer-environment/?utm_source=openai))  
+- 스키마로 인자를 강제(Structured Outputs)하고[^3]  
+- `tool_choice` 같은 실행 스위치를 명확히 하며[^6]  
+- tool_result에 성공/실패를 구조적으로 반환해 루프를 안정화하고[^5]  
+- 장기 실행/다도구 환경에선 상태와 도구 주입을 “설계”해야 합니다.[^7]  
 
-다음 학습으로는 (1) Responses API 기반 멀티턴 tool orchestration 패턴, (2) 도구 선택을 위한 tool retrieval/라우팅, (3) tracing+evaluation으로 tool accuracy를 계량하는 방법을 추천합니다. ([openai.com](https://openai.com/index/new-tools-for-building-agents/?utm_source=openai))
+다음 학습으로는 (1) Responses API 기반 멀티턴 tool orchestration 패턴, (2) 도구 선택을 위한 tool retrieval/라우팅, (3) tracing+evaluation으로 tool accuracy를 계량하는 방법을 추천합니다.[^2]
+
+[^1]: <https://www.reddit.com/r/aiagents/comments/1rjlzsk/tool_calling_is_where_agents_fail_most/>
+[^2]: <https://openai.com/index/new-tools-for-building-agents/>
+[^3]: <https://help.openai.com/en/articles/8555517-function-calling-in-the-openai-api>
+[^4]: <https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/implement-tool-use>
+[^5]: <https://www.reddit.com/r/AI_Agents/comments/1q9vzsi/agent_calling_tools_multiple_times/>
+[^6]: <https://www.reddit.com/r/n8nforbeginners/comments/1rnfpho/spent_8_hours_on_a_toolcalling_ai_agent_the_tool/>
+[^7]: <https://openai.com/index/equip-responses-api-computer-environment/>
+[^8]: <https://www.anthropic.com/engineering/advanced-tool-use>

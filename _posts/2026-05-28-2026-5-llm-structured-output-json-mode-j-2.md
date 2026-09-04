@@ -1,12 +1,14 @@
 ---
-title: "2026년 5월 기준: LLM Structured Output에서 “JSON mode + JSON Schema 강제”를 제대로 쓰려면 알아야 할 제약들"
+title: "LLM Structured Output에서 “JSON mode + JSON Schema 강제”를 제대로 쓰려면 알아야 할 제약들"
+description: "LLM을 서비스에 붙일 때 JSON은 “있으면 좋은 출력 형식”이 아니라 시스템 경계(contract) 입니다. 한 번이라도 \" 하나 빠진 출력, enum 오타, 필드 누락이 발생하면 파이프라인 전체가 연쇄적으로 깨지죠. 그래서 2026년에는 대부분의 팀이 아래 중 하나로 수렴합니다."
 date: 2026-05-28 04:18:21 +0900
 categories: [AI, LLM]
-tags: [ai, llm, trend, 2026-05]
+tags: [ai, llm]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -32,36 +34,36 @@ LLM을 서비스에 붙일 때 JSON은 “있으면 좋은 출력 형식”이 �
 언제 쓰면 안 되나?
 - 출력이 길고 자유서술이 핵심인 경우(보고서 본문 등): 스키마 강제는 종종 **토큰/형식 제약 비용**을 키웁니다.
 - “정답이 없고 탐색이 중요한 작업”: 스키마로 과도하게 조이면 모델이 **빈 값/무난한 값**으로 도망가 품질이 떨어질 수 있습니다.
-- “의미 제약(semantic constraint)”이 핵심인 도메인: JSON Schema는 구조/타입은 강하지만, `end_date > start_date` 같은 규칙은 별도 검증이 필요합니다. ([respan.ai](https://www.respan.ai/articles/openai-structured-outputs-vs-json-mode?utm_source=openai))
+- “의미 제약(semantic constraint)”이 핵심인 도메인: JSON Schema는 구조/타입은 강하지만, `end_date > start_date` 같은 규칙은 별도 검증이 필요합니다.[^1]
 
 ---
 
 ## 🔧 핵심 개념
 ### 1) JSON mode vs Structured Outputs(strict)의 차이
-- **JSON mode**는 “파싱 가능한 JSON”을 목표로 합니다. 스키마 준수는 *프롬프트/후처리*에 의존합니다. OpenAI 문서도 “스키마 일치 보장은 아니다”라고 명확히 분리합니다. ([platform.openai.com](https://platform.openai.com/docs/guides/structured-outputs?api-mode=chat&utm_source=openai))  
-- **Structured Outputs(strict)**는 “JSON Schema에 맞는 토큰만 생성”하도록 **constrained decoding**을 걸어버리는 방식입니다. 즉, 모델이 마음대로 필드를 빼거나 enum을 추가하기가 구조적으로 어려워집니다. ([openai.com](https://openai.com/index/introducing-structured-outputs-in-the-api/?utm_source=openai))
+- **JSON mode**는 “파싱 가능한 JSON”을 목표로 합니다. 스키마 준수는 *프롬프트/후처리*에 의존합니다. OpenAI 문서도 “스키마 일치 보장은 아니다”라고 명확히 분리합니다.[^2]  
+- **Structured Outputs(strict)**는 “JSON Schema에 맞는 토큰만 생성”하도록 **constrained decoding**을 걸어버리는 방식입니다. 즉, 모델이 마음대로 필드를 빼거나 enum을 추가하기가 구조적으로 어려워집니다.[^3]
 
 여기서 중요한 오해 2가지:
-1) **“strict면 검증 라이브러리 필요 없다”** → 운영 관점에선 *여전히 필요*합니다. 공급자 버그/엣지케이스 대비 + 의미 검증을 위해서요. ([respan.ai](https://www.respan.ai/articles/openai-structured-outputs-vs-json-mode?utm_source=openai))  
-2) **“스키마면 의미까지 보장”** → 스키마는 구조/타입/열거/패턴 같은 **형식 제약**에 강하지만, 의미 제약은 별도 로직이 필요합니다. ([openai.com](https://openai.com/index/introducing-structured-outputs-in-the-api/?utm_source=openai))
+1) **“strict면 검증 라이브러리 필요 없다”** → 운영 관점에선 *여전히 필요*합니다. 공급자 버그/엣지케이스 대비 + 의미 검증을 위해서요.[^1]  
+2) **“스키마면 의미까지 보장”** → 스키마는 구조/타입/열거/패턴 같은 **형식 제약**에 강하지만, 의미 제약은 별도 로직이 필요합니다.[^3]
 
 ### 2) Function calling은 “포맷팅”이 아니라 “행동 선택” 프리미티브
-요즘도 “추출(extraction)을 tool call로 시키면 JSON이 잘 나와요”라는 구현이 많습니다. 그런데 2026년 기준으로는 **추출은 Structured Outputs로**, tool call은 **모델이 실제 액션을 결정해야 할 때**에 쓰는 게 비용/신뢰성 면에서 유리하다는 정리가 많이 나옵니다. ([flowverify.co](https://www.flowverify.co/blog/llm-function-calling-vs-structured-outputs?utm_source=openai))
+요즘도 “추출(extraction)을 tool call로 시키면 JSON이 잘 나와요”라는 구현이 많습니다. 그런데 2026년 기준으로는 **추출은 Structured Outputs로**, tool call은 **모델이 실제 액션을 결정해야 할 때**에 쓰는 게 비용/신뢰성 면에서 유리하다는 정리가 많이 나옵니다.[^4]
 
-- 추출만 필요한데 tool call을 쓰면: tool 정의/arguments 래핑 등으로 토큰 오버헤드가 생기고, “모델이 굳이 도구를 호출할지” 같은 변수가 추가됩니다. ([flowverify.co](https://www.flowverify.co/blog/llm-function-calling-vs-structured-outputs?utm_source=openai))
+- 추출만 필요한데 tool call을 쓰면: tool 정의/arguments 래핑 등으로 토큰 오버헤드가 생기고, “모델이 굳이 도구를 호출할지” 같은 변수가 추가됩니다.[^4]
 
 ### 3) “JSON Schema 제약”은 공급자별로 다르게 동작한다 (2026년에도 포터블하지 않다)
 이게 2026년 5월의 현실적인 함정입니다.
 
-- OpenAI는 `strict: true`를 켜면 스키마 준수를 강하게 보장하는 방향으로 문서화돼 있고, 스키마 미지원이면 요청 자체가 에러가 날 수 있습니다. ([platform.openai.com](https://platform.openai.com/docs/guides/structured-outputs?api-mode=chat&utm_source=openai))  
-- Gemini는 문서에서 **“JSON Schema의 subset 지원”**을 명시합니다. 즉 “표준 JSON Schema를 그대로 들고 가면” 일부 키워드/조합이 안 먹을 수 있습니다. ([ai.google.dev](https://ai.google.dev/gemini-api/docs/structured-output?utm_source=openai))  
-- Anthropic 툴 스키마도 “JSON Schema draft 2020-12”를 받더라도, 실제로 출력이 문법적으로 강제되는 파이프라인은 **subset**만 안정적으로 동작한다는 현장 디버깅 글이 있습니다. ([startdebugging.net](https://startdebugging.net/2026/05/fix-tool-call-arguments-did-not-match-schema-in-anthropic-tool-use/?utm_source=openai))
+- OpenAI는 `strict: true`를 켜면 스키마 준수를 강하게 보장하는 방향으로 문서화돼 있고, 스키마 미지원이면 요청 자체가 에러가 날 수 있습니다.[^2]  
+- Gemini는 문서에서 **“JSON Schema의 subset 지원”**을 명시합니다. 즉 “표준 JSON Schema를 그대로 들고 가면” 일부 키워드/조합이 안 먹을 수 있습니다.[^5]  
+- Anthropic 툴 스키마도 “JSON Schema draft 2020-12”를 받더라도, 실제로 출력이 문법적으로 강제되는 파이프라인은 **subset**만 안정적으로 동작한다는 현장 디버깅 글이 있습니다.[^6]
 
 결론: “우리 스키마는 JSON Schema 2020-12니까 어디서나 되겠지”는 위험합니다. (멀티벤더/폴백 전략이면 특히)
 
 ### 4) strict가 해결 못 하는 것: truncation(중간 잘림)과 semantic correctness
-형식이 완벽해도 운영에서 가장 많이 터지는 건 **길이/토큰 한계로 JSON이 ‘중간까지만’ 생성**되는 케이스입니다. 심지어 constrained decoding이어도 “완성 전에 토큰이 끝나면” 계약은 깨집니다(혹은 ‘부분만 나온’ 상태가 됩니다). 커뮤니티 테스트에서도 truncation이 “killer”로 언급됩니다. ([reddit.com](https://www.reddit.com/r/Python/comments/1tagc2g/i_tested_structured_output_from_288_llm_calls_and/?utm_source=openai))  
-그리고 OpenAI도 “값 자체의 정답성(예: 수학 단계)”은 별개라고 선을 긋습니다. ([openai.com](https://openai.com/index/introducing-structured-outputs-in-the-api/?utm_source=openai))
+형식이 완벽해도 운영에서 가장 많이 터지는 건 **길이/토큰 한계로 JSON이 ‘중간까지만’ 생성**되는 케이스입니다. 심지어 constrained decoding이어도 “완성 전에 토큰이 끝나면” 계약은 깨집니다(혹은 ‘부분만 나온’ 상태가 됩니다). 커뮤니티 테스트에서도 truncation이 “killer”로 언급됩니다.[^7]  
+그리고 OpenAI도 “값 자체의 정답성(예: 수학 단계)”은 별개라고 선을 긋습니다.[^3]
 
 ---
 
@@ -149,7 +151,7 @@ export async function normalizeTicket(rawText: string): Promise<Ticket> {
         content: rawText,
       },
     ],
-    // OpenAI 문서 흐름: response_format에 json_schema + strict ([platform.openai.com](https://platform.openai.com/docs/guides/structured-outputs?api-mode=chat&utm_source=openai))
+    // OpenAI 문서 흐름: response_format에 json_schema + strict[^2]
     response_format: { type: "json_schema", json_schema: ticketJsonSchema },
     max_output_tokens: 700, // truncation 리스크를 낮추되, 무작정 크게만 잡지 말 것(비용)
   });
@@ -204,7 +206,7 @@ email: user@example.com
 }
 ```
 
-핵심은 “JSON을 프롬프트로 부탁”이 아니라, **API 레벨에서 response_format + strict로 계약을 걸고**, 그래도 **앱 레벨에서 의미 검증을 닫는(fail-closed)** 구조입니다. OpenAI는 strict로 스키마 일치 방향을 강조하지만, 값의 정합성은 별도라고 밝힙니다. ([openai.com](https://openai.com/index/introducing-structured-outputs-in-the-api/?utm_source=openai))
+핵심은 “JSON을 프롬프트로 부탁”이 아니라, **API 레벨에서 response_format + strict로 계약을 걸고**, 그래도 **앱 레벨에서 의미 검증을 닫는(fail-closed)** 구조입니다. OpenAI는 strict로 스키마 일치 방향을 강조하지만, 값의 정합성은 별도라고 밝힙니다.[^3]
 
 ---
 
@@ -215,19 +217,19 @@ email: user@example.com
    - 특히 멀티스텝 agent에서 다음 스텝이 `obj.foo`에 의존하면, 스키마가 곧 API 계약입니다.
 
 2) **strict를 켰어도 ‘의미 검증’을 별도로**
-   - JSON Schema는 형식 제약에는 강하지만, “도메인 규칙”은 못 담는 경우가 많습니다. 그래서 Zod refine / Pydantic validator로 2차 방어를 두는 게 일반적입니다. ([respan.ai](https://www.respan.ai/articles/openai-structured-outputs-vs-json-mode?utm_source=openai))
+   - JSON Schema는 형식 제약에는 강하지만, “도메인 규칙”은 못 담는 경우가 많습니다. 그래서 Zod refine / Pydantic validator로 2차 방어를 두는 게 일반적입니다.[^1]
 
 3) **길이(토큰) 설계를 스키마 설계만큼 중요하게**
    - 배열 maxItems, 문자열 maxLength를 적당히 잡지 않으면 truncation/비용 문제가 바로 옵니다.
-   - 커뮤니티에서도 “중간 잘림”이 운영에서 가장 치명적이라고 반복 보고됩니다. ([reddit.com](https://www.reddit.com/r/Python/comments/1tagc2g/i_tested_structured_output_from_288_llm_calls_and/?utm_source=openai))
+   - 커뮤니티에서도 “중간 잘림”이 운영에서 가장 치명적이라고 반복 보고됩니다.[^7]
 
 ### 흔한 함정/안티패턴
 - **“추출인데도” tool call을 남발**
-  - 도구 호출은 모델이 “행동을 선택”해야 하는 상황에 적합합니다. 추출만 필요하면 Structured Outputs가 더 단순하고 안정적이라는 비교 글들이 많습니다. ([flowverify.co](https://www.flowverify.co/blog/llm-function-calling-vs-structured-outputs?utm_source=openai))
+  - 도구 호출은 모델이 “행동을 선택”해야 하는 상황에 적합합니다. 추출만 필요하면 Structured Outputs가 더 단순하고 안정적이라는 비교 글들이 많습니다.[^4]
 
 - **벤더 간 스키마 이식(Portability) 가정**
-  - Gemini는 subset 지원을 명시합니다. ([ai.google.dev](https://ai.google.dev/gemini-api/docs/structured-output?utm_source=openai))  
-  - Anthropic도 “받는 스키마”와 “실제로 안정적으로 강제되는 subset” 간 간극이 문제로 언급됩니다. ([startdebugging.net](https://startdebugging.net/2026/05/fix-tool-call-arguments-did-not-match-schema-in-anthropic-tool-use/?utm_source=openai))  
+  - Gemini는 subset 지원을 명시합니다.[^5]  
+  - Anthropic도 “받는 스키마”와 “실제로 안정적으로 강제되는 subset” 간 간극이 문제로 언급됩니다.[^6]  
   → 멀티벤더 전략이면 “공통 subset 스키마”를 정의하거나, 벤더별 스키마 컴파일 레이어를 두세요.
 
 ### 비용/성능/안정성 트레이드오프
@@ -245,13 +247,19 @@ email: user@example.com
 ## 🚀 마무리
 정리하면, 2026년 5월 기준 LLM structured output의 핵심은 “JSON을 예쁘게 받기”가 아니라 **시스템 계약을 어디에 두느냐**입니다.
 
-- **정말 JSON이 계약이라면**: Structured Outputs(strict)로 “형식”을 디코딩 단계에서 잠그고, 앱에서 Zod/Pydantic로 “의미”를 잠그세요. ([openai.com](https://openai.com/index/introducing-structured-outputs-in-the-api/?utm_source=openai))  
+- **정말 JSON이 계약이라면**: Structured Outputs(strict)로 “형식”을 디코딩 단계에서 잠그고, 앱에서 Zod/Pydantic로 “의미”를 잠그세요.[^3]  
 - **행동(외부 API 호출/DB write 등)을 모델이 결정해야 한다면**: Function calling(tool use)을 쓰되, 인자 스키마는 가능한 단순하게 유지하세요.
-- **멀티벤더/폴백이면**: “JSON Schema면 어디서나 된다”를 버리고, 공급자별 subset/제약을 전제로 설계하세요. ([ai.google.dev](https://ai.google.dev/gemini-api/docs/structured-output?utm_source=openai))
+- **멀티벤더/폴백이면**: “JSON Schema면 어디서나 된다”를 버리고, 공급자별 subset/제약을 전제로 설계하세요.[^5]
 
 다음 학습 추천(바로 실무에 도움되는 순서):
-1) OpenAI Structured Outputs 가이드에서 `strict: true` / `response_format: json_schema` 패턴 정리 ([platform.openai.com](https://platform.openai.com/docs/guides/structured-outputs?api-mode=chat&utm_source=openai))  
-2) Gemini Structured Outputs의 “subset 제약” 확인(지원 키워드/타입/정렬 특성) ([ai.google.dev](https://ai.google.dev/gemini-api/docs/structured-output?utm_source=openai))  
-3) “truncation 대응”을 재시도만으로 풀지 말고, maxLength/maxItems 설계 + 부분 실패 전략(수정 1회, fail-closed)을 팀 표준으로 만들기 ([reddit.com](https://www.reddit.com/r/Python/comments/1tagc2g/i_tested_structured_output_from_288_llm_calls_and/?utm_source=openai))
+1) OpenAI Structured Outputs 가이드에서 `strict: true` / `response_format: json_schema` 패턴 정리[^2]  
+2) Gemini Structured Outputs의 “subset 제약” 확인(지원 키워드/타입/정렬 특성)[^5]  
+3) “truncation 대응”을 재시도만으로 풀지 말고, maxLength/maxItems 설계 + 부분 실패 전략(수정 1회, fail-closed)을 팀 표준으로 만들기[^7]
 
-원하면, 당신이 쓰는 스키마(또는 Pydantic/Zod 모델) 일부를 주면 “OpenAI/Gemini/Anthropic 공통 subset으로 컴파일”하는 기준과, 운영에서 자주 깨지는 제약(예: oneOf/anyOf, nullable, format, pattern 등)을 어떻게 피할지까지 스키마 리뷰 형태로 구체화해드릴게요.
+[^1]: <https://www.respan.ai/articles/openai-structured-outputs-vs-json-mode>
+[^2]: <https://platform.openai.com/docs/guides/structured-outputs?api-mode=chat>
+[^3]: <https://openai.com/index/introducing-structured-outputs-in-the-api/>
+[^4]: <https://www.flowverify.co/blog/llm-function-calling-vs-structured-outputs>
+[^5]: <https://ai.google.dev/gemini-api/docs/structured-output>
+[^6]: <https://startdebugging.net/2026/05/fix-tool-call-arguments-did-not-match-schema-in-anthropic-tool-use/>
+[^7]: <https://www.reddit.com/r/Python/comments/1tagc2g/i_tested_structured_output_from_288_llm_calls_and/>

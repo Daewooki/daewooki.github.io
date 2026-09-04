@@ -1,12 +1,14 @@
 ---
-title: "Streamlit vs Gradio로 “하루 만에” AI 데모 UI를 만드는 법: 2026년 8월 기준 실전 설계/성능/배포까지"
+title: "Streamlit vs Gradio로 “하루 만에” AI 데모 UI를 만드는 법: 실전 설계/성능/배포까지"
+description: "AI 모델(LLM/RAG/이미지 생성/ASR 등)을 “일단 써보게” 만드는 데모 UI는, 제품 UI와 다른 요구를 가집니다. 핵심은 빠른 반복(모델/프롬프트/파라미터), 안정적인 동시성, 그리고 배포/공유 비용 최소화입니다."
 date: 2026-08-04 03:22:12 +0900
 categories: [AI, Prototyping]
-tags: [ai, prototyping, trend, 2026-08]
+tags: [ai, prototyping]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -22,32 +24,32 @@ AI 모델(LLM/RAG/이미지 생성/ASR 등)을 “일단 써보게” 만드는 
 - **언제 Streamlit이 좋은가**
   - 데모가 곧 **데이터 앱/운영 도구**로 확장될 가능성이 크다 (대시보드, 분석 테이블, 관리자 화면)
   - “화면 구성 + 상태 관리 + 여러 위젯 조합”이 중요하다
-  - 2026년 들어 Streamlit이 **Starlette/Uvicorn 기반**으로 전환되며 ASGI 호환성이 좋아졌고, 하단 고정 UI(`st.bottom`) 같은 패턴이 쉬워졌다 ([docs.streamlit.io](https://docs.streamlit.io/develop/quick-reference/release-notes/2026?utm_source=openai))
+  - 2026년 들어 Streamlit이 **Starlette/Uvicorn 기반**으로 전환되며 ASGI 호환성이 좋아졌고, 하단 고정 UI(`st.bottom`) 같은 패턴이 쉬워졌다[^1]
 
 - **언제 Gradio가 좋은가**
-  - 목표가 명확히 “모델 데모/리서치 공유”이고, **ChatInterface/Blocks**로 빠르게 형태가 나온다 ([gradio.app](https://www.gradio.app/docs/gradio/chatinterface?utm_source=openai))
-  - **동시 요청 제어(Queue/Concurrency)**가 핵심인 추론 데모(특히 GPU 자원 제한) ([gradio.app](https://gradio.app/guides/queuing?utm_source=openai))
-  - FastAPI에 **mount**해서 기존 백엔드/인증(OAuth 등)에 붙이고 싶다 ([gradio.app](https://www.gradio.app/docs/gradio/mount_gradio_app?utm_source=openai))
+  - 목표가 명확히 “모델 데모/리서치 공유”이고, **ChatInterface/Blocks**로 빠르게 형태가 나온다[^2]
+  - **동시 요청 제어(Queue/Concurrency)**가 핵심인 추론 데모(특히 GPU 자원 제한)[^3]
+  - FastAPI에 **mount**해서 기존 백엔드/인증(OAuth 등)에 붙이고 싶다[^4]
 
 - **언제 둘 다 “쓰면 안 되는가”**
-  - 외부 고객 대상의 정교한 UX, 세밀한 프론트 상태 업데이트, 복잡한 디자인 시스템이 필요하면(또는 “진짜 제품 UI”) 결국 React/Next.js 등 정통 웹 스택이 더 싸게 먹힐 수 있습니다. 빠른 데모 프레임워크의 한계(전역 재실행, 컴포넌트 상태 분리 난이도 등)는 규모가 커질수록 비용으로 돌아옵니다(커뮤니티에서도 반복적으로 지적). ([reddit.com](https://www.reddit.com/r/Chatbots/comments/1u5kq4r/migrating_an_ai_desktop_interface_from_streamlit/?utm_source=openai))
+  - 외부 고객 대상의 정교한 UX, 세밀한 프론트 상태 업데이트, 복잡한 디자인 시스템이 필요하면(또는 “진짜 제품 UI”) 결국 React/Next.js 등 정통 웹 스택이 더 싸게 먹힐 수 있습니다. 빠른 데모 프레임워크의 한계(전역 재실행, 컴포넌트 상태 분리 난이도 등)는 규모가 커질수록 비용으로 돌아옵니다(커뮤니티에서도 반복적으로 지적).[^5]
 
 ---
 
 ## 🔧 핵심 개념
 
 ### 1) Streamlit의 실행 모델: “스크립트 재실행 + 캐시/세션으로 제어”
-Streamlit의 본질은 **사용자 인터랙션마다 스크립트를 다시 실행**하는 모델입니다. 그래서 UI 코드는 간단하지만, 성능/상태를 잡으려면 의도적으로 설계해야 합니다. ([docs.streamlit.io](https://docs.streamlit.io/develop/api-reference/caching-and-state?utm_source=openai))
+Streamlit의 본질은 **사용자 인터랙션마다 스크립트를 다시 실행**하는 모델입니다. 그래서 UI 코드는 간단하지만, 성능/상태를 잡으려면 의도적으로 설계해야 합니다.[^6]
 
 - **상태/성능의 핵심 프리미티브**
   - `st.cache_data`: 데이터 결과 캐시(serialize 가능한 결과에 적합)
   - `st.cache_resource`: 모델/클라이언트/커넥션 같은 “리소스” 캐시  
-  Streamlit 문서에서도 `st.cache` 대신 이 두 가지로의 전환을 강조합니다. ([docs.streamlit.io](https://docs.streamlit.io/develop/concepts/architecture/caching?utm_source=openai))
+  Streamlit 문서에서도 `st.cache` 대신 이 두 가지로의 전환을 강조합니다.[^7]
 
 - **2026년 변화 포인트(데모 UI 관점)**
-  - Streamlit이 기본 서버를 **Tornado → Starlette/Uvicorn(ASGI)**로 전환: async 생태계/미들웨어/배포 호환성이 좋아지고, 고급 설정이 `st.App`로 노출됩니다. ([docs.streamlit.io](https://docs.streamlit.io/develop/quick-reference/release-notes/2026?utm_source=openai))
-  - `st.bottom`: 채팅 입력/툴바를 **화면 하단에 고정**하는 패턴을 공식 지원(“챗 UI”에 특히 유용) ([docs.streamlit.io](https://docs.streamlit.io/develop/quick-reference/release-notes/2026?utm_source=openai))
-  - `:shimmer[]`: 스트리밍/대기 상태를 “로딩 텍스트”로 자연스럽게 표현 ([docs.streamlit.io](https://docs.streamlit.io/develop/quick-reference/release-notes/2026?utm_source=openai))
+  - Streamlit이 기본 서버를 **Tornado → Starlette/Uvicorn(ASGI)**로 전환: async 생태계/미들웨어/배포 호환성이 좋아지고, 고급 설정이 `st.App`로 노출됩니다.[^1]
+  - `st.bottom`: 채팅 입력/툴바를 **화면 하단에 고정**하는 패턴을 공식 지원(“챗 UI”에 특히 유용)[^1]
+  - `:shimmer[]`: 스트리밍/대기 상태를 “로딩 텍스트”로 자연스럽게 표현[^1]
 
 **차이점 요약:** Streamlit은 “앱”을 만들기 좋고, 대신 **재실행 모델을 이해하고 캐시/세션을 설계**해야 합니다.
 
@@ -56,15 +58,15 @@ Gradio는 Blocks/컴포넌트에 이벤트를 연결하고, 이벤트 실행은 
 
 - **Queue/Concurrency가 설계의 중심**
   - 기본적으로 이벤트 리스너는 queue를 갖고, 동시 실행 수를 `concurrency_limit`으로 제어합니다.
-  - 여러 이벤트가 GPU를 공유하면 `concurrency_id`로 **공유 큐**를 만들 수 있습니다. (GPU 1~2장짜리 데모에서 매우 현실적인 요구) ([gradio.app](https://gradio.app/guides/queuing?utm_source=openai))
-  - `Blocks.queue(default_concurrency_limit=...)`로 앱 전체 기본값을 줄 수도 있습니다. ([gradio.app](https://gradio.app/guides/queuing?utm_source=openai))
+  - 여러 이벤트가 GPU를 공유하면 `concurrency_id`로 **공유 큐**를 만들 수 있습니다. (GPU 1~2장짜리 데모에서 매우 현실적인 요구)[^3]
+  - `Blocks.queue(default_concurrency_limit=...)`로 앱 전체 기본값을 줄 수도 있습니다.[^3]
 
 - **Chat UI를 빨리 만드는 방법**
-  - `gr.ChatInterface`는 챗봇 UI를 몇 줄로 올리는 고수준 추상화입니다. ([gradio.app](https://www.gradio.app/docs/gradio/chatinterface?utm_source=openai))
-  - 더 복잡한 이벤트/버튼/툴 호출을 붙이려면 `Blocks` 안에서 `gr.Chatbot` + `gr.ChatInterface`를 같이 감싸는 패턴을 권장합니다. ([gradio.app](https://www.gradio.app/docs/gradio/chatinterface?utm_source=openai))
+  - `gr.ChatInterface`는 챗봇 UI를 몇 줄로 올리는 고수준 추상화입니다.[^2]
+  - 더 복잡한 이벤트/버튼/툴 호출을 붙이려면 `Blocks` 안에서 `gr.Chatbot` + `gr.ChatInterface`를 같이 감싸는 패턴을 권장합니다.[^2]
 
 - **기존 백엔드와의 결합(실무에서 중요)**
-  - `mount_gradio_app`로 FastAPI에 Gradio를 **서브패스**로 붙이고, `auth_dependency`로 외부 OAuth/인증을 연동할 수 있습니다. ([gradio.app](https://www.gradio.app/docs/gradio/mount_gradio_app?utm_source=openai))
+  - `mount_gradio_app`로 FastAPI에 Gradio를 **서브패스**로 붙이고, `auth_dependency`로 외부 OAuth/인증을 연동할 수 있습니다.[^4]
 
 **차이점 요약:** Gradio는 “모델 데모”에 최적화되어 있고, 특히 **동시성/공유/배포**가 강점입니다.
 
@@ -176,7 +178,7 @@ api = mount_gradio_app(
 - `x-auth-user` 헤더가 없으면 401(실제 운영에선 게이트웨이가 넣어줌)
 - 동시 접속이 몰려도 Queue가 이벤트 실행을 제어(기본 4 동시 실행)
 
-이 패턴의 장점은 “데모 UI”가 단독 서버가 아니라 **기존 API 서버의 일부**로 들어가서, 라우팅/로깅/인증/배포 파이프라인을 공통화할 수 있다는 점입니다. `auth_dependency`, `root_path` 같은 옵션이 그 목적에 맞게 설계돼 있습니다. ([gradio.app](https://www.gradio.app/docs/gradio/mount_gradio_app?utm_source=openai))
+이 패턴의 장점은 “데모 UI”가 단독 서버가 아니라 **기존 API 서버의 일부**로 들어가서, 라우팅/로깅/인증/배포 파이프라인을 공통화할 수 있다는 점입니다. `auth_dependency`, `root_path` 같은 옵션이 그 목적에 맞게 설계돼 있습니다.[^4]
 
 ---
 
@@ -184,17 +186,17 @@ api = mount_gradio_app(
 
 ### Best Practice 1) 동시성은 “기능”이 아니라 “자원 모델링”이다 (Gradio Queue 적극 사용)
 GPU/LLM API는 보통 “무한 확장”이 아니라 **정해진 처리량**이 있습니다.  
-Gradio에서는 이벤트마다 `concurrency_limit`, 여러 이벤트가 GPU를 공유하면 `concurrency_id`로 묶는 방식이 공식 가이드로 제시됩니다. ([gradio.app](https://gradio.app/guides/queuing?utm_source=openai))  
+Gradio에서는 이벤트마다 `concurrency_limit`, 여러 이벤트가 GPU를 공유하면 `concurrency_id`로 묶는 방식이 공식 가이드로 제시됩니다.[^3]  
 - 데모가 “잘 되는 것처럼 보이는데 가끔 죽는” 가장 흔한 원인은 동시성 제어 부재입니다.
 - 무조건 `None`(무제한)으로 풀면, 피크에서 프로세스/메모리/레이트리밋이 먼저 터집니다.
 
 ### Best Practice 2) Streamlit은 “캐시 설계”가 곧 아키텍처다
-Streamlit의 재실행 모델에서는 모델 로딩/DB 커넥션/벡터 인덱스 초기화 같은 무거운 작업을 매번 하면 즉시 망합니다. `st.cache_data`/`st.cache_resource`로 역할을 분리해야 합니다. ([docs.streamlit.io](https://docs.streamlit.io/develop/concepts/architecture/caching?utm_source=openai))  
+Streamlit의 재실행 모델에서는 모델 로딩/DB 커넥션/벡터 인덱스 초기화 같은 무거운 작업을 매번 하면 즉시 망합니다. `st.cache_data`/`st.cache_resource`로 역할을 분리해야 합니다.[^7]  
 - **resource 캐시**: LLM client, embedding model, DB pool
 - **data 캐시**: 검색 결과, 전처리된 데이터(단 TTL/무효화 정책 필요)
 
 ### Best Practice 3) “빠른 데모”를 “운영 서비스”로 착각하지 말기
-커뮤니티에서도 공통적으로 나오는 얘기지만, 빠른 데모 레이어는 규모가 커지면 UI/상태 복잡도에서 벽을 맞습니다. ([reddit.com](https://www.reddit.com/r/Chatbots/comments/1u5kq4r/migrating_an_ai_desktop_interface_from_streamlit/?utm_source=openai))  
+커뮤니티에서도 공통적으로 나오는 얘기지만, 빠른 데모 레이어는 규모가 커지면 UI/상태 복잡도에서 벽을 맞습니다.[^5]  
 - 데모 단계에서 다음 질문을 명확히 하세요:
   - 이 UI가 3개월 뒤에도 “데모”인가, 아니면 “내부 툴/제품”이 되는가?
   - 사용자 수가 늘면 **동시성/비용/관측성(로그/트레이싱)**은 어떻게 할 건가?
@@ -203,7 +205,7 @@ Streamlit의 재실행 모델에서는 모델 로딩/DB 커넥션/벡터 인덱�
 - (Gradio) Queue를 켜지 않고 “왜 피크에서 timeout 나지?” 고민
 - (Streamlit) 모델/인덱스를 캐시하지 않고 버튼 클릭마다 재로딩
 - (둘 다) 프록시 뒤 서빙하면서 base path 설정을 대충 처리 → 정적 파일/라우팅 깨짐  
-  Gradio는 `root_path`가 이 문제를 다루는 옵션으로 명시돼 있습니다. ([gradio.app](https://www.gradio.app/docs/gradio/mount_gradio_app?utm_source=openai))
+  Gradio는 `root_path`가 이 문제를 다루는 옵션으로 명시돼 있습니다.[^4]
 
 ### 비용/성능/안정성 트레이드오프
 - **Streamlit**: 앱 확장성/구성 자유도가 높지만, 재실행 모델 때문에 “성능은 설계로 해결”해야 함.
@@ -214,16 +216,22 @@ Streamlit의 재실행 모델에서는 모델 로딩/DB 커넥션/벡터 인덱�
 
 ## 🚀 마무리
 
-- **Streamlit**은 2026년 기준으로 Starlette/Uvicorn 기반 전환과 `st.bottom`, `:shimmer[]` 같은 UX 도구가 더해지면서 “챗/데이터 앱” 형태의 데모를 **앱답게** 만들기 좋아졌습니다. ([docs.streamlit.io](https://docs.streamlit.io/develop/quick-reference/release-notes/2026?utm_source=openai))  
-- **Gradio**는 ChatInterface/Blocks + Queue가 만들어내는 “추론 데모 최적화”가 여전히 강하고, FastAPI에 마운트 + 외부 인증 연동이 깔끔합니다. ([gradio.app](https://www.gradio.app/docs/gradio/mount_gradio_app?utm_source=openai))
+- **Streamlit**은 2026년 기준으로 Starlette/Uvicorn 기반 전환과 `st.bottom`, `:shimmer[]` 같은 UX 도구가 더해지면서 “챗/데이터 앱” 형태의 데모를 **앱답게** 만들기 좋아졌습니다.[^1]  
+- **Gradio**는 ChatInterface/Blocks + Queue가 만들어내는 “추론 데모 최적화”가 여전히 강하고, FastAPI에 마운트 + 외부 인증 연동이 깔끔합니다.[^4]
 
 **도입 판단 기준(실무 체크리스트)**
 1) 동시 사용자/추론 비용이 중요하다 → Gradio Queue 중심으로 설계  
 2) 데모가 운영 도구/데이터 앱으로 커질 가능성이 크다 → Streamlit(캐시/상태 설계 전제)  
-3) 기존 백엔드(인증/로깅/배포)에 합치고 싶다 → Gradio mount 또는 Streamlit의 ASGI 친화 변화 고려(단, 실제 운영 결합 방식은 검증 필요) ([docs.streamlit.io](https://docs.streamlit.io/develop/quick-reference/release-notes/2026?utm_source=openai))
+3) 기존 백엔드(인증/로깅/배포)에 합치고 싶다 → Gradio mount 또는 Streamlit의 ASGI 친화 변화 고려(단, 실제 운영 결합 방식은 검증 필요)[^1]
 
 **다음 학습 추천**
-- Gradio: Queue/Concurrency 튜닝을 실제 GPU 수에 맞게 모델링(공유 큐, limit) ([gradio.app](https://gradio.app/guides/queuing?utm_source=openai))  
-- Streamlit: `st.cache_data` vs `st.cache_resource`를 기준으로 “무엇을 어디에 캐시할지”부터 앱 구조를 설계 ([docs.streamlit.io](https://docs.streamlit.io/develop/concepts/architecture/caching?utm_source=openai))  
+- Gradio: Queue/Concurrency 튜닝을 실제 GPU 수에 맞게 모델링(공유 큐, limit)[^3]  
+- Streamlit: `st.cache_data` vs `st.cache_resource`를 기준으로 “무엇을 어디에 캐시할지”부터 앱 구조를 설계[^7]
 
-원하면, 동일한 RAG 데모를 **Streamlit 버전(캐시/세션/`st.bottom` 기반 채팅 입력 고정)**으로도 “운영까지 염두에 둔 형태”로 이어서 작성해드릴까요?
+[^1]: <https://docs.streamlit.io/develop/quick-reference/release-notes/2026>
+[^2]: <https://www.gradio.app/docs/gradio/chatinterface>
+[^3]: <https://gradio.app/guides/queuing>
+[^4]: <https://www.gradio.app/docs/gradio/mount_gradio_app>
+[^5]: <https://www.reddit.com/r/Chatbots/comments/1u5kq4r/migrating_an_ai_desktop_interface_from_streamlit/>
+[^6]: <https://docs.streamlit.io/develop/api-reference/caching-and-state>
+[^7]: <https://docs.streamlit.io/develop/concepts/architecture/caching>

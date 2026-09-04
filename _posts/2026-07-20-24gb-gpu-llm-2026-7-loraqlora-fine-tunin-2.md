@@ -1,12 +1,14 @@
 ---
-title: "24GB GPU 한 장으로 “내 도메인 전용 LLM” 만들기: 2026년 7월 기준 LoRA/QLoRA Fine-tuning 실전 튜토리얼"
+title: "24GB GPU 한 장으로 “내 도메인 전용 LLM” 만들기: LoRA/QLoRA Fine-tuning 실전 튜토리얼"
+description: "프로덕션에서 LLM을 “그럴듯하게” 쓰는 것과 “우리 조직의 톤/정책/지식 구조를 일관되게” 반영하는 것은 다릅니다."
 date: 2026-07-20 03:48:38 +0900
 categories: [AI, LLM]
-tags: [ai, llm, trend, 2026-07]
+tags: [ai, llm]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -16,12 +18,12 @@ tags: [ai, llm, trend, 2026-07]
 </script>
 
 ## 들어가며
-프로덕션에서 LLM을 “그럴듯하게” 쓰는 것과 “우리 조직의 톤/정책/지식 구조를 일관되게” 반영하는 것은 다릅니다. RAG만으로 해결하려 하면 (1) 문서가 길어질수록 프롬프트가 비대해지고 (2) 답변 스타일/형식이 흔들리고 (3) 도메인 특화 판단(예: 운영 규칙, 대응 우선순위)이 매번 재설명되어 비용이 커집니다. 이때 Fine-tuning(특히 LoRA/QLoRA)은 **모델의 행동 양식(스타일, 포맷, 의사결정 규칙)** 을 “가볍게” 고정하는 데 강합니다. QLoRA는 4-bit 기반으로 VRAM 요구량을 크게 낮춰, 7B~8B급은 6GB 수준에서도 학습 가능하다는 가이드가 명시돼 있고(실사용은 seq_len/배치에 따라 달라짐) 소비자 GPU에서 현실화되었습니다. ([unsloth.ai](https://unsloth.ai/docs/get-started/fine-tuning-for-beginners/unsloth-requirements?utm_source=openai))
+프로덕션에서 LLM을 “그럴듯하게” 쓰는 것과 “우리 조직의 톤/정책/지식 구조를 일관되게” 반영하는 것은 다릅니다. RAG만으로 해결하려 하면 (1) 문서가 길어질수록 프롬프트가 비대해지고 (2) 답변 스타일/형식이 흔들리고 (3) 도메인 특화 판단(예: 운영 규칙, 대응 우선순위)이 매번 재설명되어 비용이 커집니다. 이때 Fine-tuning(특히 LoRA/QLoRA)은 **모델의 행동 양식(스타일, 포맷, 의사결정 규칙)** 을 “가볍게” 고정하는 데 강합니다. QLoRA는 4-bit 기반으로 VRAM 요구량을 크게 낮춰, 7B~8B급은 6GB 수준에서도 학습 가능하다는 가이드가 명시돼 있고(실사용은 seq_len/배치에 따라 달라짐) 소비자 GPU에서 현실화되었습니다.[^1]
 
 **언제 쓰면 좋나**
 - “정답 지식”보다 **답변 형식/톤/정책 준수**가 중요한 경우(사내 헬프데스크, DevOps Runbook Q&A, CS 매크로, 코드리뷰 코치 등)
 - RAG로 문서를 붙여도 **출력 포맷이 안정적으로 안 지켜지는** 경우(JSON 스키마, 체크리스트, 티켓 템플릿)
-- 온프렘/로컬 배포(Ollama/llama.cpp/vLLM)까지 염두에 두고, **adapter만 관리**하고 싶을 때(내부 배포/버전관리) ([gptfrontier.com](https://www.gptfrontier.com/unsloth-qlora-llama-3-tutorial/?utm_source=openai))
+- 온프렘/로컬 배포(Ollama/llama.cpp/vLLM)까지 염두에 두고, **adapter만 관리**하고 싶을 때(내부 배포/버전관리)[^2]
 
 **언제 쓰면 안 되나**
 - 데이터가 부족한데 “지식”을 주입하려는 경우(환각/오염 위험): 이건 RAG + 평가/가드레일이 우선
@@ -33,21 +35,21 @@ tags: [ai, llm, trend, 2026-07]
 ## 🔧 핵심 개념
 ### 주요 개념 정의
 - **LoRA (Low-Rank Adaptation)**: base model weight는 **freeze**하고, 특정 Linear layer에 저랭크 행렬(대개 A,B)을 추가해 **학습 파라미터 수를 극단적으로 줄이는** PEFT 방식.
-- **QLoRA**: LoRA는 그대로 쓰되, base model weight를 **4-bit(NF4 등)** 로 로드하여 **메모리 사용을 크게 낮춘** 학습 방식. ([arxiv.org](https://arxiv.org/abs/2305.14314?utm_source=openai))
-- **NF4 / Double Quantization / Paged Optimizers**: QLoRA를 현실화한 핵심 구성요소. NF4는 “정규분포에 가까운 weight”에 맞춘 4-bit 타입이고, double quantization은 “양자화에 쓰이는 상수”까지 다시 양자화해 메모리를 더 줄이며, paged optimizer는 순간 메모리 스파이크(OOM)를 완화합니다. ([github.com](https://github.com/huggingface/blog/blob/main/4bit-transformers-bitsandbytes.md?utm_source=openai))
+- **QLoRA**: LoRA는 그대로 쓰되, base model weight를 **4-bit(NF4 등)** 로 로드하여 **메모리 사용을 크게 낮춘** 학습 방식.[^3]
+- **NF4 / Double Quantization / Paged Optimizers**: QLoRA를 현실화한 핵심 구성요소. NF4는 “정규분포에 가까운 weight”에 맞춘 4-bit 타입이고, double quantization은 “양자화에 쓰이는 상수”까지 다시 양자화해 메모리를 더 줄이며, paged optimizer는 순간 메모리 스파이크(OOM)를 완화합니다.[^4]
 
 ### 내부 작동 방식(흐름)
 1) **Base model(4-bit) 로드**  
-   - QLoRA에서는 forward 시점에 4-bit weight를 연산에 맞게 dequantize/사용합니다. 이때 성능 병목이 될 수 있어, 커널 최적화가 중요한 주제입니다(최근 NF4 dequantization 커널 최적화 연구도 등장). ([arxiv.org](https://arxiv.org/abs/2604.02556?utm_source=openai))  
+   - QLoRA에서는 forward 시점에 4-bit weight를 연산에 맞게 dequantize/사용합니다. 이때 성능 병목이 될 수 있어, 커널 최적화가 중요한 주제입니다(최근 NF4 dequantization 커널 최적화 연구도 등장).[^5]  
 2) **LoRA adapter 삽입(학습 대상)**  
    - attention의 q_proj/k_proj/v_proj/o_proj, MLP의 up/down/gate 등 “어디에 꽂느냐”가 품질/비용을 좌우합니다.
 3) **Optimizer는 adapter 파라미터만 업데이트**  
    - base는 고정, adapter만 업데이트하므로 checkpoint가 작고 배포가 쉽습니다.
 4) **(선택) merge/export**  
-   - adapter만 배포하거나, merge해서 단일 weight로 만들거나, GGUF로 내보내 로컬 추론(Ollama/llama.cpp)로 이어갑니다. ([gptfrontier.com](https://www.gptfrontier.com/unsloth-qlora-llama-3-tutorial/?utm_source=openai))
+   - adapter만 배포하거나, merge해서 단일 weight로 만들거나, GGUF로 내보내 로컬 추론(Ollama/llama.cpp)로 이어갑니다.[^2]
 
 ### 다른 접근과의 차이점(실무 관점)
-- **Full Fine-tuning(FFT)**: 성능 상한은 높을 수 있지만 비용/리스크가 큼(과적합, catastrohpic forgetting, VRAM 폭증). Unsloth 쪽 문서도 대체로 “대부분 FFT는 불필요”에 가깝게 가이드합니다. ([unsloth.ai](https://unsloth.ai/docs/get-started/fine-tuning-llms-guide?utm_source=openai))
+- **Full Fine-tuning(FFT)**: 성능 상한은 높을 수 있지만 비용/리스크가 큼(과적합, catastrohpic forgetting, VRAM 폭증). Unsloth 쪽 문서도 대체로 “대부분 FFT는 불필요”에 가깝게 가이드합니다.[^6]
 - **RAG**: 지식 최신성/정답성에 강함. 대신 “행동/형식” 고정에는 한계. 보통은 **RAG + LoRA(스타일/정책)** 조합이 ROI가 좋습니다.
 - **Prompt engineering**: 가장 싸고 빠르지만, 길어질수록 비용/불안정성 증가. 운영에선 “규칙을 모델 내부로 옮기는” 편이 더 싸질 때가 많습니다.
 
@@ -63,10 +65,10 @@ source .venv/bin/activate
 
 pip install -U "unsloth" "datasets" "transformers" "accelerate" "trl" "peft"
 ```
-Unsloth는 설치 시 호환 버전을 맞춰주는 편이라, CUDA/torch 조합 충돌을 줄이는 장점이 있습니다(환경은 여전히 검증 필요). ([unsloth.ai](https://unsloth.ai/docs/get-started/fine-tuning-for-beginners/unsloth-requirements?utm_source=openai))
+Unsloth는 설치 시 호환 버전을 맞춰주는 편이라, CUDA/torch 조합 충돌을 줄이는 장점이 있습니다(환경은 여전히 검증 필요).[^1]
 
 ### 1) 데이터 준비(실무형)
-형식은 “대화형 instruct”가 유리합니다. (Base 모델보다 Instruct 모델 추천) ([unsloth.ai](https://unsloth.ai/docs/get-started/fine-tuning-llms-guide?utm_source=openai))  
+형식은 “대화형 instruct”가 유리합니다. (Base 모델보다 Instruct 모델 추천)[^6]  
 예: `data/devops_sft.jsonl` (현실적으로는 티켓/포스트모템/런북에서 추출 후 비식별 처리)
 ```jsonl
 {"messages":[
@@ -153,7 +155,7 @@ if __name__ == "__main__":
 
 **예상 로그/출력(예시)**
 - `train_runtime`, `train_loss`가 출력되고, `out/devops-qlora/adapter`에 LoRA adapter가 생성됩니다.
-- VRAM은 모델/seq_len/r에 따라 다르지만, QLoRA가 “단일 GPU에서도 가능”하도록 만든다는 것이 핵심입니다. Unsloth 문서에는 8B QLoRA 최소 6GB 수준의 표가 있고, 실제 4090에서 6~7GB대 사례가 보고됩니다(조건에 따라 변동). ([unsloth.ai](https://unsloth.ai/docs/get-started/fine-tuning-for-beginners/unsloth-requirements?utm_source=openai))
+- VRAM은 모델/seq_len/r에 따라 다르지만, QLoRA가 “단일 GPU에서도 가능”하도록 만든다는 것이 핵심입니다. Unsloth 문서에는 8B QLoRA 최소 6GB 수준의 표가 있고, 실제 4090에서 6~7GB대 사례가 보고됩니다(조건에 따라 변동).[^1]
 
 ### 3) 로컬 추론 테스트(학습된 adapter 적용)
 ```python
@@ -190,7 +192,7 @@ out = model.generate(
 print(tokenizer.decode(out[0], skip_special_tokens=True))
 ```
 
-(선택) GGUF로 export해서 Ollama/llama.cpp로 가져가는 흐름은 Unsloth 튜토리얼들에서 “학습→export→로컬서빙”까지 자주 다루는 패턴입니다. ([gptfrontier.com](https://www.gptfrontier.com/unsloth-qlora-llama-3-tutorial/?utm_source=openai))
+(선택) GGUF로 export해서 Ollama/llama.cpp로 가져가는 흐름은 Unsloth 튜토리얼들에서 “학습→export→로컬서빙”까지 자주 다루는 패턴입니다.[^2]
 
 ---
 
@@ -201,7 +203,7 @@ print(tokenizer.decode(out[0], skip_special_tokens=True))
 2) **target_modules는 비용-품질 레버**  
    - 모든 projection에 다 꽂으면 품질은 오르기 쉽지만 VRAM/학습시간/오버피팅 리스크도 증가. 먼저 attention 쪽(q/v/o)부터 시작→필요 시 MLP까지 확장 식으로 단계적으로.
 3) **서빙 precision과 학습 precision의 일관성**  
-   - “4-bit로 서빙할 건데 학습은 16-bit로 했다” 같은 혼종은 품질/재현성 이슈가 납니다. Unsloth 문서도 “serve precision과 train precision을 맞추라”는 방향을 명시합니다. ([unsloth.ai](https://unsloth.ai/docs/get-started/fine-tuning-llms-guide?utm_source=openai))
+   - “4-bit로 서빙할 건데 학습은 16-bit로 했다” 같은 혼종은 품질/재현성 이슈가 납니다. Unsloth 문서도 “serve precision과 train precision을 맞추라”는 방향을 명시합니다.[^6]
 
 ### 흔한 함정/안티패턴
 - **packing을 켜고 데이터 경계를 무시**: 토큰 효율은 좋아지지만, 샘플 간 경계가 섞이면서 형식 학습이 깨지는 경우가 있습니다. “포맷 강제”가 목표면 packing on/off를 둘 다 평가하세요.
@@ -209,14 +211,14 @@ print(tokenizer.decode(out[0], skip_special_tokens=True))
 - **loss만 보고 성공 판단**: 실무는 “템플릿 준수율, 금지행동 감소, 특정 케이스에서의 안정성”이 KPI입니다. 최소한 자체 eval set과 체크리스트를 만드세요.
 
 ### 비용/성능/안정성 트레이드오프
-- **QLoRA**: 메모리/비용 효율 최고. 다만 4-bit 연산/디퀀타이즈 경로가 성능 병목이 될 수 있고 커널/라이브러리 영향이 큽니다(최근 NF4 디퀀타이즈 최적화 연구도 이 지점을 짚음). ([arxiv.org](https://arxiv.org/abs/2604.02556?utm_source=openai))  
-- **LoRA(16-bit)**: VRAM 여유가 있으면 안정적이고 디버깅이 쉬운 편. 하지만 7B~8B부터는 요구 VRAM이 급상승할 수 있습니다. ([unsloth.ai](https://unsloth.ai/docs/get-started/fine-tuning-for-beginners/unsloth-requirements?utm_source=openai))  
-- **Unsloth 같은 고속 구현체**: 동일한 방법론(LoRA/QLoRA)이라도 커널/트레이닝 루프 최적화로 체감 비용이 크게 달라질 수 있어, “vanilla HF vs 최적화 스택” 비교는 해볼 가치가 큽니다. ([computingforgeeks.com](https://computingforgeeks.com/fine-tune-llm-unsloth-qlora/?utm_source=openai))
+- **QLoRA**: 메모리/비용 효율 최고. 다만 4-bit 연산/디퀀타이즈 경로가 성능 병목이 될 수 있고 커널/라이브러리 영향이 큽니다(최근 NF4 디퀀타이즈 최적화 연구도 이 지점을 짚음).[^5]  
+- **LoRA(16-bit)**: VRAM 여유가 있으면 안정적이고 디버깅이 쉬운 편. 하지만 7B~8B부터는 요구 VRAM이 급상승할 수 있습니다.[^1]  
+- **Unsloth 같은 고속 구현체**: 동일한 방법론(LoRA/QLoRA)이라도 커널/트레이닝 루프 최적화로 체감 비용이 크게 달라질 수 있어, “vanilla HF vs 최적화 스택” 비교는 해볼 가치가 큽니다.[^7]
 
 ---
 
 ## 🚀 마무리
-정리하면, 2026년 7월 기준 LoRA/QLoRA는 “대형 GPU 인프라 없이도” 도메인 전용 LLM을 만들 수 있는 가장 실용적인 경로입니다. 특히 QLoRA는 NF4/double quant/paged optimizer 같은 구성으로 4-bit 기반 학습을 가능하게 했고, Unsloth 계열 튜토리얼들은 단일 GPU에서 end-to-end(학습→테스트→GGUF export)까지를 현실적으로 보여줍니다. ([github.com](https://github.com/huggingface/blog/blob/main/4bit-transformers-bitsandbytes.md?utm_source=openai))
+정리하면, 2026년 7월 기준 LoRA/QLoRA는 “대형 GPU 인프라 없이도” 도메인 전용 LLM을 만들 수 있는 가장 실용적인 경로입니다. 특히 QLoRA는 NF4/double quant/paged optimizer 같은 구성으로 4-bit 기반 학습을 가능하게 했고, Unsloth 계열 튜토리얼들은 단일 GPU에서 end-to-end(학습→테스트→GGUF export)까지를 현실적으로 보여줍니다.[^4]
 
 **도입 판단 기준**
 - 출력 형식/정책 준수/톤을 “매번 프롬프트로 강제”하느라 비용이 크다 → **LoRA/QLoRA 강추**
@@ -224,8 +226,15 @@ print(tokenizer.decode(out[0], skip_special_tokens=True))
 - GPU가 1장(예: 12~24GB)이고 빠르게 반복해야 한다 → **QLoRA + 작은 r부터**, seq_len과 packing을 평가로 조절
 
 **다음 학습 추천**
-- QLoRA 원 논문에서 NF4/double quant/paged optimizer의 의도를 다시 읽고(왜 이 조합이 필요한지), ([arxiv.org](https://arxiv.org/abs/2305.14314?utm_source=openai))
-- bitsandbytes/Transformers quantization 문서에서 NF4/설정 옵션을 정확히 확인한 뒤, ([huggingface.co](https://huggingface.co/docs/transformers/quantization/bitsandbytes?utm_source=openai))
+- QLoRA 원 논문에서 NF4/double quant/paged optimizer의 의도를 다시 읽고(왜 이 조합이 필요한지),[^3]
+- bitsandbytes/Transformers quantization 문서에서 NF4/설정 옵션을 정확히 확인한 뒤,[^8]
 - “내 태스크 KPI(템플릿 준수율/금지행동/응답 안정성)” 중심의 eval harness를 먼저 만들어, 학습 설정을 데이터 기반으로 튜닝하세요.
 
-원하시면, (1) 사용 중인 모델/VRAM/목표 출력 포맷(JSON 스키마 등) (2) 데이터 형태(티켓/대화/문서) (3) 서빙 환경(Ollama/vLLM) 을 알려주시면 위 코드를 **당신 프로젝트에 맞춘 파이프라인(전처리→학습→평가→배포)** 형태로 더 구체화해 드리겠습니다.
+[^1]: <https://unsloth.ai/docs/get-started/fine-tuning-for-beginners/unsloth-requirements>
+[^2]: <https://www.gptfrontier.com/unsloth-qlora-llama-3-tutorial/>
+[^3]: <https://arxiv.org/abs/2305.14314>
+[^4]: <https://github.com/huggingface/blog/blob/main/4bit-transformers-bitsandbytes.md>
+[^5]: <https://arxiv.org/abs/2604.02556>
+[^6]: <https://unsloth.ai/docs/get-started/fine-tuning-llms-guide>
+[^7]: <https://computingforgeeks.com/fine-tune-llm-unsloth-qlora/>
+[^8]: <https://huggingface.co/docs/transformers/quantization/bitsandbytes>

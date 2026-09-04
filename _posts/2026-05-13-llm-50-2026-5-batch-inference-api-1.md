@@ -1,12 +1,14 @@
 ---
-title: "배치 추론으로 LLM 비용 50% 줄이기: 2026년 5월 “Batch Inference API” 대량 처리 비용 설계 가이드"
+title: "배치 추론으로 LLM 비용 50% 줄이기: “Batch Inference API” 대량 처리 비용 설계 가이드"
+description: "LLM을 “대량 처리”로 쓰는 순간 비용과 운영 난이도가 동시에 폭발합니다. 예를 들어 수십만~수천만 건의 문서 요약/분류, 로그/CS 티켓 자동 태깅, 상품 카탈로그 정규화, 오프라인 평가(Eval) 파이프라인처럼 지금 당장 사용자에게 응답할 필요는 없지만 처리량이 큰 작업은, 실시간…"
 date: 2026-05-13 04:02:35 +0900
 categories: [AI, MLOps]
-tags: [ai, mlops, trend, 2026-05]
+tags: [ai, mlops]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -24,8 +26,8 @@ LLM을 “대량 처리”로 쓰는 순간 비용과 운영 난이도가 동시
 - **토큰 단가를 할인(대표적으로 50%)** 받고
 - **대량 요청을 큐/잡 형태로 비동기 처리**한다
 
-OpenAI는 Batch API에 대해 “입력/출력 토큰 모두 50% 절감, 24시간 비동기 처리”를 명시하고 있고, ([openai.com](https://openai.com/api/pricing/))  
-AWS Bedrock도 “batch inference는 on-demand 대비 50% 낮은 가격”을 공식 가격 페이지에 명시합니다. ([aws.amazon.com](https://aws.amazon.com/bedrock/pricing/?nc1=h_ls))
+OpenAI는 Batch API에 대해 “입력/출력 토큰 모두 50% 절감, 24시간 비동기 처리”를 명시하고 있고,[^1]  
+AWS Bedrock도 “batch inference는 on-demand 대비 50% 낮은 가격”을 공식 가격 페이지에 명시합니다.[^2]
 
 언제 쓰면 좋나?
 - **오프라인/비실시간**: 하루 1~2회 돌리는 ETL/리포트/정제 작업
@@ -46,10 +48,10 @@ Batch inference는 실시간 endpoint에 1요청=1응답으로 붙는 대신,
 2) 서버가 내부적으로 **스케줄링/큐잉** 해서 처리  
 3) 일정 시간 내에 **결과 파일(또는 결과 리스트)** 를 제공하는 모델입니다.
 
-OpenAI는 Batch API를 “24시간 비동기 처리 + 입력/출력 50% 할인”으로 포지셔닝합니다. ([openai.com](https://openai.com/api/pricing/))  
-또한 Batch API의 rate limit이 기존(동기) API와 **완전히 분리**된다고 명시되어, 대량 처리 파이프라인을 별도 레인으로 빼기 좋습니다. ([help.openai.com](https://help.openai.com/en/articles/9197833-batch-api-faq%23.gz))
+OpenAI는 Batch API를 “24시간 비동기 처리 + 입력/출력 50% 할인”으로 포지셔닝합니다.[^1]  
+또한 Batch API의 rate limit이 기존(동기) API와 **완전히 분리**된다고 명시되어, 대량 처리 파이프라인을 별도 레인으로 빼기 좋습니다.[^3]
 
-AWS Bedrock도 동일한 경제 논리로 “select FMs batch inference 50% lower price”를 명시하며, 실제 가격 테이블에서 on-demand와 batch의 입력/출력 토큰 단가가 반으로 내려간 예(예: Claude 3.5 Sonnet input/output $6/$30 → batch $3/$15)가 보입니다. ([aws.amazon.com](https://aws.amazon.com/bedrock/pricing/?nc1=h_ls))
+AWS Bedrock도 동일한 경제 논리로 “select FMs batch inference 50% lower price”를 명시하며, 실제 가격 테이블에서 on-demand와 batch의 입력/출력 토큰 단가가 반으로 내려간 예(예: Claude 3.5 Sonnet input/output $6/$30 → batch $3/$15)가 보입니다.[^2]
 
 ### 2) 내부 작동 방식(구조/흐름)
 실무적으로는 아래 흐름으로 이해하면 설계가 쉬워집니다.
@@ -71,7 +73,7 @@ AWS Bedrock도 동일한 경제 논리로 “select FMs batch inference 50% lowe
   - 장점: 일정 규모 이상이면 단가 통제 가능, 커스텀 가능
   - 단점: 운영(스케일링/모니터링/장애) 비용, 피크 대비 프로비저닝, 모델 업데이트 부담
 - **Batch inference API**
-  - 장점: (대부분) **토큰 단가 할인(대표 50%)**, 대량 처리에 최적화, rate limit 분리 ([openai.com](https://openai.com/api/pricing/))
+  - 장점: (대부분) **토큰 단가 할인(대표 50%)**, 대량 처리에 최적화, rate limit 분리[^1]
   - 단점: 결과 지연(최대 24h), 잡 단위 오케스트레이션 필요, 부분 실패 처리 설계 필요
 
 ---
@@ -274,7 +276,7 @@ Batch로 50% 할인받아도, 모델이 장황하게 출력하면 비용은 다�
 를 **별도 DLQ 테이블**로 보내고, 다음 배치에서 *실패분만 재처리*하세요.
 
 ### 흔한 함정) Vertex/하이퍼스케일러는 “토큰 단가” 외 비용 요인이 섞인다
-특히 GCP Vertex AI 쪽은 토큰 단가만 보고 들어갔다가, 파이프라인/잡 런/기타 서비스 비용이 섞여 “생각보다 비쌈”을 겪는 케이스가 자주 보고됩니다(공식 가격 페이지에도 배치/파이프라인 런 등 다양한 과금 축이 존재). ([cloud.google.com](https://cloud.google.com/vertex-ai/pricing))  
+특히 GCP Vertex AI 쪽은 토큰 단가만 보고 들어갔다가, 파이프라인/잡 런/기타 서비스 비용이 섞여 “생각보다 비쌈”을 겪는 케이스가 자주 보고됩니다(공식 가격 페이지에도 배치/파이프라인 런 등 다양한 과금 축이 존재).[^4]  
 결론: **가격표 비교는 ‘내 파이프라인 구성 그대로’로 시뮬레이션**해야 합니다.
 
 ### 비용/성능/안정성 트레이드오프(결정 프레임)
@@ -282,12 +284,12 @@ Batch로 50% 할인받아도, 모델이 장황하게 출력하면 비용은 다�
 - **최저지연**: on-demand 동기 + 공격적 병렬화(단, rate limit/429 대응 필요)
 - **운영 안정성**: batch + 명시적 상태 머신(Submitted → Running → Completed/Failed) + DLQ
 
-참고로 OpenAI Batch는 “입력/출력 50% 절감”을, AWS Bedrock batch도 “on-demand 대비 50% 낮은 가격”을 공식적으로 내걸고 있으므로, 대량·비실시간이라면 **우선 batch를 기본값**으로 검토하는 게 합리적입니다. ([openai.com](https://openai.com/api/pricing/))
+참고로 OpenAI Batch는 “입력/출력 50% 절감”을, AWS Bedrock batch도 “on-demand 대비 50% 낮은 가격”을 공식적으로 내걸고 있으므로, 대량·비실시간이라면 **우선 batch를 기본값**으로 검토하는 게 합리적입니다.[^1]
 
 ---
 
 ## 🚀 마무리
-2026년 5월 기준 LLM 대량 처리 비용을 줄이는 가장 실전적인 방법은, **동기 호출을 버리고 batch inference로 “지연을 비용으로 환전”**하는 겁니다. OpenAI와 AWS Bedrock 모두 batch에 대해 **50% 수준의 명시적 할인**을 제공하며, 대신 비동기(최대 24h) 처리 모델을 요구합니다. ([openai.com](https://openai.com/api/pricing/))
+2026년 5월 기준 LLM 대량 처리 비용을 줄이는 가장 실전적인 방법은, **동기 호출을 버리고 batch inference로 “지연을 비용으로 환전”**하는 겁니다. OpenAI와 AWS Bedrock 모두 batch에 대해 **50% 수준의 명시적 할인**을 제공하며, 대신 비동기(최대 24h) 처리 모델을 요구합니다.[^1]
 
 도입 판단 기준(실무용 체크리스트):
 - 요청이 **비실시간**인가? (Yes면 batch 유리)
@@ -300,4 +302,7 @@ Batch로 50% 할인받아도, 모델이 장황하게 출력하면 비용은 다�
 - “스키마 강제(JSON schema) + 파서/검증 계층”으로 후처리 안정성 올리기
 - 비용 모델링: **(입력 토큰 + 출력 토큰 상한) × 단가 × 성공률/재시도율**로 월 예산 시뮬레이션하기
 
-원하시면, 여러분의 실제 워크로드(레코드 수/평균 토큰/허용 지연/성공률 목표)를 기준으로 **월 비용 추정식**과 “batch 크기(BATCH_SIZE)·폴링·DLQ 정책”까지 포함한 아키텍처를 더 구체화해드릴게요.
+[^1]: <https://openai.com/api/pricing/>
+[^2]: <https://aws.amazon.com/bedrock/pricing/?nc1=h_ls>
+[^3]: <https://help.openai.com/en/articles/9197833-batch-api-faq%23.gz>
+[^4]: <https://cloud.google.com/vertex-ai/pricing>

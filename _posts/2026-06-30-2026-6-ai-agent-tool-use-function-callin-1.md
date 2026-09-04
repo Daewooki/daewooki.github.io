@@ -1,12 +1,14 @@
 ---
-title: "2026년 6월 기준: AI Agent의 “Tool Use + Function Calling”을 프로덕션에 올리는 구현 패턴 (Agents SDK/Responses API 중심)"
+title: "AI Agent의 “Tool Use + Function Calling”을 프로덕션에 올리는 구현 패턴 (Agents SDK/Responses API 중심)"
+description: "AI Agent의 tool use(function calling)는 “모델이 말을 잘하는 것”에서 “모델이 일을 하게 만드는 것”으로 넘어가는 관문입니다. 하지만 2026년에도 현실은 단순하지 않습니다."
 date: 2026-06-30 04:14:02 +0900
 categories: [AI, Agent]
-tags: [ai, agent, trend, 2026-06]
+tags: [ai, agent]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -16,7 +18,7 @@ tags: [ai, agent, trend, 2026-06]
 </script>
 
 ## 들어가며
-AI Agent의 tool use(function calling)는 “모델이 말을 잘하는 것”에서 “모델이 일을 하게 만드는 것”으로 넘어가는 관문입니다. 하지만 2026년에도 현실은 단순하지 않습니다. 데모에서는 잘 되는데, 프로덕션에서는 **(1) 잘못된 tool 선택, (2) schema를 어기는 args, (3) 멀티스텝에서의 누적 오류, (4) 성공(200)했는데 의미 없는 실행** 같은 실패가 반복됩니다. ([agentmarketcap.ai](https://agentmarketcap.ai/blog/2026/04/11/function-calling-reliability-production-agents-2026?utm_source=openai))
+AI Agent의 tool use(function calling)는 “모델이 말을 잘하는 것”에서 “모델이 일을 하게 만드는 것”으로 넘어가는 관문입니다. 하지만 2026년에도 현실은 단순하지 않습니다. 데모에서는 잘 되는데, 프로덕션에서는 **(1) 잘못된 tool 선택, (2) schema를 어기는 args, (3) 멀티스텝에서의 누적 오류, (4) 성공(200)했는데 의미 없는 실행** 같은 실패가 반복됩니다.[^1]
 
 **언제 쓰면 좋은가**
 - 외부 시스템(티켓 발행, DB 조회, 결제, 배포, 워크플로 실행 등)과 연결되어 **행동(action)** 이 필요할 때
@@ -25,9 +27,9 @@ AI Agent의 tool use(function calling)는 “모델이 말을 잘하는 것”�
 
 **언제 쓰면 안 좋은가**
 - 도구 호출 없이도 답이 충분한데 모델이 “괜히” 호출하는 비용이 큰 경우(툴 호출은 토큰/지연/실패 확률이 같이 증가)  
-  실제로 tool necessity(호출이 정말 필요한가) 자체가 주요 연구/벤치마크 주제가 됐습니다. ([arxiv.org](https://arxiv.org/abs/2605.09252?utm_source=openai))
+  실제로 tool necessity(호출이 정말 필요한가) 자체가 주요 연구/벤치마크 주제가 됐습니다.[^2]
 - 도구가 **side effect**(환불/삭제/배포 등)를 만들지만 승인/정책/Idempotency 설계가 없는 경우
-- 도구가 너무 많아(예: 100개+) tool definition 자체가 컨텍스트를 잠식하는 경우(설명 토큰 비용이 곧 신뢰성/비용 문제로 직결) ([presenc.ai](https://presenc.ai/research/ai-agent-tool-calling-accuracy-benchmarks-2026?utm_source=openai))
+- 도구가 너무 많아(예: 100개+) tool definition 자체가 컨텍스트를 잠식하는 경우(설명 토큰 비용이 곧 신뢰성/비용 문제로 직결)[^3]
 
 ---
 
@@ -36,7 +38,7 @@ AI Agent의 tool use(function calling)는 “모델이 말을 잘하는 것”�
 현업에서 function calling은 tool use의 특수 케이스로 보는 게 실용적입니다.  
 - **tool use**: “모델이 외부 능력을 쓰게 한다”라는 넓은 개념(검색, DB, 실행, 브라우저 등 포함)  
 - **function calling**: 모델이 **미리 선언된 함수 목록 중 하나를 고르고**, **JSON Schema에 맞는 인자(arguments)** 를 구조적으로 생성하도록 강제하는 패턴  
-→ 자유도를 줄이는 대신 **검증 가능성/관찰 가능성/재현성**이 올라갑니다. ([asoasis.tech](https://asoasis.tech/articles/2026-04-20-0853-function-calling-vs-tool-use-llms/?utm_source=openai))
+→ 자유도를 줄이는 대신 **검증 가능성/관찰 가능성/재현성**이 올라갑니다.[^4]
 
 ### 2) 내부 작동 흐름: “Plan → Call → Validate → Execute → Observe → Continue”
 2026년 기준, 구현의 핵심은 모델이 아니라 **런타임(오케스트레이터)** 입니다.
@@ -49,17 +51,17 @@ AI Agent의 tool use(function calling)는 “모델이 말을 잘하는 것”�
 6. **다음 스텝 진행 / 종료 조건 판단**
 
 OpenAI 쪽은 “오케스트레이션을 앱이 소유할지”에 따라 경로를 나눕니다:
-- **Responses API**: “한 번의 모델 호출 + 도구 + 앱 로직” 정도면 충분할 때 ([platform.openai.com](https://platform.openai.com/docs/guides/agents-sdk))  
-- **Agents SDK**: 상태/승인/가드레일/툴 실행을 앱이 직접 관리하며 **agent loop**를 코드로 운영할 때 ([platform.openai.com](https://platform.openai.com/docs/guides/agents-sdk))
+- **Responses API**: “한 번의 모델 호출 + 도구 + 앱 로직” 정도면 충분할 때[^5]  
+- **Agents SDK**: 상태/승인/가드레일/툴 실행을 앱이 직접 관리하며 **agent loop**를 코드로 운영할 때[^5]
 
-또한 OpenAI는 2026년 4월에 Agents SDK에 **model-native harness**와 **sandbox execution**을 강조했습니다. “에이전트가 파일을 보고, 명령 실행하고, 코드를 고치는” 워크로드를 안전한 컨테이너/샌드박스에서 돌리려는 흐름입니다. ([openai.com](https://openai.com/index/the-next-evolution-of-the-agents-sdk/))
+또한 OpenAI는 2026년 4월에 Agents SDK에 **model-native harness**와 **sandbox execution**을 강조했습니다. “에이전트가 파일을 보고, 명령 실행하고, 코드를 고치는” 워크로드를 안전한 컨테이너/샌드박스에서 돌리려는 흐름입니다.[^6]
 
 ### 3) 다른 접근과의 차이점: “프롬프트만으로는 부족해진 지점”
 2026년에 많은 팀이 깨닫는 포인트는 이겁니다.
 
 - 프롬프트로 “JSON 잘 만들어”라고 해도, **멀티스텝**으로 가면 정확도가 떨어짐  
-- “tool call이 성공했다”와 “의도한 비즈니스 효과가 났다”는 다름(가장 비싼 실패 모드) ([agentmarketcap.ai](https://agentmarketcap.ai/blog/2026/04/11/function-calling-reliability-production-agents-2026?utm_source=openai))  
-- 따라서 **검증 계층(validator) + 정책 계층(policy) + 관측(trace/eval)** 을 별도 컴포넌트로 둬야 합니다 ([agentmarketcap.ai](https://agentmarketcap.ai/blog/2026/04/11/function-calling-reliability-production-agents-2026?utm_source=openai))
+- “tool call이 성공했다”와 “의도한 비즈니스 효과가 났다”는 다름(가장 비싼 실패 모드)[^1]  
+- 따라서 **검증 계층(validator) + 정책 계층(policy) + 관측(trace/eval)** 을 별도 컴포넌트로 둬야 합니다[^1]
 
 ---
 
@@ -228,7 +230,6 @@ def run_support_agent(user_message: str, customer_email: str):
     )
     return final.output_text
 
-
 if __name__ == "__main__":
     text = run_support_agent(
         user_message="결제는 됐는데 대시보드에서 플랜이 Free로 보여요. 로그아웃/로그인 해도 동일합니다.",
@@ -241,7 +242,7 @@ if __name__ == "__main__":
 - 티켓이 생성되면: “TCK-xxxx”가 포함된 안내 + 추가 정보 요청(재현 스텝, 결제 영수증 등)
 - 정책에 막히면: “critical은 승인 필요, severity를 high로 낮출까요?” 같은 승인 플로우
 
-이 구조가 중요한 이유는, **모델이 tool_call을 “생성”하는 역할만** 맡고, **검증/승인/실행/관측은 런타임이 책임**지기 때문입니다. 멀티스텝에서의 신뢰성 저하와 “성공했지만 무의미한 실행”을 줄이려면 이 분리가 필수에 가깝습니다. ([agentmarketcap.ai](https://agentmarketcap.ai/blog/2026/04/11/function-calling-reliability-production-agents-2026?utm_source=openai))
+이 구조가 중요한 이유는, **모델이 tool_call을 “생성”하는 역할만** 맡고, **검증/승인/실행/관측은 런타임이 책임**지기 때문입니다. 멀티스텝에서의 신뢰성 저하와 “성공했지만 무의미한 실행”을 줄이려면 이 분리가 필수에 가깝습니다.[^1]
 
 ---
 
@@ -250,7 +251,7 @@ if __name__ == "__main__":
 - name은 `verb_noun` 형태로 명확히 (`create_ticket`, `search_web`)  
 - description에 **언제 쓰고 언제 쓰지 말지**를 박아넣기  
 - string free-form을 줄이고 enum/required/additionalProperties로 제약  
-→ argument 오류가 흔한 실패 모드라는 지적이 반복됩니다. ([openlegion.ai](https://www.openlegion.ai/en/learn/ai-agent-tool-use?utm_source=openai))
+→ argument 오류가 흔한 실패 모드라는 지적이 반복됩니다.[^7]
 
 ### Best Practice 2) “Validator”와 “Policy gate”를 분리하라
 - validator: schema/타입/형식 검증(기계적으로 결정 가능)  
@@ -260,17 +261,17 @@ if __name__ == "__main__":
 ### Best Practice 3) Tool set이 커지면 “Router → Executor” 2단으로 쪼개라
 툴이 많아질수록 정확도/비용이 동시에 망가집니다. 2026년 벤치마크/실무 글에서 공통적으로 나오는 해법은:
 - 1단: router LLM이 관련 tool 5~10개로 축소
-- 2단: executor LLM이 축소된 tool만 보고 정확히 호출 ([presenc.ai](https://presenc.ai/research/ai-agent-tool-calling-accuracy-benchmarks-2026?utm_source=openai))
+- 2단: executor LLM이 축소된 tool만 보고 정확히 호출[^3]
 
 ### 흔한 함정/안티패턴
 - **“tool_call이 나오면 바로 실행”**: 실제 운영에서 가장 위험. 반드시 validate + policy + timeout + max steps.
-- **무한 재시도 루프**: 멀티스텝에서 실패→재시도→실패가 토큰을 태우며 반복. 횟수 상한과 circuit breaker 필요. ([agentmarketcap.ai](https://agentmarketcap.ai/blog/2026/04/11/function-calling-reliability-production-agents-2026?utm_source=openai))
-- **관측 불가능한 에이전트**: 20번 tool call 후 사고가 나도 원인 파악이 안 됨. Agents SDK가 tracing/observability를 강조하는 이유가 여기에 있습니다. ([platform.openai.com](https://platform.openai.com/docs/guides/agents-sdk))
+- **무한 재시도 루프**: 멀티스텝에서 실패→재시도→실패가 토큰을 태우며 반복. 횟수 상한과 circuit breaker 필요.[^1]
+- **관측 불가능한 에이전트**: 20번 tool call 후 사고가 나도 원인 파악이 안 됨. Agents SDK가 tracing/observability를 강조하는 이유가 여기에 있습니다.[^5]
 
 ### 비용/성능/안정성 트레이드오프
 - 안정성(검증/승인/추가 스텝)을 올리면 **latency**와 **토큰 비용**이 증가
 - router 단을 넣으면 호출이 1번 더 늘지만, 큰 tool set을 그대로 넣는 것보다 총비용이 줄어드는 경우가 많음(컨텍스트 절약 + 실패율 감소)
-- sandbox 실행(파일/커맨드)은 강력하지만, 운영 복잡도(격리/권한/감사)가 증가 ([openai.com](https://openai.com/index/the-next-evolution-of-the-agents-sdk/))
+- sandbox 실행(파일/커맨드)은 강력하지만, 운영 복잡도(격리/권한/감사)가 증가[^6]
 
 ---
 
@@ -281,9 +282,16 @@ if __name__ == "__main__":
   2) 멀티스텝이 필요한가?  
   3) 검증/정책/관측 레이어를 만들 역량이 있는가?  
 를 먼저 보세요.
-- 단순 자동화는 Responses API로 시작하고, 상태/승인/샌드박스/추적이 필요해지는 순간 Agents SDK로 자연스럽게 넘어가는 흐름이 OpenAI 문서/발표에서 분명합니다. ([platform.openai.com](https://platform.openai.com/docs/guides/agents-sdk))
+- 단순 자동화는 Responses API로 시작하고, 상태/승인/샌드박스/추적이 필요해지는 순간 Agents SDK로 자연스럽게 넘어가는 흐름이 OpenAI 문서/발표에서 분명합니다.[^5]
 - 다음 학습 추천:
-  - “tool necessity(언제 호출해야 하는가)” 계열 연구/벤치마크를 보고, 불필요한 호출을 줄이는 전략을 설계(비용 최적화 직결) ([arxiv.org](https://arxiv.org/abs/2605.09252?utm_source=openai))
-  - 멀티스텝 tool-use에서 guardrail이 실제로 얼마나 깨지는지(TraceSafe 같은 평가 관점)도 같이 챙기기 ([arxiv.org](https://arxiv.org/abs/2604.07223?utm_source=openai))
+  - “tool necessity(언제 호출해야 하는가)” 계열 연구/벤치마크를 보고, 불필요한 호출을 줄이는 전략을 설계(비용 최적화 직결)[^2]
+  - 멀티스텝 tool-use에서 guardrail이 실제로 얼마나 깨지는지(TraceSafe 같은 평가 관점)도 같이 챙기기[^8]
 
-원하시면, 위 예제를 **(1) router-executor 2단 구조**, **(2) human approval 인터럽트**, **(3) MCP 기반 외부 툴 디스커버리**까지 확장한 버전으로도 정리해드릴게요.
+[^1]: <https://agentmarketcap.ai/blog/2026/04/11/function-calling-reliability-production-agents-2026>
+[^2]: <https://arxiv.org/abs/2605.09252>
+[^3]: <https://presenc.ai/research/ai-agent-tool-calling-accuracy-benchmarks-2026>
+[^4]: <https://asoasis.tech/articles/2026-04-20-0853-function-calling-vs-tool-use-llms/>
+[^5]: <https://platform.openai.com/docs/guides/agents-sdk>
+[^6]: <https://openai.com/index/the-next-evolution-of-the-agents-sdk/>
+[^7]: <https://www.openlegion.ai/en/learn/ai-agent-tool-use>
+[^8]: <https://arxiv.org/abs/2604.07223>

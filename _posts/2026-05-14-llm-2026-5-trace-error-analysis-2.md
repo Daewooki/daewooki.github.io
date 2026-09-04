@@ -1,12 +1,14 @@
 ---
-title: "LLM으로 “에러를 디버깅하는 법”: 2026년 5월 기준, Trace 기반 Error Analysis 워크플로 실전 설계"
+title: "LLM으로 “에러를 디버깅하는 법”: 기준, Trace 기반 Error Analysis 워크플로 실전 설계"
+description: "프로덕션에서 LLM/agent가 터질 때의 문제는 “재현 가능한 stack trace”가 아니라 “재현 불가능한 실행 맥락(context)”이 같이 깨진다는 점입니다."
 date: 2026-05-14 04:02:16 +0900
 categories: [AI, Coding]
-tags: [ai, coding, trend, 2026-05]
+tags: [ai, coding]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -27,7 +29,7 @@ tags: [ai, coding, trend, 2026-05]
 
 - **언제 쓰면 안 되나**
   - 단일 호출(하나의 prompt→하나의 completion)만 있고 실패가 명확히 deterministic(예: JSON 파싱 실패만 반복)일 때는 과합니다.
-  - PII/규제 때문에 prompt/응답 내용을 저장할 수 없는데 대체 설계(마스킹, ZDR, 샘플링)도 불가능하면, “trace 중심” 접근은 효율이 급격히 떨어집니다(Agents SDK도 ZDR에선 tracing 제약을 명시). ([openai.github.io](https://openai.github.io/openai-agents-js/guides/tracing/?utm_source=openai))
+  - PII/규제 때문에 prompt/응답 내용을 저장할 수 없는데 대체 설계(마스킹, ZDR, 샘플링)도 불가능하면, “trace 중심” 접근은 효율이 급격히 떨어집니다(Agents SDK도 ZDR에선 tracing 제약을 명시).[^1]
 
 ---
 
@@ -42,12 +44,12 @@ tags: [ai, coding, trend, 2026-05]
 - guardrails(정책 차단/리라이트)
 - latency/cost/token
 
-OpenAI Agents SDK는 이런 이벤트를 **기본 tracing surface**로 수집하고(세대/툴/핸드오프 등), 커스텀 이벤트도 붙일 수 있게 합니다. ([openai.github.io](https://openai.github.io/openai-agents-js/guides/tracing/?utm_source=openai))  
-Langfuse 같은 LLM observability 도구도 “nested observations”로 같은 구조를 전제로 합니다. ([langfuse.com](https://langfuse.com/docs/observability/overview?utm_source=openai))
+OpenAI Agents SDK는 이런 이벤트를 **기본 tracing surface**로 수집하고(세대/툴/핸드오프 등), 커스텀 이벤트도 붙일 수 있게 합니다.[^1]  
+Langfuse 같은 LLM observability 도구도 “nested observations”로 같은 구조를 전제로 합니다.[^2]
 
 ### 2) Trace만으로는 “왜”가 안 나온다 → 진단(Diagnostics) 레이어가 필요
 최근 커뮤니티에서 반복되는 불만이 하나 있습니다: **“trace는 예쁘게 다 나오는데, 뭘 고쳐야 할지 모르겠다.”**  
-해결은 관찰(Observability)을 한 단계 더 올려서, trace를 입력으로 **진단 규칙/스코어링/분류기를 얹는 것**입니다. (예: retrieval 품질 저하, context size 급증, tool latency SLA 위반, 잘못된 tool 선택 패턴 등) ([reddit.com](https://www.reddit.com/r/LLMDevs/comments/1s1k4e4/full_traces_in_langfuse_still_debugging_by/?utm_source=openai))
+해결은 관찰(Observability)을 한 단계 더 올려서, trace를 입력으로 **진단 규칙/스코어링/분류기를 얹는 것**입니다. (예: retrieval 품질 저하, context size 급증, tool latency SLA 위반, 잘못된 tool 선택 패턴 등)[^3]
 
 즉, 워크플로는:
 1) Trace 수집  
@@ -55,10 +57,10 @@ Langfuse 같은 LLM observability 도구도 “nested observations”로 같은 
 3) LLM 또는 규칙 기반으로 “고칠 포인트”를 추출  
 4) 그 결과를 **회귀테스트(evals/datasets)**로 묶어 재발 방지
 
-OpenTelemetry는 GenAI semantic conventions로 LLM/agent workload를 span/attribute로 표준화하는 스펙을 제공합니다. 툴/모델이 달라도 비슷한 형태로 관찰 가능해져서, 디버깅 자동화의 기반이 됩니다. ([opentelemetry.io](https://opentelemetry.io/docs/specs/semconv/gen-ai/?utm_source=openai))
+OpenTelemetry는 GenAI semantic conventions로 LLM/agent workload를 span/attribute로 표준화하는 스펙을 제공합니다. 툴/모델이 달라도 비슷한 형태로 관찰 가능해져서, 디버깅 자동화의 기반이 됩니다.[^4]
 
 ### 3) 2026년의 중요한 전환: “중간 런타임 상태”를 캡처해야 root-cause가 보인다
-APR(Automated Program Repair) 연구 쪽에서도, 단순히 “결과 증상(stack trace)”만 보면 근본 원인을 놓친다는 지적이 나옵니다. 중간 runtime state가 없으면 에이전트/코드 수정 루프가 헛돌기 쉽다는 것. ([arxiv.org](https://arxiv.org/abs/2604.19305?utm_source=openai))  
+APR(Automated Program Repair) 연구 쪽에서도, 단순히 “결과 증상(stack trace)”만 보면 근본 원인을 놓친다는 지적이 나옵니다. 중간 runtime state가 없으면 에이전트/코드 수정 루프가 헛돌기 쉽다는 것.[^5]  
 실무적으로는 “에러가 난 시점의 직전 단계에서 어떤 컨텍스트/툴 결과가 들어왔는지”를 **원인 후보로 최소화**하는 게 핵심입니다.
 
 ---
@@ -69,7 +71,7 @@ APR(Automated Program Repair) 연구 쪽에서도, 단순히 “결과 증상(st
 - Python
 - OpenTelemetry로 trace를 남기고(GenAI 관례를 최대한 태깅)
 - 실패 시 trace 요약 + 원인 분류 + 액션 아이템을 LLM에 시켜서 **runbook 형태**로 남깁니다.
-- 실제로는 Langfuse/MLflow/OpenAI Agents SDK tracing 등으로 내보낼 수 있지만, 여기서는 **벤더 독립적으로 로컬 OTLP(콘솔)로 재현**합니다. (OpenTelemetry 스펙 기반 접근은 도구를 바꿔도 유지됩니다.) ([opentelemetry.io](https://opentelemetry.io/docs/specs/semconv/gen-ai/?utm_source=openai))
+- 실제로는 Langfuse/MLflow/OpenAI Agents SDK tracing 등으로 내보낼 수 있지만, 여기서는 **벤더 독립적으로 로컬 OTLP(콘솔)로 재현**합니다. (OpenTelemetry 스펙 기반 접근은 도구를 바꿔도 유지됩니다.)[^4]
 
 ### 1) 셋업
 ```bash
@@ -240,31 +242,31 @@ if __name__ == "__main__":
 ### Best Practice
 1) **Trace를 “기록”이 아니라 “의사결정 입력”으로 설계**
    - trace가 쌓이기만 하면 Langfuse/LangSmith/기타 어디든 “예쁜 타임라인”은 나옵니다.
-   - 진짜 시간 줄이는 건 “분류/우선순위”입니다: retrieval 문제인지, tool 계약인지, context blowup인지 자동 라벨링. “trace는 what, 진단은 what-to-change”라는 관점이 필요합니다. ([reddit.com](https://www.reddit.com/r/LLMDevs/comments/1s1k4e4/full_traces_in_langfuse_still_debugging_by/?utm_source=openai))
+   - 진짜 시간 줄이는 건 “분류/우선순위”입니다: retrieval 문제인지, tool 계약인지, context blowup인지 자동 라벨링. “trace는 what, 진단은 what-to-change”라는 관점이 필요합니다.[^3]
 
 2) **OpenTelemetry GenAI semantic conventions로 정규화**
-   - 프레임워크가 달라도 `gen_ai.*` 속성으로 span을 표준화하면, 이후에 저장/검색/대시보드/알림 룰이 훨씬 단순해집니다. 특히 multi-vendor(여러 모델/여러 agent runtime) 환경에서 효과가 큽니다. ([opentelemetry.io](https://opentelemetry.io/docs/specs/semconv/gen-ai/?utm_source=openai))
+   - 프레임워크가 달라도 `gen_ai.*` 속성으로 span을 표준화하면, 이후에 저장/검색/대시보드/알림 룰이 훨씬 단순해집니다. 특히 multi-vendor(여러 모델/여러 agent runtime) 환경에서 효과가 큽니다.[^4]
 
 3) **“중간 상태”를 남기는 지점을 의도적으로 설계**
    - 연구/실무 모두 공통 결론은, 결과만 보면 root-cause가 흐려진다는 겁니다.
-   - 예: RAG top-k 문서 ID/점수, tool raw response의 content-type/상위 200자, prompt 버전 해시, 토큰 컷 직전 길이, 가드레일 트리거 사유. ([arxiv.org](https://arxiv.org/abs/2604.19305?utm_source=openai))
+   - 예: RAG top-k 문서 ID/점수, tool raw response의 content-type/상위 200자, prompt 버전 해시, 토큰 컷 직전 길이, 가드레일 트리거 사유.[^5]
 
 ### 흔한 함정/안티패턴
 - **모든 걸 LLM에게 “왜 그랬어?”라고 묻기**
-  - “왜 이 tool을 골랐지?”는 대개 답이 불명확합니다. 오염된 컨텍스트/입력 흐름이 구조적 원인인 경우가 많고, LLM의 사후 설명은 신뢰하기 어렵습니다. (그래서 trace + 진단 규칙으로 “레이어”를 나누는 게 중요) ([reddit.com](https://www.reddit.com/r/LangChain/comments/1r7085n/how_do_you_actually_debug_your_agents_when_they/?utm_source=openai))
+  - “왜 이 tool을 골랐지?”는 대개 답이 불명확합니다. 오염된 컨텍스트/입력 흐름이 구조적 원인인 경우가 많고, LLM의 사후 설명은 신뢰하기 어렵습니다. (그래서 trace + 진단 규칙으로 “레이어”를 나누는 게 중요)[^6]
 - **PII/비용 때문에 trace를 너무 일찍 버림**
-  - 샘플링을 낮추면 “간헐적 장애”가 사라집니다(=관측 불가능). 최소한 incident 기간/특정 tenant에 대해 100%로 올리는 운영 스위치가 필요합니다. ([reddit.com](https://www.reddit.com/r/LLMDevs/comments/1qo74j1/langfuse_tracing_what_sampling_rate_do_you_use_in/?utm_source=openai))
+  - 샘플링을 낮추면 “간헐적 장애”가 사라집니다(=관측 불가능). 최소한 incident 기간/특정 tenant에 대해 100%로 올리는 운영 스위치가 필요합니다.[^7]
 
 ### 비용/성능/안정성 트레이드오프
 - **100% tracing vs 비용**
-  - LLM 호출량이 크면 trace 저장/전송 비용이 커집니다. 다만 요즘 병목은 “CPU 오버헤드”보다 “데이터 볼륨/민감정보 처리”인 경우가 많습니다(OTel 스펙도 content 업로드/배치 튜닝을 권고). ([opentelemetry.io](https://opentelemetry.io/docs/specs/semconv/gen-ai/gen-ai-spans/?utm_source=openai))
+  - LLM 호출량이 크면 trace 저장/전송 비용이 커집니다. 다만 요즘 병목은 “CPU 오버헤드”보다 “데이터 볼륨/민감정보 처리”인 경우가 많습니다(OTel 스펙도 content 업로드/배치 튜닝을 권고).[^8]
 - **ZDR/규제**
-  - OpenAI Agents SDK는 ZDR 정책에서 tracing이 제한될 수 있다고 명시합니다. 이런 환경은 “내용 저장”이 아니라 “해시/요약/스키마 검증 결과” 중심으로 디버깅 체계를 다시 짜야 합니다. ([openai.github.io](https://openai.github.io/openai-agents-js/guides/tracing/?utm_source=openai))
+  - OpenAI Agents SDK는 ZDR 정책에서 tracing이 제한될 수 있다고 명시합니다. 이런 환경은 “내용 저장”이 아니라 “해시/요약/스키마 검증 결과” 중심으로 디버깅 체계를 다시 짜야 합니다.[^1]
 
 ---
 
 ## 🚀 마무리
-정리하면, 2026년 5월 기준의 LLM 디버깅 에러 분석은 “프롬프트를 잘 쓰는 법”보다 **(1) Trace로 실행 맥락을 재구성하고 (2) 진단 레이어로 원인 범주를 좁히며 (3) 그 결과를 eval/dataset으로 고정해 재발을 막는** 쪽으로 이동했습니다. OpenAI Agents SDK의 built-in tracing, Langfuse 같은 LLM observability, 그리고 OpenTelemetry GenAI semantic conventions가 이 흐름을 실무적으로 받쳐줍니다. ([openai.github.io](https://openai.github.io/openai-agents-js/guides/tracing/?utm_source=openai))
+정리하면, 2026년 5월 기준의 LLM 디버깅 에러 분석은 “프롬프트를 잘 쓰는 법”보다 **(1) Trace로 실행 맥락을 재구성하고 (2) 진단 레이어로 원인 범주를 좁히며 (3) 그 결과를 eval/dataset으로 고정해 재발을 막는** 쪽으로 이동했습니다. OpenAI Agents SDK의 built-in tracing, Langfuse 같은 LLM observability, 그리고 OpenTelemetry GenAI semantic conventions가 이 흐름을 실무적으로 받쳐줍니다.[^1]
 
 도입 판단 기준은 간단합니다.
 - agent가 3단계 이상(검색/툴/RAG/핸드오프)을 갖고 있고, 장애가 “가끔” 발생한다 → **trace + 진단 레이어** 투자 가치가 큼
@@ -272,8 +274,15 @@ if __name__ == "__main__":
 - 프롬프트 수정이 잦고 회귀가 잦다 → **trace에서 실패 케이스를 dataset으로 승격**시키는 자동화가 ROI가 큼
 
 다음 학습 추천(실무 루트)
-1) OpenTelemetry GenAI semantic conventions로 span 설계 표준 잡기 ([opentelemetry.io](https://opentelemetry.io/docs/specs/semconv/gen-ai/?utm_source=openai))  
-2) OpenAI Agents SDK tracing(또는 사용 중인 프레임워크)로 end-to-end trace 수집 ([openai.github.io](https://openai.github.io/openai-agents-js/guides/tracing/?utm_source=openai))  
+1) OpenTelemetry GenAI semantic conventions로 span 설계 표준 잡기[^4]  
+2) OpenAI Agents SDK tracing(또는 사용 중인 프레임워크)로 end-to-end trace 수집[^1]  
 3) “trace→진단→회귀테스트” 파이프라인을 한 번이라도 끝까지 연결(가장 큰 레버리지)
 
-원하시면, 여러분 스택(Agents SDK 사용 여부, Langfuse/MLflow/자체 OTel Collector, RAG 구성, 규제 요건)에 맞춰 위 코드를 **실제 운영형(PII 마스킹, 샘플링, 실패 케이스 dataset 자동 적재, Slack/PagerDuty 연동)**으로 리팩터링한 버전까지 같이 설계해드릴게요.
+[^1]: <https://openai.github.io/openai-agents-js/guides/tracing/>
+[^2]: <https://langfuse.com/docs/observability/overview>
+[^3]: <https://www.reddit.com/r/LLMDevs/comments/1s1k4e4/full_traces_in_langfuse_still_debugging_by/>
+[^4]: <https://opentelemetry.io/docs/specs/semconv/gen-ai/>
+[^5]: <https://arxiv.org/abs/2604.19305>
+[^6]: <https://www.reddit.com/r/LangChain/comments/1r7085n/how_do_you_actually_debug_your_agents_when_they/>
+[^7]: <https://www.reddit.com/r/LLMDevs/comments/1qo74j1/langfuse_tracing_what_sampling_rate_do_you_use_in/>
+[^8]: <https://opentelemetry.io/docs/specs/semconv/gen-ai/gen-ai-spans/>

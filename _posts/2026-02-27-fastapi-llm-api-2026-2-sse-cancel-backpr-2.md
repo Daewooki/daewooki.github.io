@@ -1,12 +1,14 @@
 ---
-title: "FastAPI로 LLM API 서버 “진짜 스트리밍” 만들기 (2026년 2월 기준): SSE, Cancel, Backpressure까지 한 번에"
+title: "FastAPI로 LLM API 서버 “진짜 스트리밍” 만들기: SSE, Cancel, Backpressure까지 한 번에"
+description: "LLM API 서버를 직접 운영해보면 “응답이 느리다”는 사용자 불만의 대부분은 총 처리시간보다 Time-to-first-token(첫 토큰 도착 시간) 에서 발생합니다. 특히 프롬프트가 길거나 tool 호출/후처리가 붙으면 첫 화면이 뜨기까지 수 초가 걸리기도 하죠."
 date: 2026-02-27 02:43:25 +0900
 categories: [Backend, API]
-tags: [backend, api, trend, 2026-02]
+tags: [backend, api]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -23,14 +25,14 @@ LLM API 서버를 직접 운영해보면 “응답이 느리다”는 사용자 
 - **SSE(Server-Sent Events)**: HTTP 위에서 server → client 단방향 스트리밍. 브라우저는 `EventSource`로 즉시 소비 가능.
 - **WebSocket**: 양방향이 필요할 때 강력하지만, 인프라/프록시/인증/스케일링 복잡도가 올라감.
 
-LLM “생성 텍스트를 흘려보내는” 전형적인 API에는 **SSE가 기본값으로 더 단순**하다는 흐름이 강합니다. 또한 OpenAI도 “Streaming API responses” 가이드를 SSE 이벤트 기반으로 설명합니다. ([platform.openai.com](https://platform.openai.com/docs/guides/streaming-responses?utm_source=openai))
+LLM “생성 텍스트를 흘려보내는” 전형적인 API에는 **SSE가 기본값으로 더 단순**하다는 흐름이 강합니다. 또한 OpenAI도 “Streaming API responses” 가이드를 SSE 이벤트 기반으로 설명합니다.[^1]
 
 ---
 
 ## 🔧 핵심 개념
 ### 1) StreamingResponse vs SSE(EventSourceResponse)
-- `StreamingResponse`(FastAPI/Starlette): **바이트 스트림**을 chunked transfer로 흘려보내는 가장 저수준 방식. 파일/바이너리/텍스트 모두 가능. ([medium.com](https://medium.com/%40ab.hassanein/streaming-responses-in-fastapi-d6a3397a4b7b?utm_source=openai))  
-- SSE(`text/event-stream`): 스트리밍 “형식(protocol)”이 얹힌 텍스트 스트림. 메시지 프레이밍이 명확해서 **프론트에서 토큰 단위 UI 업데이트**가 쉽습니다. 이벤트는 아래처럼 `\n\n`로 이벤트 경계를 자릅니다. ([medium.com](https://medium.com/%40inandelibas/real-time-notifications-in-python-using-sse-with-fastapi-1c8c54746eb7?utm_source=openai))  
+- `StreamingResponse`(FastAPI/Starlette): **바이트 스트림**을 chunked transfer로 흘려보내는 가장 저수준 방식. 파일/바이너리/텍스트 모두 가능.[^2]  
+- SSE(`text/event-stream`): 스트리밍 “형식(protocol)”이 얹힌 텍스트 스트림. 메시지 프레이밍이 명확해서 **프론트에서 토큰 단위 UI 업데이트**가 쉽습니다. 이벤트는 아래처럼 `\n\n`로 이벤트 경계를 자릅니다.[^3]  
 
 SSE wire format(핵심만):
 - 한 이벤트는 여러 줄로 구성 가능
@@ -39,16 +41,16 @@ SSE wire format(핵심만):
 - `:`로 시작하는 라인은 comment(heartbeat로 활용)
 
 ### 2) LLM Provider 스트리밍 → 우리 서버 SSE 재스트리밍
-요즘 LLM Provider는 대체로 “stream=True” 같은 옵션으로 **이벤트/델타 스트림**을 줍니다. OpenAI Responses API는 스트리밍을 “typed semantic events”로 내보내며, 예를 들어 `response.output_text.delta` 같은 이벤트를 반복적으로 받습니다. ([platform.openai.com](https://platform.openai.com/docs/guides/streaming-responses?utm_source=openai))  
+요즘 LLM Provider는 대체로 “stream=True” 같은 옵션으로 **이벤트/델타 스트림**을 줍니다. OpenAI Responses API는 스트리밍을 “typed semantic events”로 내보내며, 예를 들어 `response.output_text.delta` 같은 이벤트를 반복적으로 받습니다.[^1]  
 서버는 이를 받아:
 1) 델타를 파싱하고
 2) SSE `data:`로 감싸서
 3) 클라이언트로 즉시 flush
 
 ### 3) 실무에서 제일 중요한 3가지: disconnect, heartbeat, backpressure
-- **Client disconnect 처리**: 브라우저 탭 닫았는데 서버가 계속 LLM을 물고 있으면 비용/스레드/커넥션이 새는 구조가 됩니다. `request.is_disconnected()` 체크나, CancelledError/CancelScope 기반 취소가 핵심 이슈로 자주 언급됩니다. ([github.com](https://github.com/sysid/sse-starlette?utm_source=openai))  
-- **Heartbeat(ping)**: 중간 프록시/로드밸런서가 “조용한 연결”을 끊어버리는 일이 있어 주기적으로 `: ping\n\n` 같은 comment를 흘려 연결을 살립니다. `sse-starlette`는 `ping` 옵션도 제공합니다. ([github.com](https://github.com/sysid/sse-starlette?utm_source=openai))  
-- **Backpressure**: 생산자(LLM 이벤트)가 빠르고 소비자(클라이언트 네트워크)가 느릴 때 메모리 버퍼가 커집니다. 단순 generator보다 **anyio memory channel** 패턴이 안전한 경우가 많습니다. ([github.com](https://github.com/sysid/sse-starlette?utm_source=openai))  
+- **Client disconnect 처리**: 브라우저 탭 닫았는데 서버가 계속 LLM을 물고 있으면 비용/스레드/커넥션이 새는 구조가 됩니다. `request.is_disconnected()` 체크나, CancelledError/CancelScope 기반 취소가 핵심 이슈로 자주 언급됩니다.[^4]  
+- **Heartbeat(ping)**: 중간 프록시/로드밸런서가 “조용한 연결”을 끊어버리는 일이 있어 주기적으로 `: ping\n\n` 같은 comment를 흘려 연결을 살립니다. `sse-starlette`는 `ping` 옵션도 제공합니다.[^4]  
+- **Backpressure**: 생산자(LLM 이벤트)가 빠르고 소비자(클라이언트 네트워크)가 느릴 때 메모리 버퍼가 커집니다. 단순 generator보다 **anyio memory channel** 패턴이 안전한 경우가 많습니다.[^4]  
 
 ---
 
@@ -118,7 +120,7 @@ async def stream_openai_to_sse(request: Request, prompt: str) -> AsyncIterator[b
                 last_sent = now
 
             # 3) OpenAI typed event 처리: 텍스트 delta만 추출해 전송
-            # OpenAI 가이드는 type으로 이벤트 구분을 권장 ([platform.openai.com](https://platform.openai.com/docs/guides/streaming-responses?utm_source=openai))
+            # OpenAI 가이드는 type으로 이벤트 구분을 권장[^1]
             ev_type = getattr(ev, "type", None) or (ev.get("type") if isinstance(ev, dict) else None)
 
             if ev_type == "response.output_text.delta":
@@ -165,29 +167,39 @@ async def chat_stream(request: Request, prompt: str):
 ## ⚡ 실전 팁
 1) **SSE는 “프록시 버퍼링”이 가장 흔한 함정**
 - 로컬에서는 잘 되는데 운영(Nginx/Ingress/CDN)에서 토큰이 한 번에 몰아서 오는 경우가 많습니다.
-- `text/event-stream`을 쓰고, 프록시의 response buffering을 끄는 설정을 확인하세요(특히 Nginx/Ingress). “MIME type이 중요하다, buffering되면 실시간성이 깨진다”는 가이드가 반복됩니다. ([modal.com](https://modal.com/docs/guide/streaming-endpoints?utm_source=openai))  
+- `text/event-stream`을 쓰고, 프록시의 response buffering을 끄는 설정을 확인하세요(특히 Nginx/Ingress). “MIME type이 중요하다, buffering되면 실시간성이 깨진다”는 가이드가 반복됩니다.[^5]  
 
 2) **disconnect 감지는 ‘항상’ 믿을 수 있다고 가정하지 말기**
-- `request.is_disconnected()`로 충분한 경우가 많지만, 환경/버전/서버 조합에 따라 이슈가 보고되기도 합니다. ([gitlab.com](https://gitlab.com/gtucker.io/renelick/-/issues/58?utm_source=openai))  
-- 더 강하게 가져가려면 “disconnect watcher task가 CancelScope를 취소”하는 패턴(요지는 `request.receive()`에서 `http.disconnect`를 감지)을 고려하세요. ([fastapiexpert.com](https://fastapiexpert.com/blog/2024/06/06/understanding-client-disconnection-in-fastapi/?utm_source=openai))  
+- `request.is_disconnected()`로 충분한 경우가 많지만, 환경/버전/서버 조합에 따라 이슈가 보고되기도 합니다.[^6]  
+- 더 강하게 가져가려면 “disconnect watcher task가 CancelScope를 취소”하는 패턴(요지는 `request.receive()`에서 `http.disconnect`를 감지)을 고려하세요.[^7]  
 
 3) **Heartbeat(ping) 없으면 운영에서 끊긴다**
 - LLM이 잠깐 생각(?)하는 구간에 프록시가 idle timeout으로 끊을 수 있습니다.
-- `: ping\n\n` 같은 comment heartbeat는 구현 난이도 대비 효과가 큽니다. ([medium.com](https://medium.com/%402nick2patel2/fastapi-server-sent-events-for-llm-streaming-smooth-tokens-low-latency-1b211c94cff5?utm_source=openai))  
+- `: ping\n\n` 같은 comment heartbeat는 구현 난이도 대비 효과가 큽니다.[^8]  
 
 4) **Backpressure가 걱정되면 generator 대신 channel**
 - 간단한 스트림은 async generator로 충분하지만,
-- 생산/소비 속도 차가 커지면 `anyio.create_memory_object_stream()`로 bounded buffer를 두고 producer/consumer를 분리하는 방식이 안정적입니다(특히 여러 upstream을 합치거나 fan-out 할 때). ([github.com](https://github.com/sysid/sse-starlette?utm_source=openai))  
+- 생산/소비 속도 차가 커지면 `anyio.create_memory_object_stream()`로 bounded buffer를 두고 producer/consumer를 분리하는 방식이 안정적입니다(특히 여러 upstream을 합치거나 fan-out 할 때).[^4]  
 
 5) **SDK/클라이언트 코드까지 “스트리밍 타입”을 고정하라**
-- 스트리밍 여부에 따라 반환 타입이 갈리는 경우가 많아, 타입 안정성을 개선하려는 도구/SDK도 계속 나오고 있습니다. API 스펙에 `stream: true`일 때의 응답 이벤트를 명확히 문서화하는 게 장기적으로 이득입니다. ([speakeasy.com](https://www.speakeasy.com/blog/release-sse-improvements?utm_source=openai))  
+- 스트리밍 여부에 따라 반환 타입이 갈리는 경우가 많아, 타입 안정성을 개선하려는 도구/SDK도 계속 나오고 있습니다. API 스펙에 `stream: true`일 때의 응답 이벤트를 명확히 문서화하는 게 장기적으로 이득입니다.[^9]  
 
 ---
 
 ## 🚀 마무리
-FastAPI로 LLM API 서버를 만들 때 스트리밍의 본질은 “그냥 yield”가 아니라, **(1) SSE 프레이밍 (2) disconnect 취소 (3) heartbeat (4) backpressure**를 함께 설계하는 것입니다. OpenAI 같은 Provider의 typed streaming event를 그대로 흘려보내지 말고, **클라이언트가 소비하기 쉬운 SSE 이벤트 스키마(token/done/error/meta)** 로 정리해주면 운영 난이도가 확 떨어집니다. ([platform.openai.com](https://platform.openai.com/docs/guides/streaming-responses?utm_source=openai))  
+FastAPI로 LLM API 서버를 만들 때 스트리밍의 본질은 “그냥 yield”가 아니라, **(1) SSE 프레이밍 (2) disconnect 취소 (3) heartbeat (4) backpressure**를 함께 설계하는 것입니다. OpenAI 같은 Provider의 typed streaming event를 그대로 흘려보내지 말고, **클라이언트가 소비하기 쉬운 SSE 이벤트 스키마(token/done/error/meta)** 로 정리해주면 운영 난이도가 확 떨어집니다.[^1]  
 
 다음 학습으로는:
-- `sse-starlette`의 `ping`, `send_timeout`, channel 기반 streaming 구조 이해 ([github.com](https://github.com/sysid/sse-starlette?utm_source=openai))  
-- tool call/structured output까지 포함한 “이벤트 라우팅(텍스트/툴/메타)” 설계 ([platform.openai.com](https://platform.openai.com/docs/guides/streaming-responses?utm_source=openai))  
+- `sse-starlette`의 `ping`, `send_timeout`, channel 기반 streaming 구조 이해[^4]  
+- tool call/structured output까지 포함한 “이벤트 라우팅(텍스트/툴/메타)” 설계[^1]  
 를 추천합니다.
+
+[^1]: <https://platform.openai.com/docs/guides/streaming-responses>
+[^2]: <https://medium.com/%40ab.hassanein/streaming-responses-in-fastapi-d6a3397a4b7b>
+[^3]: <https://medium.com/%40inandelibas/real-time-notifications-in-python-using-sse-with-fastapi-1c8c54746eb7>
+[^4]: <https://github.com/sysid/sse-starlette>
+[^5]: <https://modal.com/docs/guide/streaming-endpoints>
+[^6]: <https://gitlab.com/gtucker.io/renelick/-/issues/58>
+[^7]: <https://fastapiexpert.com/blog/2024/06/06/understanding-client-disconnection-in-fastapi/>
+[^8]: <https://medium.com/%402nick2patel2/fastapi-server-sent-events-for-llm-streaming-smooth-tokens-low-latency-1b211c94cff5>
+[^9]: <https://www.speakeasy.com/blog/release-sse-improvements>

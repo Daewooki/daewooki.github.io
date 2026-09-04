@@ -1,12 +1,14 @@
 ---
 title: "도구 호출이 “대충 되는 데”서 “운영 가능한 수준”으로 바뀌는 2026년식 Function Calling 구현 패턴"
+description: "2026년 8월 기준, AI Agent의 “도구 사용(tool use)”은 더 이상 데모 기술이 아니라 실제 제품의 신뢰성/비용/보안을 좌우하는 엔지니어링 영역이 됐습니다. 프롬프트를 조금 바꾸면 되겠지…로 접근하면, 결국 운영에서 터집니다."
 date: 2026-08-25 01:41:22 +0900
 categories: [AI, Agent]
-tags: [ai, agent, trend, 2026-08]
+tags: [ai, agent]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -28,7 +30,7 @@ tags: [ai, agent, trend, 2026-08]
 - 도구 호출이 곧바로 위험한 부작용을 만드는 영역인데, 승인/권한/감사를 설계하지 않은 경우
 - “에이전트가 알아서”를 목표로 하고, 실패 시 fallback/재시도/중단 조건이 없는 경우 (운영 장애로 직결)
 
-핵심 결론은 이겁니다: **에이전트는 ‘모델’이 아니라 ‘런타임(실행 루프 + 도구 경계)’에서 완성**됩니다. AWS의 tool-based agent 패턴이 말하는 것도 결국 “LLM이 선택 → 런너가 실행 → 관측값을 다시 넣는 루프”입니다. ([docs.aws.amazon.com](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-patterns/tool-based-agents-for-calling-functions.html))
+핵심 결론은 이겁니다: **에이전트는 ‘모델’이 아니라 ‘런타임(실행 루프 + 도구 경계)’에서 완성**됩니다. AWS의 tool-based agent 패턴이 말하는 것도 결국 “LLM이 선택 → 런너가 실행 → 관측값을 다시 넣는 루프”입니다.[^1]
 
 ---
 
@@ -53,24 +55,24 @@ tags: [ai, agent, trend, 2026-08]
    - 운영에서는 “정답률”보다 “실패 양상”이 중요합니다
 
 ### 2) strict schema의 의미: “JSON을 출력”이 아니라 “args를 강제”
-OpenAI 쪽은 function calling에서 `strict: true`를 통해 **스키마 준수 args**를 강제하는 방향을 명확히 했습니다. 스키마가 strict-mode 요건을 만족하지 않으면 요청이 reject될 수 있고, 호환 조합이 아니면 제약 샘플링이 적용되지 않을 수 있습니다. ([help.openai.com](https://help.openai.com/en/articles/8555517-function-calling-updates))  
+OpenAI 쪽은 function calling에서 `strict: true`를 통해 **스키마 준수 args**를 강제하는 방향을 명확히 했습니다. 스키마가 strict-mode 요건을 만족하지 않으면 요청이 reject될 수 있고, 호환 조합이 아니면 제약 샘플링이 적용되지 않을 수 있습니다.[^2]  
 즉, 2026년의 베스트 프랙티스는:
 - “모델에게 잘 부탁”이 아니라
 - **스키마로 실패를 설계**(fail fast)하고
 - 런타임에서 재시도/복구를 설계하는 겁니다.
 
 ### 3) “한 번에 여러 툴 호출” vs “매 호출마다 LLM round-trip”
-2026년에 특히 눈여겨볼 변화는 **Programmatic Tool Calling(PTC)** 류의 접근입니다. OpenAI Agents SDK 문서에서도, 모델이 JavaScript를 생성해 **루프/분기/병렬 호출을 모델 round-trip 없이 수행**하고 마지막 결과만 모델로 돌리는 패턴을 명시합니다. (제한된 V8 환경, 네트워크/FS 접근 불가, allow된 tool만 호출 가능) ([openai.github.io](https://openai.github.io/openai-agents-python/tools/))  
+2026년에 특히 눈여겨볼 변화는 **Programmatic Tool Calling(PTC)** 류의 접근입니다. OpenAI Agents SDK 문서에서도, 모델이 JavaScript를 생성해 **루프/분기/병렬 호출을 모델 round-trip 없이 수행**하고 마지막 결과만 모델로 돌리는 패턴을 명시합니다. (제한된 V8 환경, 네트워크/FS 접근 불가, allow된 tool만 호출 가능)[^3]  
 이건 단순 최적화가 아니라 “아키텍처 선택”입니다:
 - 일반 tool loop: *모델-툴-모델-툴* (디버깅 쉬움, 비용/지연 큼)
 - PTC/프로그램 오케스트레이션: *모델 1회 + 툴 다회* (비용/지연↓, 경계 설계가 더 중요)
 
 ### 4) 다른 접근과의 차이점: LangGraph류의 그래프 오케스트레이션
-LangGraph는 ToolNode 같은 구성 요소로 “도구 실행 노드”를 그래프에 배치해, **결정적 흐름 + 에이전트적 흐름을 섞는** 설계를 제공합니다. ([langchain-ai.github.io](https://langchain-ai.github.io/langgraph/reference/agents/?h=create_react&utm_source=openai))  
+LangGraph는 ToolNode 같은 구성 요소로 “도구 실행 노드”를 그래프에 배치해, **결정적 흐름 + 에이전트적 흐름을 섞는** 설계를 제공합니다.[^4]  
 정리하면:
 - **SDK 루프(단순 ReAct)**: 빠르게 시작, 복잡해지면 조건문 지옥
 - **Graph(명시적 상태/분기)**: 복잡한 업무 프로세스/장기 실행/상태 관리에 강함
-- **PTC(프로그램 오케스트레이션)**: “작은 워크플로우 다발”에서 latency/토큰 최적화에 강함 ([openai.github.io](https://openai.github.io/openai-agents-python/tools/))
+- **PTC(프로그램 오케스트레이션)**: “작은 워크플로우 다발”에서 latency/토큰 최적화에 강함[^3]
 
 ---
 
@@ -103,7 +105,6 @@ from pydantic import BaseModel, Field, conint
 from agents import Agent, Runner
 from agents.decorators import tool
 
-
 # ---- Tool I/O Schemas ----
 class Order(BaseModel):
     order_id: str
@@ -112,7 +113,6 @@ class Order(BaseModel):
     amount_cents: conint(ge=0)
     currency: Literal["USD", "KRW"]
 
-
 class RefundResult(BaseModel):
     order_id: str
     refund_id: str
@@ -120,25 +120,20 @@ class RefundResult(BaseModel):
     processor: Literal["stripe", "adyen", "internal"]
     idempotency_key: str
 
-
 class TicketResult(BaseModel):
     ticket_id: str
     order_id: str
     category: Literal["refund"]
     summary: str
 
-
 # ---- In-memory idempotency store (demo). In production: Redis/DB ----
 IDEMPOTENCY: Dict[str, Dict[str, Any]] = {}
-
 
 def _idem_get(key: str) -> Optional[Dict[str, Any]]:
     return IDEMPOTENCY.get(key)
 
-
 def _idem_put(key: str, value: Dict[str, Any]) -> None:
     IDEMPOTENCY[key] = value
-
 
 # ---- Tools ----
 @tool
@@ -159,7 +154,6 @@ def get_order(order_id: str) -> Order:
         amount_cents=2599,
         currency="USD",
     )
-
 
 @tool
 def refund_payment(
@@ -194,7 +188,6 @@ def refund_payment(
     _idem_put(idempotency_key, result.model_dump())
     return result
 
-
 @tool
 def create_refund_ticket(
     order_id: str,
@@ -211,7 +204,7 @@ def create_refund_ticket(
 
 ### 2) Agent + 실행 루프 (현실적인 프롬프트: “도구 사용 규칙”을 명시)
 - 핵심은 “도구를 써라”가 아니라 **어떤 순서/조건으로 쓰는지**를 정책으로 적는 겁니다.
-- Anthropic 문서도 “툴을 쓰게 하려면 가벼운 지시를 추가”할 수 있고, 아예 `tool_choice`로 강제할 수도 있다고 설명합니다. ([platform.claude.com](https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview?c=nerd))  
+- Anthropic 문서도 “툴을 쓰게 하려면 가벼운 지시를 추가”할 수 있고, 아예 `tool_choice`로 강제할 수도 있다고 설명합니다.[^5]  
 (OpenAI/Anthropic 모두 프롬프트만으로 100% 강제는 어렵고, 결국 런타임 정책이 필요합니다.)
 
 ```python
@@ -263,7 +256,7 @@ if __name__ == "__main__":
 
 ## ⚡ 실전 팁 & 함정
 ### Best Practice 1) Tool schema를 “작게” 쪼개고, description을 정책 문서처럼 쓴다
-도구가 커질수록 모델은 args를 틀리고, 호출 타이밍도 흔들립니다. AWS도 “툴 메타데이터(이름/타입/설명)가 선택과 args 구성에 들어간다”고 정리합니다. ([docs.aws.amazon.com](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-patterns/tool-based-agents-for-calling-functions.html))  
+도구가 커질수록 모델은 args를 틀리고, 호출 타이밍도 흔들립니다. AWS도 “툴 메타데이터(이름/타입/설명)가 선택과 args 구성에 들어간다”고 정리합니다.[^1]  
 실무 팁:
 - tool 하나가 “조회+수정+감사로그”를 다 하면 실패율이 늘어납니다.
 - “조회 tool”과 “side effect tool”을 분리하고, side effect tool엔 **정책/전제조건**을 써두세요.
@@ -284,11 +277,11 @@ if __name__ == "__main__":
 ### 흔한 함정/안티패턴
 - **프롬프트만으로 순서를 강제**하려고 함 → 어느 날 모델 업데이트/컨텍스트 변화로 깨집니다.
 - **tool output을 그대로 다음 tool 입력으로 복붙** → 포맷 드리프트가 생기면 연쇄 실패.
-- **JSON mode / strict를 “응답 전체 JSON”으로 오해** → 실제로 중요한 건 “tool args의 구조적 제약”입니다. OpenAI는 function call args에 스키마 제약이 적용되는 흐름을 분명히 설명합니다. ([help.openai.com](https://help.openai.com/en/articles/8555517-function-calling-updates))
+- **JSON mode / strict를 “응답 전체 JSON”으로 오해** → 실제로 중요한 건 “tool args의 구조적 제약”입니다. OpenAI는 function call args에 스키마 제약이 적용되는 흐름을 분명히 설명합니다.[^2]
 
 ### 비용/성능/안정성 트레이드오프
 - 단순 loop는 디버깅이 쉽지만 **모델 round-trip이 많아 latency/비용↑**
-- PTC(프로그램 오케스트레이션)는 latency/토큰을 줄일 수 있지만, 실행 환경 제약(V8 sandbox, 네트워크/FS 없음, allow된 tool만) 때문에 **툴 설계가 더 중요**합니다. ([openai.github.io](https://openai.github.io/openai-agents-python/tools/))
+- PTC(프로그램 오케스트레이션)는 latency/토큰을 줄일 수 있지만, 실행 환경 제약(V8 sandbox, 네트워크/FS 없음, allow된 tool만) 때문에 **툴 설계가 더 중요**합니다.[^3]
 - LangGraph 같은 그래프는 복잡한 상태 머신에 강하지만, 작은 문제에 쓰면 “비싼 if-else”가 되기 쉽습니다(프레임워크가 해결해주지 않는 운영 문제도 많음).
 
 ---
@@ -299,7 +292,7 @@ if __name__ == "__main__":
 - **스키마 기반 계약(가능하면 strict)**
 - **도구 경계(권한/멱등/타임아웃/관측)**
 - **에이전트 루프(재시도/중단 조건/오류 복구)**
-- 그리고 필요하면 **프로그램 오케스트레이션(PTC)로 비용/지연 최적화** ([openai.github.io](https://openai.github.io/openai-agents-python/tools/))
+- 그리고 필요하면 **프로그램 오케스트레이션(PTC)로 비용/지연 최적화**[^3]
 
 도입 판단 기준을 한 줄로 요약하면:
 - “툴이 1~2개고 부작용이 작다” → 단순 tool loop + strict schema
@@ -307,7 +300,11 @@ if __name__ == "__main__":
 - “짧은 워크플로우를 자주 돌려 비용/지연이 문제다” → PTC 같은 ‘한 번에 여러 툴’ 패턴 검토
 
 다음 학습 추천:
-- OpenAI Agents SDK의 Tools/Programmatic Tool Calling 섹션을 읽고, **내 서비스의 tool boundary 레이어**(idempotency/authz/timeout)를 먼저 구현하세요. ([openai.github.io](https://openai.github.io/openai-agents-python/tools/))
-- AWS의 tool-based agent 패턴 문서를 기준으로, “LLM 결정”과 “실행기 책임”을 분리한 아키텍처로 리팩터링해보세요. ([docs.aws.amazon.com](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-patterns/tool-based-agents-for-calling-functions.html))
+- OpenAI Agents SDK의 Tools/Programmatic Tool Calling 섹션을 읽고, **내 서비스의 tool boundary 레이어**(idempotency/authz/timeout)를 먼저 구현하세요.[^3]
+- AWS의 tool-based agent 패턴 문서를 기준으로, “LLM 결정”과 “실행기 책임”을 분리한 아키텍처로 리팩터링해보세요.[^1]
 
-원하시면, 위 예제를 (1) FastAPI/NestJS로 감싸서 request_id 전파/추적 로그, (2) Redis 기반 idempotency + dead-letter queue, (3) tool-call 평가 지표(schema pass rate, tool success rate)까지 포함한 “운영 가능한 템플릿”으로 확장해드릴게요.
+[^1]: <https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-patterns/tool-based-agents-for-calling-functions.html>
+[^2]: <https://help.openai.com/en/articles/8555517-function-calling-updates>
+[^3]: <https://openai.github.io/openai-agents-python/tools/>
+[^4]: <https://langchain-ai.github.io/langgraph/reference/agents/?h=create_react>
+[^5]: <https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview?c=nerd>

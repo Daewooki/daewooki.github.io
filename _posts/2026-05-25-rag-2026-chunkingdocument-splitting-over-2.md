@@ -1,12 +1,14 @@
 ---
 title: "RAG 성능의 천장을 결정하는 2026년식 Chunking/Document Splitting 전략 (Overlap vs Semantic Chunking 실전 가이드)"
+description: "RAG에서 “검색이 헛돌고 답이 근거 없이 흔들리는” 문제의 상당수는 embedding/LLM이 아니라 문서가 어떻게 쪼개졌는지(chunking) 에서 시작합니다."
 date: 2026-05-25 04:40:34 +0900
 categories: [AI, RAG]
-tags: [ai, rag, trend, 2026-05]
+tags: [ai, rag]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -16,7 +18,7 @@ tags: [ai, rag, trend, 2026-05]
 </script>
 
 ## 들어가며
-RAG에서 “검색이 헛돌고 답이 근거 없이 흔들리는” 문제의 상당수는 embedding/LLM이 아니라 **문서가 어떻게 쪼개졌는지(chunking)** 에서 시작합니다. 특히 규정/정책/기술문서처럼 **문장 하나가 정확도를 좌우**하는 문서에서, 경계가 잘못 잘리면 “관련은 있어 보이는데 정답 문장이 없는 chunk”만 계속 뽑히는 상황이 자주 나옵니다(실무자들도 실패 케이스를 뜯어보면 대개 이 케이스). ([reddit.com](https://www.reddit.com/r/LangChain/comments/1tgcldy/why_does_everyone_skip_the_chunking_part/?utm_source=openai))
+RAG에서 “검색이 헛돌고 답이 근거 없이 흔들리는” 문제의 상당수는 embedding/LLM이 아니라 **문서가 어떻게 쪼개졌는지(chunking)** 에서 시작합니다. 특히 규정/정책/기술문서처럼 **문장 하나가 정확도를 좌우**하는 문서에서, 경계가 잘못 잘리면 “관련은 있어 보이는데 정답 문장이 없는 chunk”만 계속 뽑히는 상황이 자주 나옵니다(실무자들도 실패 케이스를 뜯어보면 대개 이 케이스).[^1]
 
 **언제 쓰면 좋나**
 - 문서가 길고(수십~수백 페이지), 섹션/헤딩/표/코드블록 등 **구조가 강한 문서**
@@ -26,7 +28,7 @@ RAG에서 “검색이 헛돌고 답이 근거 없이 흔들리는” 문제의 
 **언제 chunking에 과투자하면 안 되나**
 - 문서가 짧아서(예: 1~2k tokens) 그냥 통째로 넣는 게 가능한 경우
 - 검색 자체가 아니라, 요약/변환처럼 “정밀 인용”이 덜 중요한 워크플로우
-- 쿼리 품질/메타데이터/하이브리드 검색(BM25+vector) 부재로 인한 문제를 chunking으로만 때우려는 경우(정확한 ID/코드에는 vector만으로 한계가 큼). ([reddit.com](https://www.reddit.com/r/LangChain/comments/1tgcldy/why_does_everyone_skip_the_chunking_part/?utm_source=openai))
+- 쿼리 품질/메타데이터/하이브리드 검색(BM25+vector) 부재로 인한 문제를 chunking으로만 때우려는 경우(정확한 ID/코드에는 vector만으로 한계가 큼).[^1]
 
 ---
 
@@ -36,19 +38,19 @@ RAG의 retrieval은 결국 **top-k chunk 선택 게임**입니다. chunk가 너�
 - **구조(heading/section) 기반으로 1차 분할**
 - 그 안에서 **semantic boundary 또는 문장 단위로 2차 분할**
 - 필요하면 **parent-child(계층형)로 맥락 복원**
-으로 가는 쪽이 강합니다. (계층형/structure-aware가 성능에 유의미하다는 실험들도 계속 나오는 중) ([arxiv.org](https://arxiv.org/abs/2603.24556?utm_source=openai))
+으로 가는 쪽이 강합니다. (계층형/structure-aware가 성능에 유의미하다는 실험들도 계속 나오는 중)[^2]
 
 ### 2) Overlap은 “보험”이지 “치료”가 아니다
-Overlap은 경계에서 문장이 잘리는 문제를 완화하지만, 문서 구조를 무시한 채 무작정 sliding window를 돌리면 **주제 전환 지점이 chunk 내부에 섞여** 검색이 애매해집니다. Reddit에서도 “overlap이 나쁘진 않지만 나쁜 전략을 고치진 못한다”는 얘기가 반복되고요. ([reddit.com](https://www.reddit.com/r/Rag/comments/1t59a9z/chunking_decision_you_make_on_day_1_determines/?utm_source=openai))  
+Overlap은 경계에서 문장이 잘리는 문제를 완화하지만, 문서 구조를 무시한 채 무작정 sliding window를 돌리면 **주제 전환 지점이 chunk 내부에 섞여** 검색이 애매해집니다. Reddit에서도 “overlap이 나쁘진 않지만 나쁜 전략을 고치진 못한다”는 얘기가 반복되고요.[^3]  
 실무 감각으로 정리하면:
-- **Overlap은 10~15% 수준**(예: 800 tokens에 80~120 tokens)에서 “경계 손실”만 막는 용도로 쓰는 게 비용 대비 효율이 좋습니다. ([minneker.github.io](https://minneker.github.io/nlp-26wi/assets/lectures/20260224-rag-and-tools.pdf?utm_source=openai))
+- **Overlap은 10~15% 수준**(예: 800 tokens에 80~120 tokens)에서 “경계 손실”만 막는 용도로 쓰는 게 비용 대비 효율이 좋습니다.[^4]
 
 ### 3) Semantic chunking은 “경계 탐지(boundary detection)” 문제다
-2026년 semantic chunking의 큰 흐름은 “LLM이 알아서”라기보다, **인접 문장/문단 임베딩 유사도의 변화로 breakpoint를 잡는 방식**과, 문서 구조(heading)와 결합하는 방식입니다. LangChain의 `SemanticChunker`도 “의미적으로 뭉치는 단위”를 만들기 위해 embedding 기반으로 쪼갭니다. ([deepwiki.com](https://deepwiki.com/langchain-ai/langchain-experimental/3.2-semanticchunker?utm_source=openai))  
-최근에는 더 나아가, 긴 내러티브 문서에서 **자연스러운 분할 지점**을 LLM/모델로 탐지하는 시도(LumberChunker)처럼 “chunking=segmentation 모델링”으로 보는 접근도 나왔습니다. ([blog.ml.cmu.edu](https://blog.ml.cmu.edu/2026/03/17/lumberchunker-long-form-narrative-document-segmentation/?utm_source=openai))
+2026년 semantic chunking의 큰 흐름은 “LLM이 알아서”라기보다, **인접 문장/문단 임베딩 유사도의 변화로 breakpoint를 잡는 방식**과, 문서 구조(heading)와 결합하는 방식입니다. LangChain의 `SemanticChunker`도 “의미적으로 뭉치는 단위”를 만들기 위해 embedding 기반으로 쪼갭니다.[^5]  
+최근에는 더 나아가, 긴 내러티브 문서에서 **자연스러운 분할 지점**을 LLM/모델로 탐지하는 시도(LumberChunker)처럼 “chunking=segmentation 모델링”으로 보는 접근도 나왔습니다.[^6]
 
 ### 4) (중요) “내 문서에 맞는 chunker를 고르는” 쪽으로 간다
-하나의 chunking이 모든 문서에 최적일 가능성은 낮습니다. 2026년 논문들에서는 문서 기반의 내재적 지표(응집도, 블록 무결성 등)로 **문서별로 chunking 전략을 선택하는 adaptive chunking**을 제안합니다. 즉, “우리는 800/120이 정답”이 아니라, **문서 타입별로 정책을 나누는 게 정답**에 가깝습니다. ([arxiv.org](https://arxiv.org/abs/2603.25333?utm_source=openai))
+하나의 chunking이 모든 문서에 최적일 가능성은 낮습니다. 2026년 논문들에서는 문서 기반의 내재적 지표(응집도, 블록 무결성 등)로 **문서별로 chunking 전략을 선택하는 adaptive chunking**을 제안합니다. 즉, “우리는 800/120이 정답”이 아니라, **문서 타입별로 정책을 나누는 게 정답**에 가깝습니다.[^7]
 
 ---
 
@@ -218,37 +220,48 @@ if __name__ == "__main__":
 ## ⚡ 실전 팁 & 함정
 ### Best Practice (2~3개)
 1) **Structure-aware → Semantic** 순서로 쪼개라  
-먼저 heading/섹션/표/코드블록 같은 “의미적 컨테이너”를 보존하고, 그 안에서만 semantic chunking을 적용하세요. 구조를 무시한 semantic은 “문서 내 계층”을 잃고, 검색 결과를 사람이 해석/검증하기도 어려워집니다. ([arxiv.org](https://arxiv.org/abs/2603.24556?utm_source=openai))
+먼저 heading/섹션/표/코드블록 같은 “의미적 컨테이너”를 보존하고, 그 안에서만 semantic chunking을 적용하세요. 구조를 무시한 semantic은 “문서 내 계층”을 잃고, 검색 결과를 사람이 해석/검증하기도 어려워집니다.[^2]
 
 2) Overlap은 “문장 단위”로 최소화하라  
-character/token overlap을 크게 주면 저장량·embedding 비용이 직선으로 늘고, top-k가 중복 문맥으로 낭비됩니다. 대신 위 예제처럼 **마지막 1~2문장 overlap**만으로 경계 손실을 크게 줄일 수 있습니다(특히 규정/정의 문장). “12% overlap” 같은 가이드도 이 맥락에서 자주 등장합니다. ([minneker.github.io](https://minneker.github.io/nlp-26wi/assets/lectures/20260224-rag-and-tools.pdf?utm_source=openai))
+character/token overlap을 크게 주면 저장량·embedding 비용이 직선으로 늘고, top-k가 중복 문맥으로 낭비됩니다. 대신 위 예제처럼 **마지막 1~2문장 overlap**만으로 경계 손실을 크게 줄일 수 있습니다(특히 규정/정의 문장). “12% overlap” 같은 가이드도 이 맥락에서 자주 등장합니다.[^4]
 
 3) chunking은 “고정값”이 아니라 “문서군별 정책”으로 운영하라  
-최근 연구는 문서별 지표로 chunker를 선택하는 adaptive 방향을 제안합니다. 실무에서도 “계약서/정책/릴리즈노트/코드”를 동일 파라미터로 처리하면 결국 특정 문서군이 망가집니다. 문서 타입별로 chunker/size/overlap을 나누는 게 장기적으로 안정적입니다. ([arxiv.org](https://arxiv.org/abs/2603.25333?utm_source=openai))
+최근 연구는 문서별 지표로 chunker를 선택하는 adaptive 방향을 제안합니다. 실무에서도 “계약서/정책/릴리즈노트/코드”를 동일 파라미터로 처리하면 결국 특정 문서군이 망가집니다. 문서 타입별로 chunker/size/overlap을 나누는 게 장기적으로 안정적입니다.[^7]
 
 ### 흔한 함정/안티패턴
-- **semantic chunking이면 무조건 좋다**: 문서가 짧거나, 질문이 넓게 요약을 요구하는 경우엔 큰 chunk가 더 낫습니다. 실험/벤치마크에서도 “간단한 recursive가 충분히 강한” 케이스가 반복해서 나옵니다(결국 내 문서에서 측정해야 함). ([reddit.com](https://www.reddit.com/r/Rag/comments/1r47duk/we_benchmarked_7_chunking_strategies_most_best/?utm_source=openai))
-- **Overlap으로 모든 문제를 해결하려고 함**: overlap은 missing sentence를 줄이지만, “주제 혼합 chunk” 문제를 해결하지 못합니다. ([reddit.com](https://www.reddit.com/r/Rag/comments/1t59a9z/chunking_decision_you_make_on_day_1_determines/?utm_source=openai))
-- **vector-only 검색**: 제품 코드/모델명/조항 번호처럼 exact match가 중요한 도메인은 BM25/keyword를 섞지 않으면 “가까운 말”을 틀리게 가져옵니다(그리고 이걸 chunking 탓으로 오해함). ([reddit.com](https://www.reddit.com/r/LangChain/comments/1tgcldy/why_does_everyone_skip_the_chunking_part/?utm_source=openai))
+- **semantic chunking이면 무조건 좋다**: 문서가 짧거나, 질문이 넓게 요약을 요구하는 경우엔 큰 chunk가 더 낫습니다. 실험/벤치마크에서도 “간단한 recursive가 충분히 강한” 케이스가 반복해서 나옵니다(결국 내 문서에서 측정해야 함).[^8]
+- **Overlap으로 모든 문제를 해결하려고 함**: overlap은 missing sentence를 줄이지만, “주제 혼합 chunk” 문제를 해결하지 못합니다.[^3]
+- **vector-only 검색**: 제품 코드/모델명/조항 번호처럼 exact match가 중요한 도메인은 BM25/keyword를 섞지 않으면 “가까운 말”을 틀리게 가져옵니다(그리고 이걸 chunking 탓으로 오해함).[^1]
 
 ### 비용/성능/안정성 트레이드오프
 - Semantic chunking(embedding 기반)은 **인덱싱 시간이 늘고** 문서가 많으면 비용이 커집니다.
-- 하지만 운영에서 진짜 비용은 “헛도는 답변으로 인한 사용자 재시도/불신/지원 티켓”인 경우가 많습니다. 그래서 **핵심 문서군(정책/규정/스펙)** 에만 semantic+structure를 적용하고, 나머지는 recursive로 가는 하이브리드가 현실적입니다. ([arxiv.org](https://arxiv.org/abs/2603.24556?utm_source=openai))
+- 하지만 운영에서 진짜 비용은 “헛도는 답변으로 인한 사용자 재시도/불신/지원 티켓”인 경우가 많습니다. 그래서 **핵심 문서군(정책/규정/스펙)** 에만 semantic+structure를 적용하고, 나머지는 recursive로 가는 하이브리드가 현실적입니다.[^2]
 
 ---
 
 ## 🚀 마무리
 정리하면 2026년 5월 기준 RAG chunking의 실전 결론은 이렇습니다.
 
-- “chunk_size 몇이 정답?”이 아니라 **문서 구조를 살리고, 경계를 의미적으로 자르고, 필요하면 계층으로 문맥을 복원**하는 쪽이 안정적입니다. ([arxiv.org](https://arxiv.org/abs/2603.24556?utm_source=openai))  
-- Overlap은 필수에 가깝지만, **10~15% 또는 1~2문장 수준의 최소 overlap**을 추천합니다. ([minneker.github.io](https://minneker.github.io/nlp-26wi/assets/lectures/20260224-rag-and-tools.pdf?utm_source=openai))  
-- Semantic chunking은 강력하지만 비용이 있으니, **문서군별로 적용 범위를 나누고**(혹은 adaptive chunking처럼 문서별 선택) 실패 쿼리를 기준으로 튜닝하세요. ([arxiv.org](https://arxiv.org/abs/2603.25333?utm_source=openai))
+- “chunk_size 몇이 정답?”이 아니라 **문서 구조를 살리고, 경계를 의미적으로 자르고, 필요하면 계층으로 문맥을 복원**하는 쪽이 안정적입니다.[^2]  
+- Overlap은 필수에 가깝지만, **10~15% 또는 1~2문장 수준의 최소 overlap**을 추천합니다.[^4]  
+- Semantic chunking은 강력하지만 비용이 있으니, **문서군별로 적용 범위를 나누고**(혹은 adaptive chunking처럼 문서별 선택) 실패 쿼리를 기준으로 튜닝하세요.[^7]
 
 **도입 판단 기준(체크리스트)**
-- 내 실패 케이스가 “관련 chunk는 나오는데 정답 문장이 없다”인가? → semantic/structure + 최소 overlap로 개선 여지 큼 ([reddit.com](https://www.reddit.com/r/LangChain/comments/1tgcldy/why_does_everyone_skip_the_chunking_part/?utm_source=openai))  
+- 내 실패 케이스가 “관련 chunk는 나오는데 정답 문장이 없다”인가? → semantic/structure + 최소 overlap로 개선 여지 큼[^1]  
 - 문서가 heading/조항/섹션 중심인가? → structure-aware 1차 분할부터  
-- 문서 타입이 섞여 있는가? → 문서군별 정책(또는 adaptive) 없으면 결국 망가짐 ([arxiv.org](https://arxiv.org/abs/2603.25333?utm_source=openai))
+- 문서 타입이 섞여 있는가? → 문서군별 정책(또는 adaptive) 없으면 결국 망가짐[^7]
 
 **다음 학습 추천**
-- 구조/계층형 retrieval(H-RAG류)로 “child 검색 + parent 문맥 복원” 패턴을 정식으로 가져가기 ([arxiv.org](https://arxiv.org/abs/2605.00631?utm_source=openai))  
-- “Late chunking(Embed full doc then chunk)”은 long-context embedding이 가능한 환경에서 강력한 대안이 될 수 있으니, 인프라 여건이 되면 비교 실험 권장 ([arxiv.org](https://arxiv.org/abs/2409.04701?utm_source=openai))
+- 구조/계층형 retrieval(H-RAG류)로 “child 검색 + parent 문맥 복원” 패턴을 정식으로 가져가기[^9]  
+- “Late chunking(Embed full doc then chunk)”은 long-context embedding이 가능한 환경에서 강력한 대안이 될 수 있으니, 인프라 여건이 되면 비교 실험 권장[^10]
+
+[^1]: <https://www.reddit.com/r/LangChain/comments/1tgcldy/why_does_everyone_skip_the_chunking_part/>
+[^2]: <https://arxiv.org/abs/2603.24556>
+[^3]: <https://www.reddit.com/r/Rag/comments/1t59a9z/chunking_decision_you_make_on_day_1_determines/>
+[^4]: <https://minneker.github.io/nlp-26wi/assets/lectures/20260224-rag-and-tools.pdf>
+[^5]: <https://deepwiki.com/langchain-ai/langchain-experimental/3.2-semanticchunker>
+[^6]: <https://blog.ml.cmu.edu/2026/03/17/lumberchunker-long-form-narrative-document-segmentation/>
+[^7]: <https://arxiv.org/abs/2603.25333>
+[^8]: <https://www.reddit.com/r/Rag/comments/1r47duk/we_benchmarked_7_chunking_strategies_most_best/>
+[^9]: <https://arxiv.org/abs/2605.00631>
+[^10]: <https://arxiv.org/abs/2409.04701>

@@ -1,12 +1,14 @@
 ---
 title: "LLM API 비용 70% 줄이는 2026년식 Routing 설계: Prompt Caching + Budget-Aware Model Router"
+description: "2026년 6월 기준, LLM API 비용 최적화는 더 이상 “프롬프트 조금 줄이기”로 해결되지 않습니다. 실제로 비용은 (1) 긴 system/context 재전송, (2) 불필요하게 비싼 모델 고정 사용, (3) 출력 토큰 폭주에서 터집니다."
 date: 2026-06-18 04:48:48 +0900
 categories: [AI, LLM]
-tags: [ai, llm, trend, 2026-06]
+tags: [ai, llm]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -21,7 +23,7 @@ tags: [ai, llm, trend, 2026-06]
 언제 쓰면 좋나:
 - 긴 system prompt(규칙/정책/도메인지식) + 짧은 user input 패턴이 반복되는 제품(코딩 에이전트, 고객지원, 문서 QA, 내부 챗봇)
 - 품질 요구가 다양한 요청이 섞인 제품(간단 요약/분류 vs 고난도 reasoning) → **모델 라우팅**으로 이득 큼
-- 실시간/비실시간이 섞임(온라인 응답 + 야간 대량 처리) → **Batch**로 절반 할인 가능 ([platform.openai.com](https://platform.openai.com/docs/guides/batch/?utm_source=openai))
+- 실시간/비실시간이 섞임(온라인 응답 + 야간 대량 처리) → **Batch**로 절반 할인 가능[^1]
 
 언제 쓰면 안 되나:
 - 요청마다 프롬프트 구조가 크게 달라 **prefix가 공유되지 않는** 경우(캐시 효율 낮음)
@@ -35,12 +37,12 @@ tags: [ai, llm, trend, 2026-06]
 2026년 최적화의 핵심은 “토큰을 덜 쓰자”가 아니라 **비싼 토큰을 싼 토큰으로 바꾸고(캐시), 비싼 모델 호출을 싼 모델로 대체(라우팅)**하는 겁니다.
 
 - **Prompt Caching(Exact-prefix cache)**  
-  공급자가 “이전에 본 prompt prefix”를 재사용해 **prefill 비용**을 줄이고, 그만큼 **cached input token을 할인 청구**합니다. OpenAI는 “최근에 본 longest prefix”를 캐시하고, 응답 usage에 `cached_tokens`로 노출합니다. 또한 1,024 토큰 이상부터 prefix 캐시가 적용되고 128 토큰 단위로 확장됩니다. ([openai.com](https://openai.com/index/api-prompt-caching/?utm_source=openai))  
-  OpenAI는 cached input에 대해 **50% 할인**을 명시합니다. ([openai.com](https://openai.com/index/api-prompt-caching/?utm_source=openai))  
-  (다른 벤더도 캐시/배치 할인 구조가 비슷하게 “반복 컨텍스트가 길수록 이득”으로 설계되어 있습니다. ([swfte.com](https://www.swfte.com/ko/prompt-caching?utm_source=openai)))
+  공급자가 “이전에 본 prompt prefix”를 재사용해 **prefill 비용**을 줄이고, 그만큼 **cached input token을 할인 청구**합니다. OpenAI는 “최근에 본 longest prefix”를 캐시하고, 응답 usage에 `cached_tokens`로 노출합니다. 또한 1,024 토큰 이상부터 prefix 캐시가 적용되고 128 토큰 단위로 확장됩니다.[^2]  
+  OpenAI는 cached input에 대해 **50% 할인**을 명시합니다.[^2]  
+  (다른 벤더도 캐시/배치 할인 구조가 비슷하게 “반복 컨텍스트가 길수록 이득”으로 설계되어 있습니다.[^3])
 
 - **Batch API(비실시간 24h 비동기 처리)**  
-  OpenAI Batch는 24시간 내 완료 조건으로 **입력/출력 모두 50% 할인** + 별도 레이트리밋 풀을 제공합니다. ([platform.openai.com](https://platform.openai.com/docs/guides/batch/?utm_source=openai))  
+  OpenAI Batch는 24시간 내 완료 조건으로 **입력/출력 모두 50% 할인** + 별도 레이트리밋 풀을 제공합니다.[^1]  
   즉, “당장 답이 필요 없는 작업”은 라우팅이 아니라 **실행 경로 자체를 Batch로 라우팅**해야 합니다.
 
 ### 2) Model Routing: “최적 모델”이 아니라 “최적 정책”
@@ -55,7 +57,7 @@ tags: [ai, llm, trend, 2026-06]
 1) **Gate(분류/난이도 추정)**: 아주 싼 모델로 “이 요청이 어려운가?”를 판정  
 2) **Solve(해결)**: 난이도에 따라 적절한 모델 선택  
 3) **Verify(검증/재시도)**: 실패 징후가 있으면 상향 라우팅  
-이런 “검증 경제학” 관점은 2026년에 특히 중요하다는 분석이 나옵니다. ([ifitsmanu.com](https://ifitsmanu.com/pdfs/the-cost-of-being-right.pdf?utm_source=openai))
+이런 “검증 경제학” 관점은 2026년에 특히 중요하다는 분석이 나옵니다.[^4]
 
 ### 3) Token Saving의 본질: “캐시를 깨지 않게 설계”
 Prompt caching은 **prefix가 1글자라도 달라지면**(벤더 구현에 따라) 재사용이 깨지기 쉽습니다. 그래서 토큰 절약은 아래 “구조”로 접근해야 합니다.
@@ -73,8 +75,8 @@ Prompt caching은 **prefix가 1글자라도 달라지면**(벤더 구현에 따�
 - 요청은 `support_ticket_reply`(고객지원 답변 생성) 시나리오
 - **Budget-aware routing**: (1) Gate로 난이도 분류 → (2) 저가 모델 우선 → (3) 실패 시 상향
 - **Prompt caching을 살리는 프롬프트 레이아웃**(불변 prefix/가변 suffix 분리)
-- OpenAI는 `usage.prompt_tokens_details.cached_tokens`를 보고 캐시 효율을 로그로 남깁니다. ([openai.com](https://openai.com/index/api-prompt-caching/?utm_source=openai))  
-- 비실시간 모드는 Batch로 보내는 설계 포인트를 함께 넣습니다. ([platform.openai.com](https://platform.openai.com/docs/guides/batch/?utm_source=openai))
+- OpenAI는 `usage.prompt_tokens_details.cached_tokens`를 보고 캐시 효율을 로그로 남깁니다.[^2]  
+- 비실시간 모드는 Batch로 보내는 설계 포인트를 함께 넣습니다.[^1]
 
 ### 0) 의존성 / 실행
 ```bash
@@ -231,7 +233,7 @@ def looks_failed(reply: str) -> bool:
 @app.post("/support/reply", response_model=TicketResponse)
 def support_reply(req: TicketRequest):
     # offline이면 Batch로 보내는 게 정석(여기선 "설계 포인트"로만 표시)
-    # OpenAI Batch는 24h 내 처리로 50% 할인. ([platform.openai.com](https://platform.openai.com/docs/guides/batch/?utm_source=openai))
+    # OpenAI Batch는 24h 내 처리로 50% 할인.[^1]
     if req.mode == "offline":
         return TicketResponse(
             model_used="(send-to-batch)",
@@ -262,7 +264,7 @@ def support_reply(req: TicketRequest):
     else:
         usage = {"first": first["usage"], "gate": gate}
 
-    # 관측 포인트: cached_tokens를 로깅해서 "캐시가 깨졌는지"를 바로 본다. ([openai.com](https://openai.com/index/api-prompt-caching/?utm_source=openai))
+    # 관측 포인트: cached_tokens를 로깅해서 "캐시가 깨졌는지"를 바로 본다.[^2]
     prompt_est = count_tokens(SYSTEM_PREFIX) + count_tokens(
         USER_TEMPLATE.format(channel=req.channel, priority=req.priority, tier=req.tier, content=req.content)
     )
@@ -278,24 +280,24 @@ def support_reply(req: TicketRequest):
 ```
 
 ### 2) 예상 출력/로그에서 확인할 것
-- `usage.first.prompt_tokens_details.cached_tokens` 같은 값이 **0이 아니고 점점 커지는지** 확인하세요. (OpenAI는 `cached_tokens`를 usage에 넣어줍니다.) ([openai.com](https://openai.com/index/api-prompt-caching/?utm_source=openai))  
+- `usage.first.prompt_tokens_details.cached_tokens` 같은 값이 **0이 아니고 점점 커지는지** 확인하세요. (OpenAI는 `cached_tokens`를 usage에 넣어줍니다.)[^2]  
 - 캐시가 계속 0이면 대개:
   - system prefix가 매번 달라지거나
   - system 앞에 timestamp/trace id를 넣거나
   - tool schema를 동적으로 생성해서 매번 달라졌거나
-  - 프롬프트 길이가 1,024 토큰 미만이라 캐시 구간이 형성되지 않은 경우입니다. ([openai.com](https://openai.com/index/api-prompt-caching/?utm_source=openai))  
+  - 프롬프트 길이가 1,024 토큰 미만이라 캐시 구간이 형성되지 않은 경우입니다.[^2]  
 
 ---
 
 ## ⚡ 실전 팁 & 함정
 ### Best Practice 1) “캐시 친화 프롬프트 레이아웃”을 코드로 강제하라
 문서에 “system은 고정”이라고 써도, 기능이 늘면 누군가 system 앞에 변수를 넣습니다.  
-해결: `SYSTEM_PREFIX`를 상수로 분리하고, 요청별 데이터는 무조건 suffix로만 들어가게 템플릿/코드 리뷰 룰을 만드세요. OpenAI는 longest prefix를 캐시하고 `cached_tokens`로 관측 가능하니, **SLO에 캐시 히트율을 포함**하는 게 효과적입니다. ([openai.com](https://openai.com/index/api-prompt-caching/?utm_source=openai))
+해결: `SYSTEM_PREFIX`를 상수로 분리하고, 요청별 데이터는 무조건 suffix로만 들어가게 템플릿/코드 리뷰 룰을 만드세요. OpenAI는 longest prefix를 캐시하고 `cached_tokens`로 관측 가능하니, **SLO에 캐시 히트율을 포함**하는 게 효과적입니다.[^2]
 
 ### Best Practice 2) “라우팅”은 모델 선택만이 아니라 실행 경로 선택이다
 - 실시간: sync endpoint
 - 비실시간: Batch로 강제  
-Batch는 24시간 내 완료 + **50% 할인**이 명확합니다. ([platform.openai.com](https://platform.openai.com/docs/guides/batch/?utm_source=openai))  
+Batch는 24시간 내 완료 + **50% 할인**이 명확합니다.[^1]  
 대량 문서 분류/임베딩/평가/E2E 리포트 생성은 Batch로 빼는 것만으로도 “모델 라우팅”보다 큰 절감이 나옵니다.
 
 ### Best Practice 3) 출력 토큰을 “상한”이 아니라 “정책”으로 다뤄라
@@ -305,19 +307,19 @@ Batch는 24시간 내 완료 + **50% 할인**이 명확합니다. ([platform.ope
 - 실패 시 상향 라우팅하되, **상향 시에도 output 한도를 다시 설정**하세요(상향=무제한이 아님)
 
 ### 흔한 함정/안티패턴
-- **Semantic cache를 무검증으로 붙이기**: 유사 질문에 이전 답을 재사용하면 “그럴듯한 오답”이 섞입니다. 연구/실무 모두 semantic caching은 gate/검증이 중요하다고 봅니다. ([tmls.nyc](https://www.tmls.nyc/research/ai-caching-strategies?utm_source=openai))  
-- **캐시 TTL/정책을 모른 채 전제하기**: 벤더별로 캐시 만료/할인/쓰기 비용 구조가 달라, “캐시가 항상 된다”는 가정으로 설계하면 요금이 흔들립니다. (OpenAI는 캐시가 보통 5~10분 inactivity 후 정리되고 1시간 내 제거된다고 설명합니다.) ([openai.com](https://openai.com/index/api-prompt-caching/?utm_source=openai))  
-- **라우팅 기준이 비용만 보는 것**: “싼 모델이 틀리면 다시 부르는 비용” + “재시도 지연”까지 합치면 총비용이 증가할 수 있습니다. 그래서 gate→solve→verify 구조(혹은 escalation 규칙)가 필요합니다. ([ifitsmanu.com](https://ifitsmanu.com/pdfs/the-cost-of-being-right.pdf?utm_source=openai))  
+- **Semantic cache를 무검증으로 붙이기**: 유사 질문에 이전 답을 재사용하면 “그럴듯한 오답”이 섞입니다. 연구/실무 모두 semantic caching은 gate/검증이 중요하다고 봅니다.[^5]  
+- **캐시 TTL/정책을 모른 채 전제하기**: 벤더별로 캐시 만료/할인/쓰기 비용 구조가 달라, “캐시가 항상 된다”는 가정으로 설계하면 요금이 흔들립니다. (OpenAI는 캐시가 보통 5~10분 inactivity 후 정리되고 1시간 내 제거된다고 설명합니다.)[^2]  
+- **라우팅 기준이 비용만 보는 것**: “싼 모델이 틀리면 다시 부르는 비용” + “재시도 지연”까지 합치면 총비용이 증가할 수 있습니다. 그래서 gate→solve→verify 구조(혹은 escalation 규칙)가 필요합니다.[^4]  
 
 비용/성능/안정성 트레이드오프 정리:
-- Prompt caching: 품질 손실 없이(같은 입력이면 같은 처리) 비용↓/TTFT↓ 가능하지만, **prefix 안정성**이 전제입니다. ([tmls.nyc](https://www.tmls.nyc/research/ai-caching-strategies?utm_source=openai))  
+- Prompt caching: 품질 손실 없이(같은 입력이면 같은 처리) 비용↓/TTFT↓ 가능하지만, **prefix 안정성**이 전제입니다.[^5]  
 - Model routing: 평균 비용은 크게 줄지만, **경계 케이스 품질 저하**와 운영 복잡도(관측/재시도/정책 관리)가 증가합니다.
-- Batch: 지연을 비용으로 바꾸는 가장 확실한 레버(단, 24h 윈도우 제약). ([platform.openai.com](https://platform.openai.com/docs/guides/batch/?utm_source=openai))  
+- Batch: 지연을 비용으로 바꾸는 가장 확실한 레버(단, 24h 윈도우 제약).[^1]  
 
 ---
 
 ## 🚀 마무리
-2026년 6월의 LLM 비용 최적화는 “토큰을 줄이는 기술”이 아니라 **(1) 반복 컨텍스트는 prompt caching으로 ‘싼 토큰’으로 만들고, (2) 요청 난이도에 따라 모델/실행 경로를 라우팅하고, (3) 출력 토큰을 정책으로 통제**하는 시스템 설계 문제입니다. OpenAI는 prompt caching의 `cached_tokens` 관측과 cached input 할인(50%)을 제공하고, Batch는 24h 비동기 처리로 입력/출력 50% 할인을 제공합니다. ([openai.com](https://openai.com/index/api-prompt-caching/?utm_source=openai))  
+2026년 6월의 LLM 비용 최적화는 “토큰을 줄이는 기술”이 아니라 **(1) 반복 컨텍스트는 prompt caching으로 ‘싼 토큰’으로 만들고, (2) 요청 난이도에 따라 모델/실행 경로를 라우팅하고, (3) 출력 토큰을 정책으로 통제**하는 시스템 설계 문제입니다. OpenAI는 prompt caching의 `cached_tokens` 관측과 cached input 할인(50%)을 제공하고, Batch는 24h 비동기 처리로 입력/출력 50% 할인을 제공합니다.[^2]  
 
 도입 판단 기준(실무 체크리스트):
 - 내 서비스 요청 중 **“긴 공통 prefix”**가 반복되는가? → Yes면 caching부터
@@ -326,7 +328,11 @@ Batch는 24시간 내 완료 + **50% 할인**이 명확합니다. ([platform.ope
 - 캐시/라우팅을 관측할 메트릭(`cached_tokens`, hit rate, escalation rate, cost per success)을 운영할 준비가 됐는가? → No면 먼저 관측부터
 
 다음 학습 추천:
-- Prompt caching/semantic caching을 레이어로 나눠 경제성을 비교한 레퍼런스 아키텍처(“exact-prefix는 무손실, semantic은 guarded”) 관점 ([tmls.nyc](https://www.tmls.nyc/research/ai-caching-strategies?utm_source=openai))  
-- “검증(verification)이 비용 구조를 바꾼다”는 2026년식 verification economics 관점 ([ifitsmanu.com](https://ifitsmanu.com/pdfs/the-cost-of-being-right.pdf?utm_source=openai))  
+- Prompt caching/semantic caching을 레이어로 나눠 경제성을 비교한 레퍼런스 아키텍처(“exact-prefix는 무손실, semantic은 guarded”) 관점[^5]  
+- “검증(verification)이 비용 구조를 바꾼다”는 2026년식 verification economics 관점[^4]
 
-원하시면, (1) 당신의 실제 워크로드(요청 샘플 20개) 기준으로 **라우팅 정책/프롬프트 레이아웃을 리팩터링**하거나, (2) `cached_tokens`/비용을 자동 집계하는 **Prometheus/Grafana 대시보드 스키마**까지 포함해 “프로덕션 적용 버전”으로 확장해드릴게요.
+[^1]: <https://platform.openai.com/docs/guides/batch/>
+[^2]: <https://openai.com/index/api-prompt-caching/>
+[^3]: <https://www.swfte.com/ko/prompt-caching>
+[^4]: <https://ifitsmanu.com/pdfs/the-cost-of-being-right.pdf>
+[^5]: <https://www.tmls.nyc/research/ai-caching-strategies>

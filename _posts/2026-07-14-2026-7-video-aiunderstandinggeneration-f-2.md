@@ -1,13 +1,15 @@
 ---
-title: "토큰 예산이 병목인 시대: 2026년 7월 Video AI(understanding+generation)에서 “Frame Analysis Pipeline”이 승부를 가른다"
+title: "토큰 예산이 병목인 시대: Video AI(understanding+generation)에서 “Frame Analysis Pipeline”이 승부를 가른다"
+description: "2026년 7월의 비디오 AI는 모델 성능 자체도 중요하지만, “어떤 프레임(혹은 구간)을 모델에 먹일지”를 결정하는 파이프라인이 실제 품질/비용을 좌우합니다."
 date: 2026-07-14 03:15:54 +0900
 categories: [AI, Multimodal]
-tags: [ai, multimodal, trend, 2026-07]
+tags: [ai, multimodal]
 render_with_liquid: false
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -26,7 +28,7 @@ render_with_liquid: false
   - 전수 분석이 필수인 규제/포렌식 영역(프레임 누락 자체가 리스크)
   - 모델이 아니라 **클래식 CV 트래킹/액션 인식**이 더 확실한 단일 과업(예: 단일 객체 카운팅만 정확히)
 
-최근 연구 흐름은 공통적으로 “**uniform sampling → (가끔 CLIP 점수로 keyframe)**”에서 벗어나, **query-adaptive(질문 적응형) / multi-modal routing(모달리티 노이즈 억제) / bandit/agentic selection(탐색-활용)**으로 이동 중입니다. 예: FOCUS(멀티암드 밴딧 기반 keyframe selection) ([iclr.cc](https://iclr.cc/virtual/2026/poster/10011835?utm_source=openai)), Q-Gate(질의 의도에 따라 visual/subtitle 등 expert를 가변 가중) ([arxiv.org](https://arxiv.org/abs/2604.17422?utm_source=openai)), VideoITG(temporal grounding으로 긴 영상에서 근거 구간 탐색) ([nvlabs.github.io](https://nvlabs.github.io/VideoITG/?utm_source=openai)), Video-MTR(멀티턴으로 구간을 반복 선택하는 agentic 접근) ([openreview.net](https://openreview.net/forum?id=UhPwL6LYOc&utm_source=openai)).
+최근 연구 흐름은 공통적으로 “**uniform sampling → (가끔 CLIP 점수로 keyframe)**”에서 벗어나, **query-adaptive(질문 적응형) / multi-modal routing(모달리티 노이즈 억제) / bandit/agentic selection(탐색-활용)**으로 이동 중입니다. 예: FOCUS(멀티암드 밴딧 기반 keyframe selection)[^1], Q-Gate(질의 의도에 따라 visual/subtitle 등 expert를 가변 가중)[^2], VideoITG(temporal grounding으로 긴 영상에서 근거 구간 탐색)[^3], Video-MTR(멀티턴으로 구간을 반복 선택하는 agentic 접근)[^4].
 
 ---
 
@@ -39,20 +41,20 @@ render_with_liquid: false
   - **짧게 발생하는 핵심 이벤트(문 열림 0.5초)**를 놓치거나
   - plot-driven 질문(“왜 싸우기 시작했어?”)처럼 **visual만으로 부족한 질의**에서 자막/대사 같은 텍스트 신호를 무시합니다.
 
-Q-Gate는 여기서 한 발 더 나가서, keyframe scoring을 한 가지 기준으로 고정하지 않고 **세 개의 lightweight expert stream(로컬 디테일, 글로벌 장면 의미, 자막/내러티브 정렬)을 두고** 질의 의도를 LLM이 판단해 **가중치를 동적으로 배분**합니다. 이때 핵심은 “멀티모달을 무조건 합치면 좋다”가 아니라, **관계없는 모달리티는 modal noise가 되니 ‘mute’해야 한다**는 주장입니다. ([arxiv.org](https://arxiv.org/abs/2604.17422?utm_source=openai))
+Q-Gate는 여기서 한 발 더 나가서, keyframe scoring을 한 가지 기준으로 고정하지 않고 **세 개의 lightweight expert stream(로컬 디테일, 글로벌 장면 의미, 자막/내러티브 정렬)을 두고** 질의 의도를 LLM이 판단해 **가중치를 동적으로 배분**합니다. 이때 핵심은 “멀티모달을 무조건 합치면 좋다”가 아니라, **관계없는 모달리티는 modal noise가 되니 ‘mute’해야 한다**는 주장입니다.[^2]
 
 ### 3) Bandit/agentic selection: “잘 모르니 더 봐야 한다”를 수학적으로 다루기
-FOCUS는 프레임/클립 선택을 **multi-armed bandit의 pure-exploration 문제**로 모델링합니다. 짧은 temporal clip을 arm으로 보고, 점수의 불확실성(신뢰반경)을 유지하며 탐색→활용 2단계로 **2% 미만 프레임만 보고도 정확도를 올리는** 방향을 제시합니다. ([iclr.cc](https://iclr.cc/virtual/2026/poster/10011835?utm_source=openai))  
+FOCUS는 프레임/클립 선택을 **multi-armed bandit의 pure-exploration 문제**로 모델링합니다. 짧은 temporal clip을 arm으로 보고, 점수의 불확실성(신뢰반경)을 유지하며 탐색→활용 2단계로 **2% 미만 프레임만 보고도 정확도를 올리는** 방향을 제시합니다.[^1]  
 즉, “초반에 대충 훑고(cheap), 애매한 구간을 더 보고(expensive), 마지막에 top-K 프레임을 뽑는다”가 정교해지고 있습니다.
 
 ### 4) Temporal grounding이 파이프라인의 ‘중간 표현’이 된다
-VideoITG류는 단순 keyframe이 아니라, 질의에 대해 **시간 구간(temporal segment)을 먼저 찾고** 그 안에서 프레임을 뽑는 식으로 “근거 구간”을 구조화합니다. ([nvlabs.github.io](https://nvlabs.github.io/VideoITG/?utm_source=openai))  
+VideoITG류는 단순 keyframe이 아니라, 질의에 대해 **시간 구간(temporal segment)을 먼저 찾고** 그 안에서 프레임을 뽑는 식으로 “근거 구간”을 구조화합니다.[^3]  
 이 구조는 실무적으로도 유리합니다:
 - UI에 “근거 타임라인”을 노출 가능(설명가능성)
 - 캐시 단위가 frame이 아니라 **segment**가 되어 재사용이 쉬움
 
 ### 5) 제품 관점: API도 결국 “샘플링/클리핑” knobs가 핵심
-Gemini(Cloud) 쪽 video understanding 가이드는 **clipping interval / custom frame-rate sampling / media_resolution** 같은 파라미터로 입력 비디오 처리 전략을 조절하도록 명시합니다. “granular temporal analysis면 FPS를 올려라” 같은 권고도 문서에 들어가 있습니다. ([docs.cloud.google.com](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/capabilities/video-understanding?hl=en&utm_source=openai))  
+Gemini(Cloud) 쪽 video understanding 가이드는 **clipping interval / custom frame-rate sampling / media_resolution** 같은 파라미터로 입력 비디오 처리 전략을 조절하도록 명시합니다. “granular temporal analysis면 FPS를 올려라” 같은 권고도 문서에 들어가 있습니다.[^5]  
 결국 연구 트렌드와 제품 knobs가 같은 곳(프레임/구간 선택)으로 수렴 중입니다.
 
 ---
@@ -65,8 +67,8 @@ Gemini(Cloud) 쪽 video understanding 가이드는 **clipping interval / custom 
 - 3단계: 후보 구간만 **고FPS로 재샘플링**해 정밀 QA(heavy pass)
 - (선택) 결과를 DB에 저장해 같은 영상 재질의 시 비용 절감
 
-> 전제: Google Cloud/Gemini 쪽은 문서에서 비디오 이해 시 샘플링/클리핑을 조절할 수 있음 ([docs.cloud.google.com](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/capabilities/video-understanding?hl=en&utm_source=openai))  
-> 또한 Veo 3.1은 Gemini API로 영상 생성(4/6/8초, 720p~4k, referenceImages 등)을 제공하니, 이해 결과를 기반으로 “짧은 요약 클립 생성” 같은 후처리도 가능 ([ai.google.dev](https://ai.google.dev/gemini-api/docs/veo?hl=en&utm_source=openai))
+> 전제: Google Cloud/Gemini 쪽은 문서에서 비디오 이해 시 샘플링/클리핑을 조절할 수 있음[^5]  
+> 또한 Veo 3.1은 Gemini API로 영상 생성(4/6/8초, 720p~4k, referenceImages 등)을 제공하니, 이해 결과를 기반으로 “짧은 요약 클립 생성” 같은 후처리도 가능[^6]
 
 ### 0) 의존성/환경
 ```bash
@@ -182,7 +184,7 @@ if __name__ == "__main__":
 ```
 
 ### 3) 확장: 후보 구간만 고FPS 재샘플링 → 정밀 QA
-Gemini 문서가 말하는 것처럼, **FPS를 올리는 건 ‘필요한 구간에만’** 적용하는 게 핵심입니다. ([docs.cloud.google.com](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/capabilities/video-understanding?hl=en&utm_source=openai))
+Gemini 문서가 말하는 것처럼, **FPS를 올리는 건 ‘필요한 구간에만’** 적용하는 게 핵심입니다.[^5]
 
 ```bash
 # 예: 840~1020초 구간만 6fps로 재추출 (정밀 분석용)
@@ -197,31 +199,31 @@ ffmpeg -y -ss 840 -to 1020 -i meeting_proxy.mp4 -vf "fps=6" frames_6fps_seg1/%06
 ## ⚡ 실전 팁 & 함정
 ### Best Practice
 1) **2-pass(cheap→heavy) 구조를 고정**하라  
-처음부터 고FPS/고해상도로 넣는 팀은 비용이 폭발합니다. “coarse segment selection → segment-only refine”는 연구 트렌드(FOCUS, VideoITG, Video-MTR류)와도 잘 맞습니다. ([iclr.cc](https://iclr.cc/virtual/2026/poster/10011835?utm_source=openai))
+처음부터 고FPS/고해상도로 넣는 팀은 비용이 폭발합니다. “coarse segment selection → segment-only refine”는 연구 트렌드(FOCUS, VideoITG, Video-MTR류)와도 잘 맞습니다.[^1]
 
 2) **질문 유형별로 라우팅(visual vs narrative)**
 Q-Gate가 지적하듯, 내러티브/자막 기반 질문에 visual metric만 쓰면 망하고, 반대로 순수 시각 질문에 텍스트를 과하게 섞으면 노이즈가 됩니다. 따라서 실무에서도:
 - “누가/무엇을/어디서” → visual-heavy
 - “왜/어떻게/결론” → subtitle/ASR-heavy  
-같은 룰을 최소한으로라도 도입하세요. ([arxiv.org](https://arxiv.org/abs/2604.17422?utm_source=openai))
+같은 룰을 최소한으로라도 도입하세요.[^2]
 
 3) **segment를 캐시 키로 삼아라**
 프레임 단위 캐시는 너무 세분화되어 관리 지옥이 됩니다. “(video_id, start_sec, end_sec, fps)”를 키로 캐시하면 재질의/재생성 비용이 확 줄어듭니다.
 
 ### 흔한 함정/안티패턴
-- **“1fps면 충분하겠지” 고정관념**: 문서도 fast-action/정밀 temporal 분석은 FPS를 올리라고 합니다. ([docs.cloud.google.com](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/capabilities/video-understanding?hl=en&utm_source=openai))  
+- **“1fps면 충분하겠지” 고정관념**: 문서도 fast-action/정밀 temporal 분석은 FPS를 올리라고 합니다.[^5]  
 - **한 번 뽑은 keyframe을 모든 질문에 재사용**: query-adaptive의 반대. 질문이 바뀌면 봐야 할 장면도 바뀝니다.
 - **근거 없는 답변을 허용**: 모델이 그럴듯하게 말해도, 영상 QA는 “근거 타임코드/프레임”이 없으면 운영에서 터집니다.
 
 ### 비용/성능/안정성 트레이드오프
 - FPS↑/해상도↑: 정확도는 오르지만 **비용·지연↑**, 그리고 “중요 프레임을 더 잘 찾는 문제”가 아니라 “그냥 더 많이 보는 문제”가 되어 확장성이 떨어집니다.
-- bandit/agentic selection(FOCUS/Video-MTR류): 프레임 수를 크게 줄이지만, 구현이 복잡하고(상태/보상/루프) 디버깅 포인트가 늘어납니다. ([iclr.cc](https://iclr.cc/virtual/2026/poster/10011835?utm_source=openai))
-- 모델 생성(Veo 3.1 등)과 결합: 이해 결과로 “요약 클립/하이라이트 생성”까지 가능하지만, 생성은 보통 **고정 길이(예: 4/6/8초)** 같은 제약이 있어 편집/스토리보드 로직이 필요합니다. ([ai.google.dev](https://ai.google.dev/gemini-api/docs/veo?hl=en&utm_source=openai))
+- bandit/agentic selection(FOCUS/Video-MTR류): 프레임 수를 크게 줄이지만, 구현이 복잡하고(상태/보상/루프) 디버깅 포인트가 늘어납니다.[^1]
+- 모델 생성(Veo 3.1 등)과 결합: 이해 결과로 “요약 클립/하이라이트 생성”까지 가능하지만, 생성은 보통 **고정 길이(예: 4/6/8초)** 같은 제약이 있어 편집/스토리보드 로직이 필요합니다.[^6]
 
 ---
 
 ## 🚀 마무리
-2026년 7월 기준 비디오 AI에서 가장 실무적인 경쟁력은 “더 큰 모델”보다 **프레임/구간 선택 파이프라인**입니다. 연구는 Q-Gate처럼 **질의 의도에 따른 multimodal routing**으로 “modal noise”를 줄이고 ([arxiv.org](https://arxiv.org/abs/2604.17422?utm_source=openai)), FOCUS처럼 **탐색-활용 기반**으로 “적게 보고도 맞추는” 쪽으로 진화 중입니다 ([iclr.cc](https://iclr.cc/virtual/2026/poster/10011835?utm_source=openai)). 제품 API도 결국 clipping/fps 같은 knobs를 제공하며 같은 방향을 지원합니다. ([docs.cloud.google.com](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/capabilities/video-understanding?hl=en&utm_source=openai))
+2026년 7월 기준 비디오 AI에서 가장 실무적인 경쟁력은 “더 큰 모델”보다 **프레임/구간 선택 파이프라인**입니다. 연구는 Q-Gate처럼 **질의 의도에 따른 multimodal routing**으로 “modal noise”를 줄이고[^2], FOCUS처럼 **탐색-활용 기반**으로 “적게 보고도 맞추는” 쪽으로 진화 중입니다[^1]. 제품 API도 결국 clipping/fps 같은 knobs를 제공하며 같은 방향을 지원합니다.[^5]
 
 **도입 판단 기준(현실적인 체크리스트)**  
 - 우리 문제의 병목이 “모델이 멍청함”인가, 아니면 “근거 프레임을 못 넣음”인가?
@@ -229,7 +231,12 @@ Q-Gate가 지적하듯, 내러티브/자막 기반 질문에 visual metric만 �
 - 운영에서 근거 타임코드/재현 가능한 캐시가 필수인가?
 
 **다음 학습 추천**
-- long-video QA 벤치마크/방법: FOCUS, VideoITG, Video-MTR 논문/코드로 “selection loop” 감각 익히기 ([iclr.cc](https://iclr.cc/virtual/2026/poster/10011835?utm_source=openai))  
-- 실제 API 입력 최적화: Gemini video understanding의 clipping/FPS 조절 가이드 정독 후, 비용-정확도 실험표 만들기 ([docs.cloud.google.com](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/capabilities/video-understanding?hl=en&utm_source=openai))
+- long-video QA 벤치마크/방법: FOCUS, VideoITG, Video-MTR 논문/코드로 “selection loop” 감각 익히기[^1]  
+- 실제 API 입력 최적화: Gemini video understanding의 clipping/FPS 조절 가이드 정독 후, 비용-정확도 실험표 만들기[^5]
 
-원하시면, 위 파이프라인을 **(1) GCS 업로드 + (2) segment 캐시를 위한 Postgres 스키마 + (3) 재시도/관측(Logging/Tracing) 포함** 형태로 “바로 서비스에 붙는” 템플릿으로 확장해 드릴게요.
+[^1]: <https://iclr.cc/virtual/2026/poster/10011835>
+[^2]: <https://arxiv.org/abs/2604.17422>
+[^3]: <https://nvlabs.github.io/VideoITG/>
+[^4]: <https://openreview.net/forum?id=UhPwL6LYOc>
+[^5]: <https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/capabilities/video-understanding?hl=en>
+[^6]: <https://ai.google.dev/gemini-api/docs/veo?hl=en>

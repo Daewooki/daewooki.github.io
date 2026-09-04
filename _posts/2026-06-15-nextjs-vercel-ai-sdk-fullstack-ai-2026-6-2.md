@@ -1,13 +1,15 @@
 ---
-title: "Next.js + Vercel AI SDK로 “진짜” Fullstack AI 앱 만들기 (2026년 6월 기준): 스트리밍·툴콜·런타임 선택까지"
+title: "Next.js + Vercel AI SDK로 “진짜” Fullstack AI 앱 만들기: 스트리밍·툴콜·런타임 선택까지"
+description: "Next.js로 AI 앱을 만들 때 팀이 가장 많이 막히는 지점은 “모델 호출 자체”가 아니라 제품 형태로 만들기 위한 풀스택 접점입니다. 예를 들면:"
 date: 2026-06-15 05:11:54 +0900
 categories: [AI, Prototyping]
-tags: [ai, prototyping, trend, 2026-06]
+tags: [ai, prototyping]
 render_with_liquid: false
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -23,17 +25,17 @@ Next.js로 AI 앱을 만들 때 팀이 가장 많이 막히는 지점은 “모�
 - 단순 Q&A가 아니라 검색/DB/외부 API를 연결해야 한다 → **Tool calling**이 필요
 - 배포 환경(Vercel)에서 Edge/Node 런타임, 타임아웃, 스트림 포맷이 꼬인다 → **런타임/프로토콜 이해**가 필요
 
-2026년 6월 기준, Next.js App Router + Route Handlers 조합이 “AI 스트리밍 백엔드”로 가장 예측 가능하고, Vercel AI SDK는 그 위에서 **provider 교체 가능 + streamText 기반 메시지 스트림 + 툴 호출 파트**를 표준화해줍니다. (실제 템플릿/예제도 App Router 중심으로 제공) ([vercel.com](https://vercel.com/templates/next.js/vercel-x-xai-chatbot?utm_source=openai))
+2026년 6월 기준, Next.js App Router + Route Handlers 조합이 “AI 스트리밍 백엔드”로 가장 예측 가능하고, Vercel AI SDK는 그 위에서 **provider 교체 가능 + streamText 기반 메시지 스트림 + 툴 호출 파트**를 표준화해줍니다. (실제 템플릿/예제도 App Router 중심으로 제공)[^1]
 
 ### 언제 쓰면 좋나
 - **채팅/코파일럿/에이전트형 UX**(중간 진행상황을 보여줘야 함)
 - 모델이 **외부 지식(사내 문서/DB/브라우저/사내 API)**에 의존
-- provider(예: OpenAI/Anthropic/xAI 등)를 바꿀 가능성이 있어 **벤더 락인을 줄이고 싶을 때** ([vercel.com](https://vercel.com/templates/next.js/vercel-x-xai-chatbot?utm_source=openai))
+- provider(예: OpenAI/Anthropic/xAI 등)를 바꿀 가능성이 있어 **벤더 락인을 줄이고 싶을 때**[^1]
 
 ### 언제 쓰면 안 되나
 - 결과가 항상 짧고 즉시 끝나는 작업(예: 짧은 분류)만 한다면 굳이 복잡한 스트리밍 파이프라인은 과함
-- Edge Runtime 제약(지원되지 않는 Node API/패키지)과 타임아웃이 치명적인 워크로드라면, “Edge에 다 올리기”는 오히려 리스크 ([nextjs.org](https://nextjs.org/docs/pages/api-reference/edge?utm_source=openai))
-- Generative UI(RSC로 UI를 모델이 스트리밍)까지 욕심내면, 현재는 **AI SDK RSC 라인이 ‘paused’** 공지가 있어(예제 페이지에 명시) 장기 유지보수 관점에서 신중해야 함 ([vercel.com](https://vercel.com/new/mke/templates/next.js/rsc-genui?utm_source=openai))
+- Edge Runtime 제약(지원되지 않는 Node API/패키지)과 타임아웃이 치명적인 워크로드라면, “Edge에 다 올리기”는 오히려 리스크[^2]
+- Generative UI(RSC로 UI를 모델이 스트리밍)까지 욕심내면, 현재는 **AI SDK RSC 라인이 ‘paused’** 공지가 있어(예제 페이지에 명시) 장기 유지보수 관점에서 신중해야 함[^3]
 
 ---
 
@@ -46,24 +48,24 @@ Next.js(App Router) 기준으로 가장 실무적인 흐름은 이렇습니다:
 3. **Stream Protocol**: 텍스트 토큰 + tool-call/tool-result 같은 “파트(part)”가 섞여서 스트림으로 내려옴  
 4. **Client(UI)**: 스트림을 읽어 “지금 모델이 말하는 중인지 / 툴을 실행 중인지 / 툴 결과가 뭔지”를 상태로 렌더링
 
-Steel 예제처럼 “에이전트가 브라우저를 조작하고(tool) 그 과정이 UI로 스트리밍”되는 패턴이 2026년형의 전형적인 형태입니다. ([docs.steel.dev](https://docs.steel.dev/cookbook/vercel-ai-sdk-nextjs?utm_source=openai))
+Steel 예제처럼 “에이전트가 브라우저를 조작하고(tool) 그 과정이 UI로 스트리밍”되는 패턴이 2026년형의 전형적인 형태입니다.[^4]
 
 ### 2) Route Handlers + 런타임(Edge vs Node) 선택이 중요한 이유
-Next.js Route Handlers는 Web API 기반이라 Edge/Node 모두에서 동작하도록 설계되어 있고, 스트리밍도 지원합니다. ([nextjs.org](https://nextjs.org/docs/13/app/building-your-application/routing/route-handlers?utm_source=openai))  
+Next.js Route Handlers는 Web API 기반이라 Edge/Node 모두에서 동작하도록 설계되어 있고, 스트리밍도 지원합니다.[^5]  
 하지만 실무에서는 **런타임에 따라 실패 양상이 달라**집니다.
 
 - **Edge Runtime**
   - 장점: 지연시간(Latency) 유리, 전 세계 POP 근접
-  - 단점: Node API/패키지 제약, 일부 기능 제한(ISR 미지원 등), 운영 제약이 까다로움 ([nextjs.org](https://nextjs.org/docs/pages/api-reference/edge?utm_source=openai))
+  - 단점: Node API/패키지 제약, 일부 기능 제한(ISR 미지원 등), 운영 제약이 까다로움[^2]
 - **Node.js Runtime**
   - 장점: 대부분의 SDK/드라이버/암호화/DB 라이브러리 호환성 좋음, 긴 작업에 유리
   - 단점: Edge 대비 지연시간 불리(대신 많은 AI 앱은 모델 지연이 지배적이라 체감이 작기도)
 
-**판단 기준:** 툴이 DB/브라우저 자동화/사내망 호출/무거운 패키지(Chromium, native deps)를 쓰면 Node로 가는 게 안전합니다. Steel 예제도 Node runtime을 명시합니다. ([docs.steel.dev](https://docs.steel.dev/cookbook/vercel-ai-sdk-nextjs?utm_source=openai))
+**판단 기준:** 툴이 DB/브라우저 자동화/사내망 호출/무거운 패키지(Chromium, native deps)를 쓰면 Node로 가는 게 안전합니다. Steel 예제도 Node runtime을 명시합니다.[^4]
 
 ### 3) Generative UI(RSC streaming)는 “매력적이지만” 현재 판단이 필요
-Vercel은 `streamUI`로 RSC를 스트리밍하는 Generative UI를 강하게 밀었고, 내부적으로는 “텍스트 토큰 스트림”이 아니라 “UI 조각을 점진적으로 보내는” 방식입니다. ([vercel.com](https://vercel.com/blog/ai-sdk-3-generative-ui?utm_source=openai))  
-다만 2026년 시점에는 공식 템플릿 페이지에서 **AI SDK RSC 개발이 paused**라고 명시되어 있어, 신규 프로덕션에 바로 박기보다는 **텍스트 스트리밍 + tool 파트 렌더링**을 기본으로 두고, UI 스트리밍은 실험/특정 화면에 제한하는 전략이 현실적입니다. ([vercel.com](https://vercel.com/new/mke/templates/next.js/rsc-genui?utm_source=openai))
+Vercel은 `streamUI`로 RSC를 스트리밍하는 Generative UI를 강하게 밀었고, 내부적으로는 “텍스트 토큰 스트림”이 아니라 “UI 조각을 점진적으로 보내는” 방식입니다.[^6]  
+다만 2026년 시점에는 공식 템플릿 페이지에서 **AI SDK RSC 개발이 paused**라고 명시되어 있어, 신규 프로덕션에 바로 박기보다는 **텍스트 스트리밍 + tool 파트 렌더링**을 기본으로 두고, UI 스트리밍은 실험/특정 화면에 제한하는 전략이 현실적입니다.[^3]
 
 ---
 
@@ -258,17 +260,17 @@ export default function Page() {
 `searchDocs` 결과는 **title/url/snippet** 정도로 제한하고, 원문이 필요하면 “추가로 문서 본문 fetch tool”을 분리하는 게 안정적입니다.
 
 ### Best Practice 2) 런타임은 “Edge 우선”이 아니라 “의존성/타임아웃 우선”
-Next.js Edge Runtime은 Node API가 제한되고(공식 문서에 caveats 명시), 패키지 호환성 문제로 디버깅 비용이 커집니다. ([nextjs.org](https://nextjs.org/docs/pages/api-reference/edge?utm_source=openai))  
+Next.js Edge Runtime은 Node API가 제한되고(공식 문서에 caveats 명시), 패키지 호환성 문제로 디버깅 비용이 커집니다.[^2]  
 DB/브라우저 자동화/사내 SDK 같은 **무거운 툴**이 들어가면 Node로 두고, 정말 latency가 중요한 경로만 Edge로 분리하세요(예: 인증 프록시, 얇은 라우팅).
 
 ### 함정 1) “Generative UI(streamUI)”는 프로덕션 기본값으로 두기엔 리스크
-Generative UI는 강력하지만, Vercel 템플릿 자체에 **AI SDK RSC 개발 paused**가 명시되어 있습니다. ([vercel.com](https://vercel.com/new/mke/templates/next.js/rsc-genui?utm_source=openai))  
+Generative UI는 강력하지만, Vercel 템플릿 자체에 **AI SDK RSC 개발 paused**가 명시되어 있습니다.[^3]  
 즉, 2026년 6월 현재 판단은:
 - 기본은 **streamText + tool parts 렌더링**
 - UI 스트리밍은 “실험 기능/특정 플로우”로 격리
 
 ### 함정 2) 스트리밍은 인프라/프록시에서 “버퍼링”되면 망가진다
-로컬에서는 잘 되는데 프로덕션에서 한 번에 몰아서 뜨는 문제는, 중간 프록시가 응답을 버퍼링하는 경우가 흔합니다(특히 self-host + nginx 등). 커스텀 인프라를 쓴다면 `Cache-Control: no-store`, 압축/버퍼 설정을 점검해야 합니다(관련 이슈 사례가 커뮤니티에 반복적으로 등장). ([reddit.com](https://www.reddit.com/r/nextjs/comments/1d3x76h?utm_source=openai))
+로컬에서는 잘 되는데 프로덕션에서 한 번에 몰아서 뜨는 문제는, 중간 프록시가 응답을 버퍼링하는 경우가 흔합니다(특히 self-host + nginx 등). 커스텀 인프라를 쓴다면 `Cache-Control: no-store`, 압축/버퍼 설정을 점검해야 합니다(관련 이슈 사례가 커뮤니티에 반복적으로 등장).[^7]
 
 ### 비용/성능/안정성 트레이드오프
 - **maxSteps**를 크게 하면 tool 연쇄 실행이 가능하지만 비용/지연이 증가
@@ -278,15 +280,24 @@ Generative UI는 강력하지만, Vercel 템플릿 자체에 **AI SDK RSC 개발
 ---
 
 ## 🚀 마무리
-핵심은 “Next.js는 UI, AI SDK는 모델 호출” 정도의 얕은 결합이 아니라, **Route Handler에서 스트리밍 + tool calling을 표준 프로토콜로 만들고, 클라이언트는 그 파트를 제품 UX로 해석**하는 구조가 2026년형 풀스택 AI 앱의 정답에 가깝다는 점입니다. (템플릿/예제도 이 흐름에 맞춰 제공) ([vercel.com](https://vercel.com/templates/next.js/vercel-x-xai-chatbot?utm_source=openai))
+핵심은 “Next.js는 UI, AI SDK는 모델 호출” 정도의 얕은 결합이 아니라, **Route Handler에서 스트리밍 + tool calling을 표준 프로토콜로 만들고, 클라이언트는 그 파트를 제품 UX로 해석**하는 구조가 2026년형 풀스택 AI 앱의 정답에 가깝다는 점입니다. (템플릿/예제도 이 흐름에 맞춰 제공)[^1]
 
 ### 도입 판단 기준(체크리스트)
 - 채팅/코파일럿 UX에서 **중간 진행상황**이 가치인가? → YES면 스트리밍
 - 외부 지식/DB/자동화가 필요한가? → YES면 tool calling
-- Edge 제약을 감당할 수 있는가? (패키지/타임아웃/운영) → NO면 Node 우선 ([nextjs.org](https://nextjs.org/docs/pages/api-reference/edge?utm_source=openai))
-- Generative UI가 “핵심 가치”인가, “부가 실험”인가? → paused 공지 고려해 격리 ([vercel.com](https://vercel.com/new/mke/templates/next.js/rsc-genui?utm_source=openai))
+- Edge 제약을 감당할 수 있는가? (패키지/타임아웃/운영) → NO면 Node 우선[^2]
+- Generative UI가 “핵심 가치”인가, “부가 실험”인가? → paused 공지 고려해 격리[^3]
 
 ### 다음 학습 추천
-- Next.js Route Handlers의 스트리밍/런타임 설정을 정확히 이해하기 ([nextjs.org](https://nextjs.org/docs/13/app/building-your-application/routing/route-handlers?utm_source=openai))
+- Next.js Route Handlers의 스트리밍/런타임 설정을 정확히 이해하기[^5]
 - Vercel AI SDK의 tool-part 스트림을 UI에서 어떻게 “상태 머신”으로 표현할지(로딩/툴 실행/결과/재시도)
-- Generative UI(`streamUI`)는 “기술 데모”가 아니라 **유지보수 가능한 범위**로 제한적으로 실험 ([vercel-ai.mintlify.app](https://vercel-ai.mintlify.app/reference/ai-sdk-rsc/stream-ui?utm_source=openai))
+- Generative UI(`streamUI`)는 “기술 데모”가 아니라 **유지보수 가능한 범위**로 제한적으로 실험[^8]
+
+[^1]: <https://vercel.com/templates/next.js/vercel-x-xai-chatbot>
+[^2]: <https://nextjs.org/docs/pages/api-reference/edge>
+[^3]: <https://vercel.com/new/mke/templates/next.js/rsc-genui>
+[^4]: <https://docs.steel.dev/cookbook/vercel-ai-sdk-nextjs>
+[^5]: <https://nextjs.org/docs/13/app/building-your-application/routing/route-handlers>
+[^6]: <https://vercel.com/blog/ai-sdk-3-generative-ui>
+[^7]: <https://www.reddit.com/r/nextjs/comments/1d3x76h>
+[^8]: <https://vercel-ai.mintlify.app/reference/ai-sdk-rsc/stream-ui>

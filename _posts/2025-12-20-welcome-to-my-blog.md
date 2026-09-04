@@ -1,5 +1,6 @@
 ---
 title: "블로그를 새롭게 시작합니다 🚀"
+description: "10년 전에 만들어두고 방치했던 GitHub 블로그를 드디어 새롭게 리뉴얼했습니다. 😅"
 date: 2025-12-20 10:00:00 +0900
 categories: [Blog, Intro]
 tags: [blog, intro, year-2025]

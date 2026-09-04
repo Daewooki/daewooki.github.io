@@ -1,12 +1,14 @@
 ---
 title: "토큰을 70% 줄이는 2026년식 LLM 비용 최적화: **Prompt Caching + 모델 Routing** 실전 설계"
+description: "2026년 6월 기준, 비용 최적화의 핵심은 더 이상 “프롬프트 짧게 써요” 수준이 아니라 (A) Prompt Caching으로 중복 입력을 시스템적으로 제거하고, (B) Router로 “난이도에 따라 모델을 갈아타는” 정책을 코드로 고정하는 것입니다."
 date: 2026-06-04 05:01:25 +0900
 categories: [AI, LLM]
-tags: [ai, llm, trend, 2026-06]
+tags: [ai, llm]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -22,11 +24,11 @@ LLM API 비용이 폭증하는 패턴은 꽤 정형적입니다.
 - **(2) 모든 요청을 비싼 모델에 던진다**: 분류/정규화/간단 QA도 “그냥 제일 좋은 모델”로 처리
 - **(3) 대화가 길어질수록 컨텍스트가 비대**해져서, “작은 기능 추가”가 “전체 비용의 2배”가 된다
 
-2026년 6월 기준, 비용 최적화의 핵심은 더 이상 “프롬프트 짧게 써요” 수준이 아니라 **(A) Prompt Caching으로 중복 입력을 시스템적으로 제거**하고, **(B) Router로 “난이도에 따라 모델을 갈아타는” 정책을 코드로 고정**하는 것입니다. OpenAI는 cached input 가격이 일반 input 대비 크게 할인되고(예: GPT 계열에서 cached input 단가가 10배 저렴한 구간 존재) ([openai.com](https://openai.com/api/pricing/?utm_source=openai)), Anthropic은 캐시 “write/read”가 별도 과금 구조라 최적화 방식이 다릅니다. ([platform.claude.com](https://platform.claude.com/docs/en/about-claude/pricing?hsLang=en&utm_source=openai))
+2026년 6월 기준, 비용 최적화의 핵심은 더 이상 “프롬프트 짧게 써요” 수준이 아니라 **(A) Prompt Caching으로 중복 입력을 시스템적으로 제거**하고, **(B) Router로 “난이도에 따라 모델을 갈아타는” 정책을 코드로 고정**하는 것입니다. OpenAI는 cached input 가격이 일반 input 대비 크게 할인되고(예: GPT 계열에서 cached input 단가가 10배 저렴한 구간 존재)[^1], Anthropic은 캐시 “write/read”가 별도 과금 구조라 최적화 방식이 다릅니다.[^2]
 
 ### 언제 쓰면 좋은가
 - 트래픽이 있고(반복 호출), system/tool/policy가 길며, 요청의 60% 이상이 “중간/저난이도”인 서비스
-- multi-agent/툴콜이 많아 turn 수가 늘어나는 워크로드(캐시가 특히 잘 먹힘) ([arxiv.org](https://arxiv.org/abs/2601.06007?utm_source=openai))
+- multi-agent/툴콜이 많아 turn 수가 늘어나는 워크로드(캐시가 특히 잘 먹힘)[^3]
 
 ### 언제 쓰면 안 되는가
 - 요청이 모두 **희소**(재사용 거의 없음)하거나, 매번 system prompt가 크게 달라 캐시 prefix가 깨지는 경우
@@ -36,26 +38,26 @@ LLM API 비용이 폭증하는 패턴은 꽤 정형적입니다.
 
 ## 🔧 핵심 개념
 ### 1) 비용의 본질: “토큰”이 아니라 “prefill(입력 처리) + decode(출력 생성)”
-대부분의 과금은 input/output token 기반이지만, 실제 비용 최적화는 **입력(prefill) 중복 제거**가 지배합니다. Prompt Caching은 “같은 prefix”의 KV cache를 재사용해 prefill을 줄이는 방식입니다(구현은 다르지만 결과는 동일: 입력 토큰 비용과 TTFT 감소). OpenAI는 **1024 tokens 이상**에서 캐시가 의미 있게 적용되고, **exact prefix match**가 핵심입니다. ([platform.openai.com](https://platform.openai.com/docs/guides/prompt-caching?utm_source=openai))
+대부분의 과금은 input/output token 기반이지만, 실제 비용 최적화는 **입력(prefill) 중복 제거**가 지배합니다. Prompt Caching은 “같은 prefix”의 KV cache를 재사용해 prefill을 줄이는 방식입니다(구현은 다르지만 결과는 동일: 입력 토큰 비용과 TTFT 감소). OpenAI는 **1024 tokens 이상**에서 캐시가 의미 있게 적용되고, **exact prefix match**가 핵심입니다.[^4]
 
 ### 2) Prompt Caching의 내부 작동 흐름(Provider별 차이 포함)
 #### OpenAI (자동 캐시 + cached_tokens 관찰)
-- 요청이 들어오면 **prefix hash 기반으로 서버 라우팅** → 해당 머신의 캐시에서 prefix lookup ([platform.openai.com](https://platform.openai.com/docs/guides/prompt-caching?utm_source=openai))  
-- 캐시 히트면 `usage.prompt_tokens_details.cached_tokens`가 증가하고, 해당 부분이 **cached input 단가**로 청구됩니다. ([platform.openai.com](https://platform.openai.com/docs/guides/prompt-caching?utm_source=openai))
-- 추가로 `prompt_cache_key`, `prompt_cache_retention(in_memory/24h)`로 히트율을 조절할 수 있습니다. ([platform.openai.com](https://platform.openai.com/docs/guides/prompt-caching?utm_source=openai))  
-  - 실무적으로는 “**요청 템플릿 단위로 cache_key를 고정**”하면 라우팅 분산(overflow)로 인한 히트율 하락을 줄이기 좋습니다(문서상 대략 15 req/min 이상이면 overflow 가능). ([platform.openai.com](https://platform.openai.com/docs/guides/prompt-caching?utm_source=openai))
+- 요청이 들어오면 **prefix hash 기반으로 서버 라우팅** → 해당 머신의 캐시에서 prefix lookup[^4]  
+- 캐시 히트면 `usage.prompt_tokens_details.cached_tokens`가 증가하고, 해당 부분이 **cached input 단가**로 청구됩니다.[^4]
+- 추가로 `prompt_cache_key`, `prompt_cache_retention(in_memory/24h)`로 히트율을 조절할 수 있습니다.[^4]  
+  - 실무적으로는 “**요청 템플릿 단위로 cache_key를 고정**”하면 라우팅 분산(overflow)로 인한 히트율 하락을 줄이기 좋습니다(문서상 대략 15 req/min 이상이면 overflow 가능).[^4]
 
 #### Anthropic (명시적 cache_control + write/read 과금)
-- `cache_control: { type: "ephemeral", ttl: "5m"|"1h" }`로 “어디까지 캐시할지” 구간을 정의 ([docs.anthropic.com](https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching?ss_ad_code=usecase3&utm_source=openai))  
-- 응답 `usage`에 `cache_creation_input_tokens`, `cache_read_input_tokens`가 별도로 찍혀서 “진짜로 캐시가 됐는지” 검증 가능 ([docs.anthropic.com](https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching?ss_ad_code=usecase3&utm_source=openai))
-- 가격표도 **Base input / cache writes / cache hits**가 분리되어 있어, “무조건 캐시”가 아니라 “write 비용 대비 read 반복 수”를 따져야 합니다. ([platform.claude.com](https://platform.claude.com/docs/en/about-claude/pricing?hsLang=en&utm_source=openai))
+- `cache_control: { type: "ephemeral", ttl: "5m"|"1h" }`로 “어디까지 캐시할지” 구간을 정의[^5]  
+- 응답 `usage`에 `cache_creation_input_tokens`, `cache_read_input_tokens`가 별도로 찍혀서 “진짜로 캐시가 됐는지” 검증 가능[^5]
+- 가격표도 **Base input / cache writes / cache hits**가 분리되어 있어, “무조건 캐시”가 아니라 “write 비용 대비 read 반복 수”를 따져야 합니다.[^2]
 
 #### 연구/실측 포인트
-장기 에이전트 워크로드에서 caching 전략(시스템만 캐시 vs 툴 결과 제외 등)에 따라 **45~80% 비용 절감**이 관찰됩니다. ([arxiv.org](https://arxiv.org/abs/2601.06007?utm_source=openai))  
-즉, “전체 컨텍스트를 다 캐시”보다 **동적 툴 결과/로그를 뒤로 몰아 prefix를 안정화**하는 쪽이 이득인 경우가 많습니다. ([arxiv.org](https://arxiv.org/abs/2601.06007?utm_source=openai))
+장기 에이전트 워크로드에서 caching 전략(시스템만 캐시 vs 툴 결과 제외 등)에 따라 **45~80% 비용 절감**이 관찰됩니다.[^3]  
+즉, “전체 컨텍스트를 다 캐시”보다 **동적 툴 결과/로그를 뒤로 몰아 prefix를 안정화**하는 쪽이 이득인 경우가 많습니다.[^3]
 
 ### 3) Routing(모델 라우팅)의 핵심: “싼 모델을 기본값으로, 비싼 모델은 예외로”
-2026년엔 소형 모델 성능이 올라서, 많은 요청이 mini급으로도 충분합니다. OpenAI 가격표만 봐도 mini/nano가 매우 저렴하고(입력/출력 모두), cached input 할인까지 결합하면 “기본 운영 단가”를 크게 내릴 수 있습니다. ([platform.openai.com](https://platform.openai.com/docs/pricing/?utm_source=openai))  
+2026년엔 소형 모델 성능이 올라서, 많은 요청이 mini급으로도 충분합니다. OpenAI 가격표만 봐도 mini/nano가 매우 저렴하고(입력/출력 모두), cached input 할인까지 결합하면 “기본 운영 단가”를 크게 내릴 수 있습니다.[^6]  
 Routing은 결국 아래 3가지 신호를 조합합니다.
 
 - **Task type**: 분류/추출/요약/생성/코딩/리서치
@@ -95,7 +97,7 @@ client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
 # 2026.06 기준: OpenAI Prompt Caching은 exact prefix match가 핵심.
 # 따라서 "절대 바뀌지 않는" system/tool 정의는 앞에 고정하고,
-# 티켓 본문/유저 메타데이터 같은 변동분은 맨 뒤에 붙인다.  ([platform.openai.com](https://platform.openai.com/docs/guides/prompt-caching?utm_source=openai))
+# 티켓 본문/유저 메타데이터 같은 변동분은 맨 뒤에 붙인다.[^4]
 
 STATIC_SYSTEM = """You are a senior support engineer.
 Follow the policy strictly.
@@ -128,12 +130,12 @@ def route_ticket(ticket_text: str, has_payment_issue: bool, is_enterprise: bool)
     return RouteDecision(model="gpt-5.4 mini", reason="default_low_cost")
 
 def call_llm(model: str, cache_key: str, ticket_id: str, ticket_text: str) -> dict:
-    # OpenAI는 prompt_cache_key로 라우팅/캐시 히트율을 개선할 수 있다. ([platform.openai.com](https://platform.openai.com/docs/guides/prompt-caching?utm_source=openai))
+    # OpenAI는 prompt_cache_key로 라우팅/캐시 히트율을 개선할 수 있다.[^4]
     # cache_key는 "템플릿/정책 버전" 단위로 고정하는 게 실무적으로 안전.
     resp = client.responses.create(
         model=model,
         prompt_cache_key=cache_key,
-        prompt_cache_retention="24h",  # 가능한 모델에서 24h 유지 ([platform.openai.com](https://platform.openai.com/docs/guides/prompt-caching?utm_source=openai))
+        prompt_cache_retention="24h",  # 가능한 모델에서 24h 유지[^4]
         input=[
             {"role": "system", "content": STATIC_SYSTEM},
             {"role": "user", "content": f"TICKET_ID={ticket_id}\n\nTICKET_TEXT:\n{ticket_text}\n"}
@@ -145,7 +147,7 @@ def call_llm(model: str, cache_key: str, ticket_id: str, ticket_text: str) -> di
     )
 
     usage = resp.usage
-    # cached_tokens는 비용 최적화의 KPI: 0이면 프롬프트 구조가 깨진 것 ([platform.openai.com](https://platform.openai.com/docs/guides/prompt-caching?utm_source=openai))
+    # cached_tokens는 비용 최적화의 KPI: 0이면 프롬프트 구조가 깨진 것[^4]
     cached = 0
     if usage and usage.prompt_tokens_details:
         cached = usage.prompt_tokens_details.cached_tokens or 0
@@ -198,7 +200,7 @@ if __name__ == "__main__":
 
 ### 예상 출력(예시)
 - 첫 요청은 cold cache라 `cached_prompt_tokens=0`일 수 있고,
-- 동일 템플릿/정책으로 반복 호출하면 cached가 크게 늘어나는 게 정상입니다. ([platform.openai.com](https://platform.openai.com/docs/guides/prompt-caching?utm_source=openai))
+- 동일 템플릿/정책으로 반복 호출하면 cached가 크게 늘어나는 게 정상입니다.[^4]
 
 ---
 
@@ -206,8 +208,8 @@ if __name__ == "__main__":
 ### Best Practice 1) “캐시가 먹는 프롬프트”는 **prefix 안정성**이 90%
 - static(정책/역할/툴 스키마/예시) → 앞
 - dynamic(티켓 본문/유저 메타/툴 결과/로그) → 뒤  
-이건 OpenAI가 “exact prefix match”를 요구하기 때문에 구조적으로 강제됩니다. ([platform.openai.com](https://platform.openai.com/docs/guides/prompt-caching?utm_source=openai))  
-연구에서도 “동적 툴 결과를 제외/후방 배치” 같은 전략이 캐시 효율을 안정화한다고 보고합니다. ([arxiv.org](https://arxiv.org/abs/2601.06007?utm_source=openai))
+이건 OpenAI가 “exact prefix match”를 요구하기 때문에 구조적으로 강제됩니다.[^4]  
+연구에서도 “동적 툴 결과를 제외/후방 배치” 같은 전략이 캐시 효율을 안정화한다고 보고합니다.[^3]
 
 ### Best Practice 2) Router는 “모델 선택”이 아니라 “실패 시 승격(escalation)”까지 포함
 실무에서 가장 안전한 패턴은:
@@ -223,15 +225,15 @@ if __name__ == "__main__":
 - 모델별 승격률, 재시도율
 - 기능/테넌트/엔드포인트 태깅(청구 분해)
 
-특히 “청구가 문서 계산과 안 맞는다” 류의 이슈는 어느 벤더든 반복됩니다. 실제 청구 기반으로 내부 대시보드를 만드는 쪽이 장기적으로 안전합니다(커뮤니티에서도 같은 조언이 반복). ([reddit.com](https://www.reddit.com/r/googlecloud/comments/1r0tyvn/is_google_intentionally_misleading_on_gemini_3/?utm_source=openai))
+특히 “청구가 문서 계산과 안 맞는다” 류의 이슈는 어느 벤더든 반복됩니다. 실제 청구 기반으로 내부 대시보드를 만드는 쪽이 장기적으로 안전합니다(커뮤니티에서도 같은 조언이 반복).[^7]
 
 ### 흔한 함정 1) 캐시가 “자동으로” 될 거라고 믿고 검증 안 함
-- OpenAI는 `cached_tokens`가 usage에 찍힙니다. ([platform.openai.com](https://platform.openai.com/docs/guides/prompt-caching?utm_source=openai))  
-- Anthropic은 cache read/creation 토큰이 별도 필드로 나옵니다. ([docs.anthropic.com](https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching?ss_ad_code=usecase3&utm_source=openai))  
+- OpenAI는 `cached_tokens`가 usage에 찍힙니다.[^4]  
+- Anthropic은 cache read/creation 토큰이 별도 필드로 나옵니다.[^5]  
 이걸 **프로덕션 로그/메트릭에 필수로** 넣지 않으면, 캐시가 깨져도 몇 주간 모른 채로 돈을 태웁니다.
 
 ### 흔한 함정 2) Gateway/OpenRouter류 라우팅에서 캐시 격리/보안 이슈를 무시
-최근 연구는 “게이트웨이 아키텍처에서 캐시 격리 보장이 흔들릴 수 있는지”를 문제로 다룹니다. ([arxiv.org](https://arxiv.org/abs/2605.30613?utm_source=openai))  
+최근 연구는 “게이트웨이 아키텍처에서 캐시 격리 보장이 흔들릴 수 있는지”를 문제로 다룹니다.[^8]  
 즉, 비용만 보고 무작정 외부 라우터를 붙이기 전에:
 - 캐시가 계정/조직 단위로 격리되는지
 - timing/metadata leakage 가능성이 있는지
@@ -249,16 +251,23 @@ if __name__ == "__main__":
 ## 🚀 마무리
 2026년 6월의 LLM 비용 최적화는 결론적으로 이 2줄입니다.
 
-1) **Prompt Caching이 먹는 프롬프트 구조**로 바꿔라(exact prefix match, static 앞/ dynamic 뒤). ([platform.openai.com](https://platform.openai.com/docs/guides/prompt-caching?utm_source=openai))  
-2) **mini-first + 승격형 routing**으로 “평균 요청” 비용을 강제로 낮춰라(고급 모델은 예외 처리). ([platform.openai.com](https://platform.openai.com/docs/pricing/?utm_source=openai))  
+1) **Prompt Caching이 먹는 프롬프트 구조**로 바꿔라(exact prefix match, static 앞/ dynamic 뒤).[^4]  
+2) **mini-first + 승격형 routing**으로 “평균 요청” 비용을 강제로 낮춰라(고급 모델은 예외 처리).[^6]  
 
 도입 판단 기준(실무 체크리스트):
-- system/tool/policy가 1k tokens 이상이며 반복 호출되는가? (Yes면 caching ROI 큼) ([platform.openai.com](https://platform.openai.com/docs/guides/prompt-caching?utm_source=openai))  
+- system/tool/policy가 1k tokens 이상이며 반복 호출되는가? (Yes면 caching ROI 큼)[^4]  
 - 요청의 절반 이상이 저/중난이도인가? (Yes면 routing ROI 큼)
 - 캐시 적중률/승격률/토큰을 “측정 가능한 형태”로 로그에 남길 수 있는가? (No면 먼저 관측부터)
 
 다음 학습 추천:
-- 장기 에이전트에서 caching 전략 비교(툴 결과 제외, 시스템만 캐시 등) 사례: “Don’t Break the Cache” ([arxiv.org](https://arxiv.org/abs/2601.06007?utm_source=openai))  
-- 게이트웨이 라우팅/캐시 격리 보안 관점: “CacheProbe” ([arxiv.org](https://arxiv.org/abs/2605.30613?utm_source=openai))  
+- 장기 에이전트에서 caching 전략 비교(툴 결과 제외, 시스템만 캐시 등) 사례: “Don’t Break the Cache”[^3]  
+- 게이트웨이 라우팅/캐시 격리 보안 관점: “CacheProbe”[^8]
 
-원하시면, 당신의 서비스 형태(요청 유형/평균 입력 길이/툴 사용 여부/동시성/품질 요구)를 기준으로 **routing 정책 테이블(규칙 기반→통계 기반→bandit)**까지 확장한 버전으로 설계안을 같이 잡아드릴게요.
+[^1]: <https://openai.com/api/pricing/>
+[^2]: <https://platform.claude.com/docs/en/about-claude/pricing?hsLang=en>
+[^3]: <https://arxiv.org/abs/2601.06007>
+[^4]: <https://platform.openai.com/docs/guides/prompt-caching>
+[^5]: <https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching?ss_ad_code=usecase3>
+[^6]: <https://platform.openai.com/docs/pricing/>
+[^7]: <https://www.reddit.com/r/googlecloud/comments/1r0tyvn/is_google_intentionally_misleading_on_gemini_3/>
+[^8]: <https://arxiv.org/abs/2605.30613>

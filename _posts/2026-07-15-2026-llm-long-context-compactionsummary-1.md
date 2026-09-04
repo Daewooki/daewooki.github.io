@@ -1,13 +1,15 @@
 ---
-title: "컨텍스트 윈도우가 길어질수록 더 위험해진다: 2026년형 LLM Long Context Compaction/Summary 설계 가이드"
+title: "컨텍스트 윈도우가 길어질수록 더 위험해진다: LLM Long Context Compaction/Summary 설계 가이드"
+description: "LLM long context window(200K~1M+ tokens)가 “문서를 통째로 넣고 끝”을 가능하게 만든 건 맞습니다. 하지만 2026년 현재 실무에서 더 자주 겪는 문제는 따로 있습니다."
 date: 2026-07-15 03:14:35 +0900
 categories: [AI, LLM]
-tags: [ai, llm, trend, 2026-07]
+tags: [ai, llm]
 render_with_liquid: false
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -19,17 +21,17 @@ render_with_liquid: false
 ## 들어가며
 LLM long context window(200K~1M+ tokens)가 “문서를 통째로 넣고 끝”을 가능하게 만든 건 맞습니다. 하지만 2026년 현재 실무에서 더 자주 겪는 문제는 따로 있습니다.
 
-- **비용 폭증**: 대화/에이전트가 길어질수록 매 턴마다 “지금까지 전부”를 다시 보내고 다시 추론하며 과금됩니다. 그래서 **prompt caching**과 **compaction**이 사실상 필수가 됐습니다. ([redis.io](https://redis.io/blog/context-compaction/?utm_source=openai))  
-- **성능 붕괴(quality rot)**: 컨텍스트가 길어질수록 모델이 “가운데(mid)” 증거를 못 쓰는 **lost-in-the-middle** U-shape가 실전에서도 계속 터집니다. ([arxiv.org](https://arxiv.org/abs/2307.03172?utm_source=openai))  
-- **정보 보존 실패**: 요약은 토큰을 줄이지만, “원문이 갖고 있던 약속/제약(semantic commitments)”이 깨지면 다음 턴부터는 조용히 잘못된 방향으로 갑니다. 2026년엔 이를 **검증 가능한 압축** 문제로 다루려는 연구가 나오기 시작했습니다. ([arxiv.org](https://arxiv.org/abs/2605.17304?utm_source=openai))  
+- **비용 폭증**: 대화/에이전트가 길어질수록 매 턴마다 “지금까지 전부”를 다시 보내고 다시 추론하며 과금됩니다. 그래서 **prompt caching**과 **compaction**이 사실상 필수가 됐습니다.[^1]  
+- **성능 붕괴(quality rot)**: 컨텍스트가 길어질수록 모델이 “가운데(mid)” 증거를 못 쓰는 **lost-in-the-middle** U-shape가 실전에서도 계속 터집니다.[^2]  
+- **정보 보존 실패**: 요약은 토큰을 줄이지만, “원문이 갖고 있던 약속/제약(semantic commitments)”이 깨지면 다음 턴부터는 조용히 잘못된 방향으로 갑니다. 2026년엔 이를 **검증 가능한 압축** 문제로 다루려는 연구가 나오기 시작했습니다.[^3]  
 
 ### 언제 쓰면 좋나
 - 멀티턴 에이전트/코딩 어시스턴트/툴 호출이 반복되는 **long-running session**
-- 컨텍스트에 “로그/툴 출력/스크린샷”이 쌓여 **입력 토큰이 기하급수적으로 커지는** 워크로드 ([claude.com](https://claude.com/blog/best-practices-for-computer-and-browser-use-with-claude?utm_source=openai))  
-- 동일한 prefix(시스템 프롬프트+정적 컨텍스트)를 반복 사용하는 구조로 **캐시 이득**을 볼 수 있을 때 ([code.claude.com](https://code.claude.com/docs/en/prompt-caching?utm_source=openai))  
+- 컨텍스트에 “로그/툴 출력/스크린샷”이 쌓여 **입력 토큰이 기하급수적으로 커지는** 워크로드[^4]  
+- 동일한 prefix(시스템 프롬프트+정적 컨텍스트)를 반복 사용하는 구조로 **캐시 이득**을 볼 수 있을 때[^5]  
 
 ### 언제 쓰면 안 되나(또는 제한적으로)
-- **디버깅/포렌식**: stack trace, exact error string, diff 등 “정확히 그 문자열”이 중요한 작업은 요약이 치명적일 수 있습니다(요약은 필연적으로 손실). ([reddit.com](https://www.reddit.com/r/AI_Agents/comments/1u11qkx/how_i_stopped_context_window_bloat_in_continuous/?utm_source=openai))  
+- **디버깅/포렌식**: stack trace, exact error string, diff 등 “정확히 그 문자열”이 중요한 작업은 요약이 치명적일 수 있습니다(요약은 필연적으로 손실).[^6]  
 - 법/의료/금융처럼 “요약의 오해석”이 리스크인 도메인(요약은 보조로만, 원문 링크/근거 유지 필수)
 - 단발성 Q&A처럼 컨텍스트가 짧고 캐시 재사용이 적은 경우(복잡한 compaction 파이프라인이 오히려 비용)
 
@@ -40,9 +42,9 @@ LLM long context window(200K~1M+ tokens)가 “문서를 통째로 넣고 끝”
 
 ### 1) 개념 정의
 - **Context window**: 모델이 한 번의 추론에서 볼 수 있는 토큰 한도.
-- **Compaction**: 오래된 히스토리를 “요약/압축된 representation”으로 바꿔 새 컨텍스트를 재구성하는 작업. Claude API/도구 생태계에서도 “컨텍스트 한도 근처에서 이전 내용을 요약 블록으로 치환”하는 방식으로 정의됩니다. ([platform.claude.com](https://platform.claude.com/docs/en/build-with-claude/compaction?e45d281a_page=1&gad_source=1&hsa_acc=4274135664&hsa_ad=546356286896&hsa_cam=14664253650&hsa_grp=126956236963&hsa_kw=data+orchestration&hsa_mt=&hsa_net=adwords&hsa_src=d&hsa_tgt=kwd-388439863644&hsa_ver=3&wtime=596s&utm_source=openai))  
-- **Prompt caching**: 자주 재사용되는 prefix(시스템 프롬프트, 큰 문서 컨텍스트 등)를 캐시에 올려 **반복 비용/지연을 줄이는** 메커니즘. Bedrock는 1시간 TTL 캐시도 지원하면서 장시간 세션의 경제성을 키웠습니다. ([aws.amazon.com](https://aws.amazon.com/about-aws/whats-new/2026/01/amazon-bedrock-one-hour-duration-prompt-caching/?utm_source=openai))  
-- **Lost in the middle**: 중요한 정보가 긴 입력의 중간에 있을 때 성능이 떨어지는 현상(U-shape). ([arxiv.org](https://arxiv.org/abs/2307.03172?utm_source=openai))  
+- **Compaction**: 오래된 히스토리를 “요약/압축된 representation”으로 바꿔 새 컨텍스트를 재구성하는 작업. Claude API/도구 생태계에서도 “컨텍스트 한도 근처에서 이전 내용을 요약 블록으로 치환”하는 방식으로 정의됩니다.[^7]  
+- **Prompt caching**: 자주 재사용되는 prefix(시스템 프롬프트, 큰 문서 컨텍스트 등)를 캐시에 올려 **반복 비용/지연을 줄이는** 메커니즘. Bedrock는 1시간 TTL 캐시도 지원하면서 장시간 세션의 경제성을 키웠습니다.[^8]  
+- **Lost in the middle**: 중요한 정보가 긴 입력의 중간에 있을 때 성능이 떨어지는 현상(U-shape).[^2]  
 
 ### 2) 내부 작동 방식(현실적인 파이프라인)
 실무에서 compaction을 “한 번 요약”으로 끝내면 거의 망합니다. 안정적인 구조는 보통 아래 형태입니다.
@@ -59,16 +61,16 @@ LLM long context window(200K~1M+ tokens)가 “문서를 통째로 넣고 끝”
 
 3) **다층 압축(rolling buffer + anchored summary)**  
    - 요약을 “한 덩어리”로 만들면 lost-in-the-middle 위험이 커집니다.  
-   - 최신 상호작용은 raw로 유지하고, 오래된 건 구조화된 메모리로 바꾸는 **cache-aware rolling buffer + compaction** 조합이 권장됩니다. ([claude.com](https://claude.com/blog/best-practices-for-computer-and-browser-use-with-claude?utm_source=openai))  
+   - 최신 상호작용은 raw로 유지하고, 오래된 건 구조화된 메모리로 바꾸는 **cache-aware rolling buffer + compaction** 조합이 권장됩니다.[^4]  
 
 4) **검증(최소한의 self-check)**  
-   - 2026년 연구 흐름은 “압축 후에도 어떤 의미적 약속이 보존돼야 하는가”를 명시하고 측정하려는 방향입니다. ([arxiv.org](https://arxiv.org/abs/2605.17304?utm_source=openai))  
+   - 2026년 연구 흐름은 “압축 후에도 어떤 의미적 약속이 보존돼야 하는가”를 명시하고 측정하려는 방향입니다.[^3]  
    - 실무적 타협안: “요약본에서 commitments가 빠졌는지”를 룰 기반으로 검사하거나, 작은 모델로 diff-check를 돌립니다.
 
 ### 3) 다른 접근과의 차이점
 - **Retrieval(RAG)**: “필요할 때만 가져오기”. 장점은 손실이 적고 확장성이 좋지만, 대화/에이전트의 “진행 상태(state)”를 매번 재구성해야 하고, 검색 실패가 곧 실패입니다.
-- **Summarization/Compaction**: “항상 들고 다닐 최소 상태”를 만든다. 장점은 에이전트가 지속적으로 이어가기 쉽지만, 손실/드리프트가 누적됩니다. ([redis.io](https://redis.io/blog/context-compaction/?utm_source=openai))  
-- **Prompt compression(LLMLingua 계열)**: 요약이 아니라 **토큰 제거/선택 기반 압축**으로 “그대로의 문장 조각”을 남기는 쪽에 가깝습니다. 지연/비용 측면에서 실측 연구도 나왔고(조건 맞으면 E2E 속도 이득), RAG 컨텍스트 압축에 특히 유용합니다. ([arxiv.org](https://arxiv.org/abs/2604.02985?utm_source=openai))  
+- **Summarization/Compaction**: “항상 들고 다닐 최소 상태”를 만든다. 장점은 에이전트가 지속적으로 이어가기 쉽지만, 손실/드리프트가 누적됩니다.[^1]  
+- **Prompt compression(LLMLingua 계열)**: 요약이 아니라 **토큰 제거/선택 기반 압축**으로 “그대로의 문장 조각”을 남기는 쪽에 가깝습니다. 지연/비용 측면에서 실측 연구도 나왔고(조건 맞으면 E2E 속도 이득), RAG 컨텍스트 압축에 특히 유용합니다.[^9]  
 
 ---
 
@@ -108,13 +110,11 @@ from llmlingua import PromptCompressor
 
 ENC = tiktoken.get_encoding("cl100k_base")
 
-
 @dataclass
 class Turn:
     role: str  # "user" | "assistant" | "tool"
     content: str
     ts: float
-
 
 @dataclass
 class CompactedMemory:
@@ -124,10 +124,8 @@ class CompactedMemory:
     open_questions: List[str]
     last_updated_ts: float
 
-
 def count_tokens(text: str) -> int:
     return len(ENC.encode(text))
-
 
 class ContextManager:
     """
@@ -221,7 +219,7 @@ class ContextManager:
     def maybe_compact(self):
         """
         컨텍스트가 임계치에 다가가면 오래된 turns를 구조화 요약으로 치환.
-        Claude의 compaction 기능도 이런 목적(효과적 컨텍스트 연장)으로 제공됨. ([platform.claude.com](https://platform.claude.com/docs/en/build-with-claude/compaction?e45d281a_page=1&gad_source=1&hsa_acc=4274135664&hsa_ad=546356286896&hsa_cam=14664253650&hsa_grp=126956236963&hsa_kw=data+orchestration&hsa_mt=&hsa_net=adwords&hsa_src=d&hsa_tgt=kwd-388439863644&hsa_ver=3&wtime=596s&utm_source=openai))
+        Claude의 compaction 기능도 이런 목적(효과적 컨텍스트 연장)으로 제공됨.[^7]
         """
         prompt = self.build_prompt()
         tokens = count_tokens(prompt)
@@ -267,7 +265,7 @@ Conversation to compact:
             max_tokens=1200,
             system=system,
             messages=[{"role": "user", "content": user}],
-            # Claude compaction은 beta header로 노출되기도 함(제품/SDK에 따라 다름). ([platform.claude.com](https://platform.claude.com/docs/en/build-with-claude/compaction?e45d281a_page=1&gad_source=1&hsa_acc=4274135664&hsa_ad=546356286896&hsa_cam=14664253650&hsa_grp=126956236963&hsa_kw=data+orchestration&hsa_mt=&hsa_net=adwords&hsa_src=d&hsa_tgt=kwd-388439863644&hsa_ver=3&wtime=596s&utm_source=openai))
+            # Claude compaction은 beta header로 노출되기도 함(제품/SDK에 따라 다름).[^7]
             extra_headers={"anthropic-beta": "compact-2026-01-12"},
         )
 
@@ -300,7 +298,6 @@ Conversation to compact:
         self.add_turn("assistant", out)
         return out
 
-
 if __name__ == "__main__":
     cm = ContextManager(model="claude-sonnet-4.5")  # 예시
     cm.add_turn("tool", "git diff ... (very long output) ...")
@@ -318,25 +315,25 @@ if __name__ == "__main__":
 ## ⚡ 실전 팁 & 함정
 ### Best Practice
 1) **요약을 “문장”이 아니라 “데이터 구조”로 만들기**  
-   Commitments/State/Artifacts처럼 스키마를 강제하면, 나중에 “무엇이 보존돼야 하는지”가 명확해집니다. 2026년엔 이를 더 엄밀히 다루려는 프레임워크도 나옵니다. ([arxiv.org](https://arxiv.org/abs/2605.17304?utm_source=openai))  
+   Commitments/State/Artifacts처럼 스키마를 강제하면, 나중에 “무엇이 보존돼야 하는지”가 명확해집니다. 2026년엔 이를 더 엄밀히 다루려는 프레임워크도 나옵니다.[^3]  
 
 2) **Compaction + Prompt caching을 같이 설계하기**  
-   캐시는 prefix를 재사용할 때 비용/지연이 줄어듭니다. 하지만 세션이 길어지면 “재전송 토큰” 자체가 커져 캐시 이득이 흔들릴 수 있어 compaction이 보완재가 됩니다. ([claude.com](https://claude.com/blog/best-practices-for-computer-and-browser-use-with-claude?utm_source=openai))  
+   캐시는 prefix를 재사용할 때 비용/지연이 줄어듭니다. 하지만 세션이 길어지면 “재전송 토큰” 자체가 커져 캐시 이득이 흔들릴 수 있어 compaction이 보완재가 됩니다.[^4]  
 
 3) **툴 출력은 ‘요약’보다 ‘압축(선택)’을 우선**  
-   요약은 디버깅 근거를 지우기 쉽습니다. LLMLingua류처럼 토큰 선택 기반 압축은 “정확 문자열”을 남길 여지가 큽니다. 또한 2026년 실측 연구에서도 조건이 맞으면 지연/비용 이득이 보고됩니다. ([arxiv.org](https://arxiv.org/abs/2604.02985?utm_source=openai))  
+   요약은 디버깅 근거를 지우기 쉽습니다. LLMLingua류처럼 토큰 선택 기반 압축은 “정확 문자열”을 남길 여지가 큽니다. 또한 2026년 실측 연구에서도 조건이 맞으면 지연/비용 이득이 보고됩니다.[^9]  
 
 ### 흔한 함정/안티패턴
 - **“한 번의 거대 요약”으로 모든 걸 해결하려는 시도**  
-  요약이 누적되면 드리프트가 생깁니다. 특히 긴 컨텍스트에서 성능이 광고만큼 안 나온다는 지적(“context rot”)도 나와서, “윈도우가 크니 괜찮다”는 믿음이 위험합니다. ([tmls.nyc](https://www.tmls.nyc/research/context-rot-mechanistic?utm_source=openai))  
+  요약이 누적되면 드리프트가 생깁니다. 특히 긴 컨텍스트에서 성능이 광고만큼 안 나온다는 지적(“context rot”)도 나와서, “윈도우가 크니 괜찮다”는 믿음이 위험합니다.[^10]  
 
 - **lost-in-the-middle을 무시한 프롬프트 배치**  
-  중요한 제약/결정을 길고 복잡한 로그 중간에 섞어두면, 모델은 끝/처음에 있는 정보보다 덜 쓰는 경향이 있습니다. ([arxiv.org](https://arxiv.org/abs/2307.03172?utm_source=openai))  
+  중요한 제약/결정을 길고 복잡한 로그 중간에 섞어두면, 모델은 끝/처음에 있는 정보보다 덜 쓰는 경향이 있습니다.[^2]  
   실무 처방은 단순합니다: **(1) commitments는 앞에 고정(앵커), (2) 최근 turn은 뒤에 유지**.
 
 - **Compaction을 너무 자주 트리거**  
-  요약 자체도 비용/시간이 듭니다(Claude Code 문서도 compaction 시간의 상당 부분이 요약 생성이라고 언급). ([code.claude.com](https://code.claude.com/docs/en/prompt-caching?utm_source=openai))  
-  “85%에서 compact” 같은 고정 룰도 있지만, 워크로드별로 다릅니다. ([langchain.com](https://www.langchain.com/blog/autonomous-context-compression?utm_source=openai))  
+  요약 자체도 비용/시간이 듭니다(Claude Code 문서도 compaction 시간의 상당 부분이 요약 생성이라고 언급).[^5]  
+  “85%에서 compact” 같은 고정 룰도 있지만, 워크로드별로 다릅니다.[^11]  
 
 ### 비용/성능/안정성 트레이드오프(의사결정 기준)
 - 비용이 최우선이면: **툴 출력/문서 컨텍스트 압축(LLMLingua류) + 캐시 TTL 최적화**부터  
@@ -349,13 +346,23 @@ if __name__ == "__main__":
 2026년 7월 기준 long context는 “많이 넣을 수 있다”가 아니라, **어떻게 줄일지(Compaction/Compression)까지 포함한 context engineering**이 성패를 가릅니다.  
 프로젝트 도입 판단 기준은 간단히 세 가지로 보세요.
 
-1) 세션이 길어지며 **토큰/비용이 선형이 아니라 가속**되는가? → compaction/caching 우선순위 높음 ([redis.io](https://redis.io/blog/context-compaction/?utm_source=openai))  
-2) 중간에 있는 결정/근거를 자주 놓치는가? → lost-in-the-middle 대응(앵커/배치/구조화)이 필요 ([arxiv.org](https://arxiv.org/abs/2307.03172?utm_source=openai))  
-3) “정확 문자열”이 중요한 디버깅 비중이 큰가? → 요약보다 압축(선택) + 아티팩트 포인터 전략 ([reddit.com](https://www.reddit.com/r/AI_Agents/comments/1u11qkx/how_i_stopped_context_window_bloat_in_continuous/?utm_source=openai))  
+1) 세션이 길어지며 **토큰/비용이 선형이 아니라 가속**되는가? → compaction/caching 우선순위 높음[^1]  
+2) 중간에 있는 결정/근거를 자주 놓치는가? → lost-in-the-middle 대응(앵커/배치/구조화)이 필요[^2]  
+3) “정확 문자열”이 중요한 디버깅 비중이 큰가? → 요약보다 압축(선택) + 아티팩트 포인터 전략[^6]  
 
 다음 학습으로는:
-- lost-in-the-middle 원 논문(실험 세팅/한계 이해) ([arxiv.org](https://arxiv.org/abs/2307.03172?utm_source=openai))  
-- Claude의 compaction/prompt caching 운영 관점 문서(실제 제품 제약/경제성) ([platform.claude.com](https://platform.claude.com/docs/en/build-with-claude/compaction?e45d281a_page=1&gad_source=1&hsa_acc=4274135664&hsa_ad=546356286896&hsa_cam=14664253650&hsa_grp=126956236963&hsa_kw=data+orchestration&hsa_mt=&hsa_net=adwords&hsa_src=d&hsa_tgt=kwd-388439863644&hsa_ver=3&wtime=596s&utm_source=openai))  
-- “압축이 약속을 깨지 않는지”를 다루는 최신 형식화 연구(검증 관점) ([arxiv.org](https://arxiv.org/abs/2605.17304?utm_source=openai))  
+- lost-in-the-middle 원 논문(실험 세팅/한계 이해)[^2]  
+- Claude의 compaction/prompt caching 운영 관점 문서(실제 제품 제약/경제성)[^7]  
+- “압축이 약속을 깨지 않는지”를 다루는 최신 형식화 연구(검증 관점)[^3]
 
-원하시면, 위 코드에 **(a) 토큰 계측/대시보드 로그**, **(b) commitments 누락 검출용 unit test**, **(c) RAG 결합(Artifacts 포인터를 실제 검색으로 resolve)**까지 붙여서 “프로덕션형 템플릿”으로 확장해드릴게요.
+[^1]: <https://redis.io/blog/context-compaction/>
+[^2]: <https://arxiv.org/abs/2307.03172>
+[^3]: <https://arxiv.org/abs/2605.17304>
+[^4]: <https://claude.com/blog/best-practices-for-computer-and-browser-use-with-claude>
+[^5]: <https://code.claude.com/docs/en/prompt-caching>
+[^6]: <https://www.reddit.com/r/AI_Agents/comments/1u11qkx/how_i_stopped_context_window_bloat_in_continuous/>
+[^7]: <https://platform.claude.com/docs/en/build-with-claude/compaction?e45d281a_page=1&gad_source=1&hsa_acc=4274135664&hsa_ad=546356286896&hsa_cam=14664253650&hsa_grp=126956236963&hsa_kw=data+orchestration&hsa_mt=&hsa_net=adwords&hsa_src=d&hsa_tgt=kwd-388439863644&hsa_ver=3&wtime=596s>
+[^8]: <https://aws.amazon.com/about-aws/whats-new/2026/01/amazon-bedrock-one-hour-duration-prompt-caching/>
+[^9]: <https://arxiv.org/abs/2604.02985>
+[^10]: <https://www.tmls.nyc/research/context-rot-mechanistic>
+[^11]: <https://www.langchain.com/blog/autonomous-context-compression>

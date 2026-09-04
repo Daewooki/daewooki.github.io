@@ -1,12 +1,14 @@
 ---
-title: "LLM 백엔드 “Queued Forever”를 끝내는 법: Celery + Redis 비동기 워커 아키텍처 심층 분석 (2026년 4월 기준)"
+title: "LLM 백엔드 “Queued Forever”를 끝내는 법: Celery + Redis 비동기 워커 아키텍처 심층 분석"
+description: "LLM 기반 기능(요약/분류/리랭킹/에이전트 실행/대량 평가)은 대체로 요청 시간 변동이 크고(수 초~수 분), 외부 의존(OpenAI/사내 vLLM/DB/벡터DB)과 rate limit의 영향을 강하게 받습니다. 이걸 동기 HTTP로 처리하면 곧바로 다음 문제가 터집니다:"
 date: 2026-04-18 03:19:14 +0900
 categories: [Backend, Architecture]
-tags: [backend, architecture, trend, 2026-04]
+tags: [backend, architecture]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -21,7 +23,7 @@ LLM 기반 기능(요약/분류/리랭킹/에이전트 실행/대량 평가)은 
 - API timeout, 재시도 폭발, 사용자 경험 악화(“로딩만 도는 UI”)
 - LLM 공급자 지연/장애 시 웹 서버까지 같이 고갈
 - GPU/비용 자원(특히 vLLM) 스케줄링 실패 → tail latency 악화
-- “요청은 받았는데 결과가 안 옴”, “Queued 상태로 영원히 대기” 같은 운영 이슈(외부 비동기 API에서도 실제로 보고됨) ([community.openai.com](https://community.openai.com/t/requests-remain-queued-forever/1361233?utm_source=openai))
+- “요청은 받았는데 결과가 안 옴”, “Queued 상태로 영원히 대기” 같은 운영 이슈(외부 비동기 API에서도 실제로 보고됨)[^1]
 
 그래서 **Queue/Worker**로 “웹 요청 수명”과 “LLM 작업 수명”을 분리하는 게 정석입니다. 이 글은 그중 가장 흔한 조합인 **Celery + Redis**를 LLM 백엔드 관점에서 “언제 쓰면 좋은지/언제 피해야 하는지”, 그리고 **정확히 어떤 설정/패턴이 장애를 막는지**까지 다룹니다.
 
@@ -42,16 +44,16 @@ LLM 기반 기능(요약/분류/리랭킹/에이전트 실행/대량 평가)은 
 - **Broker(메시지 큐)**: 작업을 “누가 가져가서 처리할지” 전달
 - **Result backend(결과 저장소)**: 작업 상태/결과 조회(폴링/콜백/UI 진행률)
 
-Celery는 Redis를 **broker로도, result backend로도** 쓸 수 있습니다. 다만 운영 관점에서 중요한 건 “Redis가 MQ 전용으로 설계된 게 아니다”라는 점입니다. Celery Redis broker는 내부적으로 **ack/재전달을 visibility timeout 기반**으로 구현합니다. 즉 “worker가 작업을 가져갔는데 ack를 못 하면, 일정 시간이 지난 뒤 재전달”이라는 모델입니다. ([docs.celeryq.dev](https://docs.celeryq.dev/en/v5.0.0/getting-started/brokers/redis.html?utm_source=openai))
+Celery는 Redis를 **broker로도, result backend로도** 쓸 수 있습니다. 다만 운영 관점에서 중요한 건 “Redis가 MQ 전용으로 설계된 게 아니다”라는 점입니다. Celery Redis broker는 내부적으로 **ack/재전달을 visibility timeout 기반**으로 구현합니다. 즉 “worker가 작업을 가져갔는데 ack를 못 하면, 일정 시간이 지난 뒤 재전달”이라는 모델입니다.[^2]
 
 ### 2) acks_late + visibility_timeout: LLM 작업에서 제일 많이 터지는 조합
 LLM 작업은 길어질 수 있습니다(프롬프트 길이, tool call, 재시도, 네트워크 지연). 이때 우리가 흔히 켜는 옵션이:
 
 - `task_acks_late=True`: **작업 성공 후에 ack** → worker가 죽으면 재처리 가능(내구성↑)
-- `broker_transport_options.visibility_timeout=...`: worker가 가져간 메시지를 **얼마나 “안 보이게” 숨길지**(그 안에 ack 없으면 재전달) ([docs.celeryq.dev](https://docs.celeryq.dev/en/v5.0.0/getting-started/brokers/redis.html?utm_source=openai))
+- `broker_transport_options.visibility_timeout=...`: worker가 가져간 메시지를 **얼마나 “안 보이게” 숨길지**(그 안에 ack 없으면 재전달)[^2]
 
 핵심 함정:
-- `acks_late=True`를 켰는데 **visibility_timeout < 실제 작업 시간(p95/p99)** 이면, “아직 실행 중인데” 메시지가 다시 풀려 **중복 실행**이 발생합니다. 이건 Redis/SQS 계열에서 특히 치명적이고, `acks_late`가 visibility timeout을 “자동으로 해결해주지 않는다”는 지적도 실제 커밋/문서 수정으로 이어졌습니다. ([mail-archive.com](https://www.mail-archive.com/commits%40airflow.apache.org/msg497170.html?utm_source=openai))
+- `acks_late=True`를 켰는데 **visibility_timeout < 실제 작업 시간(p95/p99)** 이면, “아직 실행 중인데” 메시지가 다시 풀려 **중복 실행**이 발생합니다. 이건 Redis/SQS 계열에서 특히 치명적이고, `acks_late`가 visibility timeout을 “자동으로 해결해주지 않는다”는 지적도 실제 커밋/문서 수정으로 이어졌습니다.[^3]
 
 LLM에서는 중복 실행이 곧 비용/레이트리밋/데이터 오염(중복 저장)으로 직결되므로, **(1) 충분히 긴 visibility_timeout** + **(2) idempotency 키**가 사실상 필수입니다.
 
@@ -64,7 +66,7 @@ LLM에서는 중복 실행이 곧 비용/레이트리밋/데이터 오염(중복
 현실적으로 LLM I/O 병목(외부 API)이라면 **“워커 프로세스 수/동시성” + “rate limit 토큰 버킷”**이 더 중요하고, 무리한 async 혼합은 디버깅 난이도만 올리기 쉽습니다. 대신 **작업을 쪼개고(오케스트레이션), 외부 호출 timeout/재시도 전략**을 명확히 하는 게 효과가 큽니다.
 
 ### 4) 사내 LLM(vLLM)까지 고려하면: 워커는 “GPU 큐의 전단”이다
-vLLM은 내부적으로 비동기 엔진(AsyncLLMEngine)과 OpenAI-compatible server에서 이를 사용합니다. ([docs.vllm.ai](https://docs.vllm.ai/design/arch_overview.html?utm_source=openai))  
+vLLM은 내부적으로 비동기 엔진(AsyncLLMEngine)과 OpenAI-compatible server에서 이를 사용합니다.[^4]  
 즉, Celery 큐는 “GPU inference 큐 앞단에서” 다음을 책임지게 됩니다:
 
 - 요청 admission control(동시 요청 제한)
@@ -79,7 +81,7 @@ vLLM은 내부적으로 비동기 엔진(AsyncLLMEngine)과 OpenAI-compatible se
 
 ### 0) 의존성/구성(로컬 기준)
 ```bash
-# Python 3.11+ 권장 (Celery 5.6에서 3.8 지원 제거 흐름 참고) ([docs.celeryq.dev](https://docs.celeryq.dev/en/main/history/whatsnew-5.6.html?utm_source=openai))
+# Python 3.11+ 권장 (Celery 5.6에서 3.8 지원 제거 흐름 참고)[^5]
 python -m venv .venv
 source .venv/bin/activate
 
@@ -115,7 +117,7 @@ celery_app = Celery(
 )
 
 # LLM 작업은 길어질 수 있으므로 visibility_timeout을 “p99 작업시간보다 길게”
-# Redis broker의 visibility timeout 의미/주의는 공식 문서에 명시됨. ([docs.celeryq.dev](https://docs.celeryq.dev/en/v5.0.0/getting-started/brokers/redis.html?utm_source=openai))
+# Redis broker의 visibility timeout 의미/주의는 공식 문서에 명시됨.[^2]
 celery_app.conf.update(
     task_acks_late=True,                 # 성공 후 ack (worker 죽으면 재전달)
     task_reject_on_worker_lost=True,     # worker lost 시 재큐잉(중복 가능성은 idempotency로 상쇄)
@@ -256,10 +258,10 @@ uvicorn api:app --reload --port 8000
 
 ## ⚡ 실전 팁 & 함정
 ### Best Practice 1) visibility_timeout은 “작업 시간”이 아니라 “최악의 재시작 시나리오”로 잡아라
-Redis broker에서 visibility_timeout은 “ack가 없으면 재전달”의 기준입니다. ([docs.celeryq.dev](https://docs.celeryq.dev/en/v5.0.0/getting-started/brokers/redis.html?utm_source=openai))  
+Redis broker에서 visibility_timeout은 “ack가 없으면 재전달”의 기준입니다.[^2]  
 LLM은 p99가 쉽게 튀고, 배포/노드 장애로 작업이 멈춘 채로 남을 수 있습니다. 따라서:
 - `visibility_timeout >= (작업 p99) + (최대 배포/재시작 시간) + 여유`
-- `acks_late=True`를 쓰면 이 값이 **너무 짧을 때 중복 실행**이 발생합니다. ([securityboulevard.com](https://securityboulevard.com/2024/12/a-deep-dive-into-celery-task-resilience-beyond-basic-retries/?utm_source=openai))
+- `acks_late=True`를 쓰면 이 값이 **너무 짧을 때 중복 실행**이 발생합니다.[^6]
 
 ### Best Practice 2) idempotency를 “큐 레벨”이 아니라 “도메인 레벨”로 해결
 LLM 작업은 대부분 **side effect**(DB 저장, 결제 아님이라도 로그/과금/사용량 차감)가 있습니다.  
@@ -271,7 +273,7 @@ LLM 작업은 대부분 **side effect**(DB 저장, 결제 아님이라도 로그
 이 3개가 있어야 Redis broker 특성, 워커 재시작, 네트워크 이슈를 견딥니다.
 
 ### Best Practice 3) Redis 메모리 eviction 정책을 무시하면 “작업 유실”을 자초한다
-Celery Redis broker 문서에서 **evict 설정**을 경고합니다(메모리 부족 시 키가 날아가면 큐/상태가 망가질 수 있음). ([docs.celeryq.dev](https://docs.celeryq.dev/en/v5.0.0/getting-started/brokers/redis.html?utm_source=openai))  
+Celery Redis broker 문서에서 **evict 설정**을 경고합니다(메모리 부족 시 키가 날아가면 큐/상태가 망가질 수 있음).[^2]  
 실무 권장:
 - broker Redis는 가능하면 **전용 인스턴스/클러스터**로 분리
 - `maxmemory-policy`를 업무 특성에 맞게(최소한 “중요 키가 eviction되지 않게”) 검토
@@ -282,7 +284,7 @@ Celery의 실행 모델(프로세스/풀)과 asyncio는 조합을 신중히 해�
 대부분의 LLM 호출은 I/O라서 “워커 concurrency/프리페치/레이트리밋” 조절이 더 큰 레버리지입니다.
 
 ### 흔한 함정 2) “Queued forever”는 외부만의 문제가 아니다
-OpenAI 같은 외부 비동기 처리에서도 “queued/in_progress가 계속됨” 이슈가 커뮤니티에 보고됩니다. ([community.openai.com](https://community.openai.com/t/requests-remain-queued-forever/1361233?utm_source=openai))  
+OpenAI 같은 외부 비동기 처리에서도 “queued/in_progress가 계속됨” 이슈가 커뮤니티에 보고됩니다.[^1]  
 내 시스템에서도 같은 일이 생깁니다. 대응 체크리스트:
 - 워커 healthcheck + autoscaling 조건이 “큐 적체”를 보는가?
 - task timeout(soft/hard) + 외부 호출 timeout이 모두 있는가?
@@ -291,16 +293,16 @@ OpenAI 같은 외부 비동기 처리에서도 “queued/in_progress가 계속�
 ### 비용/성능/안정성 트레이드오프
 - `acks_late=True` + 긴 visibility_timeout: 안정성↑ / 중복 실행↓(idempotency 전제) / 재전달 늦어질 수 있음
 - Redis broker: 운영 단순/빠름 / 하지만 MQ 특화 기능(강한 내구성, 정교한 DLQ)은 약함
-- 외부 LLM Batch(예: OpenAI Batch API): 대량 처리 비용↓, throughput↑ / 대신 24h 내 완료 같은 제약이 있으므로 “실시간 UX”엔 부적합 ([platform.openai.com](https://platform.openai.com/docs/guides/batch/?utm_source=openai))
+- 외부 LLM Batch(예: OpenAI Batch API): 대량 처리 비용↓, throughput↑ / 대신 24h 내 완료 같은 제약이 있으므로 “실시간 UX”엔 부적합[^7]
 
 ---
 
 ## 🚀 마무리
 정리하면, 2026년 4월 시점에서 “LLM 비동기 처리”를 Celery+Redis로 안정화하려면 핵심은 3가지입니다.
 
-1) **acks_late + visibility_timeout을 한 세트로 설계**(p99 기준으로 넉넉히) ([docs.celeryq.dev](https://docs.celeryq.dev/en/v5.0.0/getting-started/brokers/redis.html?utm_source=openai))  
+1) **acks_late + visibility_timeout을 한 세트로 설계**(p99 기준으로 넉넉히)[^2]  
 2) Redis broker는 중복 실행이 “언제든 가능”하다고 보고, **도메인 idempotency(job_key)로 흡수**  
-3) Redis 운영(메모리/eviction/분리)과 워커 운영(healthcheck/timeout/retry/rate limit)을 함께 가져가기 ([docs.celeryq.dev](https://docs.celeryq.dev/en/v5.0.0/getting-started/brokers/redis.html?utm_source=openai))  
+3) Redis 운영(메모리/eviction/분리)과 워커 운영(healthcheck/timeout/retry/rate limit)을 함께 가져가기[^2]  
 
 도입 판단 기준(바로 써도 되는 경우)
 - 현재 문제의 80%가 “웹 타임아웃/LLM 지연/레이트리밋”이고
@@ -308,6 +310,15 @@ OpenAI 같은 외부 비동기 처리에서도 “queued/in_progress가 계속�
 - Redis를 브로커 전용으로 분리하거나, 적어도 메모리 정책/관측을 제대로 할 수 있다
 
 다음 학습 추천
-- Celery Redis broker 공식 문서(visibility_timeout/운영 주의) ([docs.celeryq.dev](https://docs.celeryq.dev/en/v5.0.0/getting-started/brokers/redis.html?utm_source=openai))
-- Celery 최신 changelog에서 Redis 안정성 관련 이슈 추적(특히 Kombu/Redis 연결 안정성) ([docs.celeryq.dev](https://docs.celeryq.dev/en/stable/changelog.html?utm_source=openai))
-- 사내 GPU 서빙을 한다면 vLLM AsyncLLMEngine 구조를 이해하고 “큐가 GPU 앞단 admission control”이 되게 설계 ([docs.vllm.ai](https://docs.vllm.ai/design/arch_overview.html?utm_source=openai))
+- Celery Redis broker 공식 문서(visibility_timeout/운영 주의)[^2]
+- Celery 최신 changelog에서 Redis 안정성 관련 이슈 추적(특히 Kombu/Redis 연결 안정성)[^8]
+- 사내 GPU 서빙을 한다면 vLLM AsyncLLMEngine 구조를 이해하고 “큐가 GPU 앞단 admission control”이 되게 설계[^4]
+
+[^1]: <https://community.openai.com/t/requests-remain-queued-forever/1361233>
+[^2]: <https://docs.celeryq.dev/en/v5.0.0/getting-started/brokers/redis.html>
+[^3]: <https://www.mail-archive.com/commits%40airflow.apache.org/msg497170.html>
+[^4]: <https://docs.vllm.ai/design/arch_overview.html>
+[^5]: <https://docs.celeryq.dev/en/main/history/whatsnew-5.6.html>
+[^6]: <https://securityboulevard.com/2024/12/a-deep-dive-into-celery-task-resilience-beyond-basic-retries/>
+[^7]: <https://platform.openai.com/docs/guides/batch/>
+[^8]: <https://docs.celeryq.dev/en/stable/changelog.html>

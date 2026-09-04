@@ -1,12 +1,14 @@
 ---
-title: "LLM 앱은 왜 “느린지”가 아니라 “왜 그런 선택을 했는지”를 추적해야 한다: 2026년형 OpenTelemetry GenAI Tracing 심층 적용기"
+title: "LLM 앱은 왜 “느린지”가 아니라 “왜 그런 선택을 했는지”를 추적해야 한다: OpenTelemetry GenAI Tracing 심층 적용기"
+description: "LLM/Agent 앱을 운영해보면 전통적인 APM(HTTP latency, error rate, DB time)만으로는 장애의 원인에 닿기 어렵습니다. 많은 실패가 “500 에러”가 아니라 의미적 실패(semantic failure) 로 나타나기 때문입니다. 예를 들어:"
 date: 2026-04-28 03:52:55 +0900
 categories: [AI, MLOps]
-tags: [ai, mlops, trend, 2026-04]
+tags: [ai, mlops]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -21,12 +23,12 @@ LLM/Agent 앱을 운영해보면 전통적인 APM(HTTP latency, error rate, DB t
 - Tool call이 루프에 빠져 token 비용이 폭증
 - 같은 입력인데 모델이 다른 경로를 타서 p95가 튐(비결정성)
 
-이 지점에서 2026년 업계가 수렴하는 방향이 **OpenTelemetry(OTel) 기반 LLM observability + GenAI semantic conventions**입니다. OTel은 vendor-neutral tracing 표준(OTLP/SDK/Collector)이고, GenAI semantic conventions는 “LLM 호출/Agent 단계/Tool 실행/RAG” 같은 AI 워크로드를 span/attribute로 **표준화**하려는 스펙입니다(아직 Development 상태이며 안정화 전 이행 가이드가 존재). ([opentelemetry.io](https://opentelemetry.io/docs/specs/semconv/gen-ai/))
+이 지점에서 2026년 업계가 수렴하는 방향이 **OpenTelemetry(OTel) 기반 LLM observability + GenAI semantic conventions**입니다. OTel은 vendor-neutral tracing 표준(OTLP/SDK/Collector)이고, GenAI semantic conventions는 “LLM 호출/Agent 단계/Tool 실행/RAG” 같은 AI 워크로드를 span/attribute로 **표준화**하려는 스펙입니다(아직 Development 상태이며 안정화 전 이행 가이드가 존재).[^1]
 
 ### 언제 쓰면 좋나
 - 서비스가 **멀티서비스/멀티언어**(gateway, worker, tool server 등)로 나뉘어 trace context 전파가 중요한 경우
 - “LLM 호출 1번”이 아니라 **agentic workflow**(n-step, tool, retrieval)가 핵심인 경우
-- Langfuse/Datadog/Honeycomb/New Relic 등 특정 벤더로 고정하기 전에 **데이터 포맷을 표준화**하고 싶은 경우 ([zylos.ai](https://zylos.ai/research/2026-02-28-opentelemetry-ai-agent-observability))
+- Langfuse/Datadog/Honeycomb/New Relic 등 특정 벤더로 고정하기 전에 **데이터 포맷을 표준화**하고 싶은 경우[^2]
 
 ### 언제는 피하는 게 낫나
 - 단일 백엔드에서 단순 chat completion만 하고, 이미 특정 벤더 SDK로 충분히 관측 가능한 경우(OTel 도입 비용이 더 큼)
@@ -41,18 +43,18 @@ Trace는 “좋은 답인가?”를 직접 판정하지 않습니다. 대신 **�
 - Metrics: p95 latency, token usage histogram 등 집계
 - Logs: 텍스트 디버그(하지만 상관관계가 약함)
 
-LLM/Agent는 “한 요청 = 여러 번의 LLM call + tool + retrieval”이므로, 관측 단위가 HTTP request 1개로 끝나지 않습니다. 그래서 GenAI semantic conventions는 **LLM client span / agent span / tool span / event(입출력) / metrics**로 영역을 나눕니다. ([opentelemetry.io](https://opentelemetry.io/docs/specs/semconv/gen-ai/))
+LLM/Agent는 “한 요청 = 여러 번의 LLM call + tool + retrieval”이므로, 관측 단위가 HTTP request 1개로 끝나지 않습니다. 그래서 GenAI semantic conventions는 **LLM client span / agent span / tool span / event(입출력) / metrics**로 영역을 나눕니다.[^1]
 
 ### 2) GenAI semantic conventions의 가장 중요한 현실: “버전/안정성”
-OTel GenAI semantic conventions는 2026년 4월 기준 문서에 **Status: Development**로 표시되어 있고, 기존 instrumentations(v1.36.0 이전 문서 기반)의 호환성 이슈를 피하기 위해 `OTEL_SEMCONV_STABILITY_OPT_IN` 같은 opt-in 전략을 권고합니다. 즉, “스펙이 계속 움직인다”가 전제입니다. ([opentelemetry.io](https://opentelemetry.io/docs/specs/semconv/gen-ai/))  
+OTel GenAI semantic conventions는 2026년 4월 기준 문서에 **Status: Development**로 표시되어 있고, 기존 instrumentations(v1.36.0 이전 문서 기반)의 호환성 이슈를 피하기 위해 `OTEL_SEMCONV_STABILITY_OPT_IN` 같은 opt-in 전략을 권고합니다. 즉, “스펙이 계속 움직인다”가 전제입니다.[^1]  
 실무적으로는:
 - 저장(backend) 스키마를 “고정”하지 말고, **attribute mapping/normalization 레이어**를 두는 게 안전합니다.
 - instrumentation 라이브러리(OpenLLMetry/OpenLIT 등)를 쓸 때 “어느 버전의 semconv를 emit하는지”를 릴리즈 노트/문서로 확인해야 합니다.
 
 ### 3) OpenInference vs OTel GenAI: 왜 둘 다 등장하나
 OTel 자체는 범용 tracing 모델이라 attribute가 “의미적으로” 비어있을 수 있습니다. 그래서 AI 영역에서는 두 갈래가 있습니다.
-- OTel GenAI semantic conventions: OTel 공식 semconv로 표준화 진행 중 ([opentelemetry.io](https://opentelemetry.io/docs/specs/semconv/gen-ai/))
-- OpenInference: OTel 위에 AI 관측용 attribute/schema를 더 강하게 규정(LLM/AGENT/TOOL/CHAIN 등 span kind taxonomy, 입력/출력/토큰/프라이버시 고려 등) ([arize-ai.github.io](https://arize-ai.github.io/openinference/spec/))
+- OTel GenAI semantic conventions: OTel 공식 semconv로 표준화 진행 중[^1]
+- OpenInference: OTel 위에 AI 관측용 attribute/schema를 더 강하게 규정(LLM/AGENT/TOOL/CHAIN 등 span kind taxonomy, 입력/출력/토큰/프라이버시 고려 등)[^3]
 
 프로젝트 관점의 판단:
 - “벤더/플랫폼이 OTel GenAI를 1st-class로 지원한다”면 GenAI semconv 중심
@@ -60,11 +62,11 @@ OTel 자체는 범용 tracing 모델이라 attribute가 “의미적으로” �
 - 다만 최종적으로는 OTLP로 내보내고, backend에서 매핑하는 구조가 가장 이식성이 좋습니다.
 
 ### 4) Langfuse가 말하는 “OTel-native LLM tracing”의 실무 포인트
-Langfuse는 OTel spans를 ingest하는 엔드포인트(`/api/public/otel`)를 제공하고, “GenAI semconv가 evolving”이라서 수신한 OTel attribute를 Langfuse 데이터 모델로 매핑한다고 밝힙니다. ([langfuse.com](https://langfuse.com/integrations/native/opentelemetry))  
+Langfuse는 OTel spans를 ingest하는 엔드포인트(`/api/public/otel`)를 제공하고, “GenAI semconv가 evolving”이라서 수신한 OTel attribute를 Langfuse 데이터 모델로 매핑한다고 밝힙니다.[^4]  
 여기서 중요한 운영 이슈가 하나 더 있습니다:
 
 **Trace-level 속성(userId/sessionId/version/tags/metadata)을 ‘root span에만’ 달면, UI에서 필터/집계가 깨질 수 있다.**  
-그래서 Langfuse는 이런 trace-level 속성을 모든 span으로 전파하기 위해 **OpenTelemetry Baggage + BaggageSpanProcessor** 패턴을 권장합니다(단, baggage는 서비스 경계를 넘어 전파되므로 민감정보 금지). ([langfuse.com](https://langfuse.com/integrations/native/opentelemetry))
+그래서 Langfuse는 이런 trace-level 속성을 모든 span으로 전파하기 위해 **OpenTelemetry Baggage + BaggageSpanProcessor** 패턴을 권장합니다(단, baggage는 서비스 경계를 넘어 전파되므로 민감정보 금지).[^4]
 
 ---
 
@@ -75,7 +77,7 @@ Langfuse는 OTel spans를 ingest하는 엔드포인트(`/api/public/otel`)를 �
 - `user.id`, `session.id`, `langfuse.trace.*` 같은 trace-level 속성을 **baggage로 전파**
 - OTLP(HTTP/protobuf)로 Collector를 거쳐 백엔드(예: Langfuse OTEL endpoint)로 전송
 
-아래 예시는 “Langfuse를 OTLP backend로” 보내는 구성을 가정합니다(OTLP over HTTP). Langfuse는 `/api/public/otel` 수신 및 헤더 설정을 문서화하고 있습니다. ([langfuse.com](https://langfuse.com/integrations/native/opentelemetry))
+아래 예시는 “Langfuse를 OTLP backend로” 보내는 구성을 가정합니다(OTLP over HTTP). Langfuse는 `/api/public/otel` 수신 및 헤더 설정을 문서화하고 있습니다.[^4]
 
 ### 1) 로컬 실행용: OpenTelemetry Collector + 앱 환경변수
 ```bash
@@ -268,7 +270,7 @@ main().catch((e) => {
   - `tool.policy_lookup`
   - `llm.chat`
 - 모든 span에 `user.id`, `session.id`, `langfuse.trace.name`, `langfuse.trace.metadata.customer_tier` 등이 붙어 필터/집계 가능  
-이 “trace-level 속성 전파”는 Langfuse가 특히 강조하는 운영 포인트입니다. ([langfuse.com](https://langfuse.com/integrations/native/opentelemetry))
+이 “trace-level 속성 전파”는 Langfuse가 특히 강조하는 운영 포인트입니다.[^4]
 
 ---
 
@@ -289,14 +291,14 @@ Langfuse는 trace-level 속성을 모든 span에 전파하기 위해 baggage를 
 - PII는 “export 전 마스킹” 또는 “샘플링 시에만 저장” 같은 정책 필요
 
 ### Best Practice 3) semconv가 변한다는 전제를 아키텍처에 반영
-OTel GenAI semconv는 Development 상태이며, 기존 버전과의 이행 전략(옵트인 환경변수 등)이 문서에 명시되어 있습니다. ([opentelemetry.io](https://opentelemetry.io/docs/specs/semconv/gen-ai/))  
+OTel GenAI semconv는 Development 상태이며, 기존 버전과의 이행 전략(옵트인 환경변수 등)이 문서에 명시되어 있습니다.[^1]  
 실무 대응:
 - (1) 앱 내부 attribute key를 “표준 키 + 사내 확장 키”로 나누고
 - (2) Collector 혹은 backend ingestion에서 normalization/mapping 레이어를 둬서
 - (3) UI/대시보드 쿼리는 “정규화된 필드”만 보게 만들면, 스펙 변화에 덜 흔들립니다.
 
 ### 흔한 함정) “trace는 있는데, 쓸모가 없다”
-Zylos 쪽 글에서도 전통 관측이 에이전트에 부족한 이유로 “emergent failure”와 “token cost가 runtime variable”을 강조합니다. ([zylos.ai](https://zylos.ai/research/2026-02-28-opentelemetry-ai-agent-observability))  
+Zylos 쪽 글에서도 전통 관측이 에이전트에 부족한 이유로 “emergent failure”와 “token cost가 runtime variable”을 강조합니다.[^2]  
 즉 trace만 켜면 해결되는 게 아니라, 최소한 아래 2개는 같이 해야 합니다:
 - retrieval quality 지표(hit rate, top1 score, context length) 같이 기록
 - token/cost budget 초과를 “알람 조건”으로 승격(관측 → 통제)
@@ -306,8 +308,8 @@ Zylos 쪽 글에서도 전통 관측이 에이전트에 부족한 이유로 “e
 ## 🚀 마무리
 핵심은 “LLM 앱을 HTTP request처럼 보면 망한다”입니다. 2026년 4월 기준의 트렌드는:
 - **OpenTelemetry**를 telemetry layer로 깔고(Collector/OTLP/벤더 중립),
-- **GenAI semantic conventions / OpenInference** 같은 AI 특화 schema로 “해석 가능한 trace”를 만들며, ([opentelemetry.io](https://opentelemetry.io/docs/specs/semconv/gen-ai/))
-- user/session/version/metadata 같은 trace-level 컨텍스트는 **baggage 기반으로 전파**해 운영 필터/집계를 가능하게 만드는 쪽으로 수렴합니다. ([langfuse.com](https://langfuse.com/integrations/native/opentelemetry))
+- **GenAI semantic conventions / OpenInference** 같은 AI 특화 schema로 “해석 가능한 trace”를 만들며,[^1]
+- user/session/version/metadata 같은 trace-level 컨텍스트는 **baggage 기반으로 전파**해 운영 필터/집계를 가능하게 만드는 쪽으로 수렴합니다.[^4]
 
 도입 판단 기준(현실적인 체크리스트):
 - 우리 장애의 70%가 “의미적 실패”인가? → Yes면 tracing 투자 가치 큼
@@ -315,6 +317,11 @@ Zylos 쪽 글에서도 전통 관측이 에이전트에 부족한 이유로 “e
 - PII/보안/비용(샘플링) 정책이 준비됐는가? → 없다면 먼저 가드레일부터
 
 다음 학습 추천:
-- OTel GenAI semantic conventions(특히 stability/opt-in 전략) 문서 정독 ([opentelemetry.io](https://opentelemetry.io/docs/specs/semconv/gen-ai/))
-- OpenInference spec로 “AI span taxonomy를 어떻게 잡을지” 참고 ([arize-ai.github.io](https://arize-ai.github.io/openinference/spec/))
-- Langfuse를 쓴다면 OTEL ingest + trace attribute propagation 패턴을 그대로 운영 표준으로 삼기 ([langfuse.com](https://langfuse.com/integrations/native/opentelemetry))
+- OTel GenAI semantic conventions(특히 stability/opt-in 전략) 문서 정독[^1]
+- OpenInference spec로 “AI span taxonomy를 어떻게 잡을지” 참고[^3]
+- Langfuse를 쓴다면 OTEL ingest + trace attribute propagation 패턴을 그대로 운영 표준으로 삼기[^4]
+
+[^1]: <https://opentelemetry.io/docs/specs/semconv/gen-ai/>
+[^2]: <https://zylos.ai/research/2026-02-28-opentelemetry-ai-agent-observability>
+[^3]: <https://arize-ai.github.io/openinference/spec/>
+[^4]: <https://langfuse.com/integrations/native/opentelemetry>

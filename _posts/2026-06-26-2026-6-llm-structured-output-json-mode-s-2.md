@@ -1,12 +1,14 @@
 ---
-title: "2026년 6월 기준 LLM Structured Output “JSON mode + Schema 강제”의 진짜 제약들 (그리고 함수 호출까지 안전하게 붙이는 법)"
+title: "LLM Structured Output “JSON mode + Schema 강제”의 진짜 제약들 (그리고 함수 호출까지 안전하게 붙이는 법)"
+description: "프로덕션에서 LLM을 “파서가 먹을 수 있는 형태”로 쓰려면 결국 구조화된 출력(structured output) 이 핵심입니다. 로그를 보면 장애의 상당수가 모델 성능이 아니라 출력 포맷 붕괴(필드 누락/타입 불일치/여분 필드/코드펜스/부분 JSON) 에서 시작하거든요."
 date: 2026-06-26 04:20:35 +0900
 categories: [AI, LLM]
-tags: [ai, llm, trend, 2026-06]
+tags: [ai, llm]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -17,8 +19,8 @@ tags: [ai, llm, trend, 2026-06]
 
 ## 들어가며
 프로덕션에서 LLM을 “파서가 먹을 수 있는 형태”로 쓰려면 결국 **구조화된 출력(structured output)** 이 핵심입니다. 로그를 보면 장애의 상당수가 모델 성능이 아니라 **출력 포맷 붕괴(필드 누락/타입 불일치/여분 필드/코드펜스/부분 JSON)** 에서 시작하거든요. 그래서 2026년엔 다들 JSON을 요구하는데, 문제는 “JSON”만으로는 부족하다는 것:  
-- **JSON mode**: “파싱 가능한 JSON”까지만 보장 (스키마는 보장 안 됨) ([platform.openai.com](https://platform.openai.com/docs/guides/structured-outputs?api-mode=chat&utm_source=openai))  
-- **Structured Outputs / JSON Schema 강제**: “지정한 schema와 일치”를 보장(혹은 거의 보장) ([openai.com](https://openai.com/index/introducing-structured-outputs-in-the-api/?utm_source=openai))  
+- **JSON mode**: “파싱 가능한 JSON”까지만 보장 (스키마는 보장 안 됨)[^1]  
+- **Structured Outputs / JSON Schema 강제**: “지정한 schema와 일치”를 보장(혹은 거의 보장)[^2]  
 
 언제 쓰면 좋나?
 - 다운스트림이 **강타입(typed) 코드**(Pydantic/Zod/DTO)일 때
@@ -33,24 +35,24 @@ tags: [ai, llm, trend, 2026-06]
 
 ## 🔧 핵심 개념
 ### 1) JSON mode vs Schema enforcement의 차이
-OpenAI 문서 기준으로 **JSON mode**는 `response_format: { type: "json_object" }`로 “유효한 JSON”을 목표로 합니다. 단, *스키마 일치*는 보장하지 않고, 프롬프트에 “JSON” 명시가 없으면 공백 스트리밍 같은 엣지케이스도 경고합니다. ([platform.openai.com](https://platform.openai.com/docs/guides/structured-outputs?api-mode=chat&utm_source=openai))  
-반면 **Structured Outputs**는 `json_schema`를 주고(일반적으로 strict), **constrained decoding**으로 “스키마에 맞는 토큰만” 생성 가능하게 제한합니다. 즉, 애초에 **불가능한 문자를 못 찍게** 만드는 방식입니다. ([openai.com](https://openai.com/index/introducing-structured-outputs-in-the-api/?utm_source=openai))
+OpenAI 문서 기준으로 **JSON mode**는 `response_format: { type: "json_object" }`로 “유효한 JSON”을 목표로 합니다. 단, *스키마 일치*는 보장하지 않고, 프롬프트에 “JSON” 명시가 없으면 공백 스트리밍 같은 엣지케이스도 경고합니다.[^1]  
+반면 **Structured Outputs**는 `json_schema`를 주고(일반적으로 strict), **constrained decoding**으로 “스키마에 맞는 토큰만” 생성 가능하게 제한합니다. 즉, 애초에 **불가능한 문자를 못 찍게** 만드는 방식입니다.[^2]
 
 ### 2) 내부 작동(흐름) 관점: “검증”이 아니라 “생성 자체를 제한”
 실무적으로 중요한 포인트는 이것입니다.
 - (사후) JSON.parse → validator → retry …가 아니라
 - (사전) **decoder 단계에서 가능한 다음 토큰 집합을 스키마로 좁힘**  
-이 덕분에 “마크다운 코드펜스” 같은 잡음이 구조적으로 사라집니다. ([openai.com](https://openai.com/index/introducing-structured-outputs-in-the-api/?utm_source=openai))  
+이 덕분에 “마크다운 코드펜스” 같은 잡음이 구조적으로 사라집니다.[^2]  
 
 ### 3) 2026년 6월 ‘스키마 제약’이 생기는 이유: “전체 JSON Schema”가 아니다
-여기서 함정이 시작됩니다. OpenAI/Claude/Gemini 모두 “JSON Schema 지원”이라고 말하지만, 실제론 **subset**입니다. 특히 OpenAI 쪽은 “엄격 모드에서 요구되는 형태”가 강합니다(예: 객체의 `additionalProperties: false`, required 강제 등). ([jsonic.io](https://jsonic.io/guides/openai-structured-outputs?utm_source=openai))  
-Gemini도 공식 문서에 “subset 지원”을 명시합니다. ([ai.google.dev](https://ai.google.dev/gemini-api/docs/structured-output?utm_source=openai))  
-Claude도 Structured Outputs를 “JSON schema나 tool definition에 정확히 맞춘다”고 하지만, 스키마 키워드 지원 폭/동작은 제공 형태에 따라 차이가 생길 수 있습니다. ([claude.com](https://claude.com/blog/structured-outputs-on-the-claude-developer-platform?utm_source=openai))  
+여기서 함정이 시작됩니다. OpenAI/Claude/Gemini 모두 “JSON Schema 지원”이라고 말하지만, 실제론 **subset**입니다. 특히 OpenAI 쪽은 “엄격 모드에서 요구되는 형태”가 강합니다(예: 객체의 `additionalProperties: false`, required 강제 등).[^3]  
+Gemini도 공식 문서에 “subset 지원”을 명시합니다.[^4]  
+Claude도 Structured Outputs를 “JSON schema나 tool definition에 정확히 맞춘다”고 하지만, 스키마 키워드 지원 폭/동작은 제공 형태에 따라 차이가 생길 수 있습니다.[^5]  
 
-결론: **“표준 JSON Schema를 한 번 만들어 멀티벤더에 똑같이 던지기”는 생각보다 잘 안 됩니다.**(CI에서 provider별 lint/정규화가 필요해지는 이유) ([reddit.com](https://www.reddit.com/r/LLMDevs/comments/1tarfl4/i_got_tired_of_digging_through_structured_outputs/?utm_source=openai))  
+결론: **“표준 JSON Schema를 한 번 만들어 멀티벤더에 똑같이 던지기”는 생각보다 잘 안 됩니다.**(CI에서 provider별 lint/정규화가 필요해지는 이유)[^6]  
 
 ### 4) 함수 호출(function/tool calling)과의 관계
-OpenAI 문서 기준으로 “function calling을 쓰면 JSON mode는 항상 켜진다”는 점이 포인트입니다. ([platform.openai.com](https://platform.openai.com/docs/guides/structured-outputs?api-mode=chat&utm_source=openai))  
+OpenAI 문서 기준으로 “function calling을 쓰면 JSON mode는 항상 켜진다”는 점이 포인트입니다.[^1]  
 하지만 **“툴 콜 JSON”이 파싱된다고 해서, 앱에서 기대하는 의미적 계약(필수 필드, enum, 범위)이 지켜지는 건 별개**입니다. 그래서 결국:
 - tool schema를 **최소 공통 분모(subset)** 로 설계하고
 - 호출 전후로 **서버 측 validator**(Zod/Pydantic) + 리커버리(재시도/휴먼 폴백)를 둬야 합니다.
@@ -64,7 +66,7 @@ OpenAI 문서 기준으로 “function calling을 쓰면 JSON mode는 항상 켜
 - 실패하면 재시도/폴백  
 핵심은 “예쁘게 요약”이 아니라 **API 입력 계약을 강제**하는 것입니다.
 
-아래 예제는 **OpenAI Structured Outputs(Pydantic parse)** 형태로 작성합니다(실무에서 가장 빠르게 ‘스키마-코드 동기화’가 됩니다). OpenAI의 Structured Outputs 개요와 `refusal` 같은 응답 처리 개념은 공식 소개 글을 따릅니다. ([openai.com](https://openai.com/index/introducing-structured-outputs-in-the-api/?utm_source=openai))  
+아래 예제는 **OpenAI Structured Outputs(Pydantic parse)** 형태로 작성합니다(실무에서 가장 빠르게 ‘스키마-코드 동기화’가 됩니다). OpenAI의 Structured Outputs 개요와 `refusal` 같은 응답 처리 개념은 공식 소개 글을 따릅니다.[^2]  
 
 ### 1) 초기 셋업
 ```bash
@@ -172,40 +174,49 @@ if __name__ == "__main__":
 ## ⚡ 실전 팁 & 함정
 ### Best Practice (2~3개)
 1) **additionalProperties 차단 + required를 “전부”로 두기(닫힌 세계 가정)**  
-OpenAI Structured Outputs 쪽은 객체 스키마를 “닫힌 형태”로 설계하는 게 안정적입니다(여분 필드가 downstream을 망가뜨리는 걸 원천 차단). ([jsonic.io](https://jsonic.io/guides/openai-structured-outputs?utm_source=openai))  
+OpenAI Structured Outputs 쪽은 객체 스키마를 “닫힌 형태”로 설계하는 게 안정적입니다(여분 필드가 downstream을 망가뜨리는 걸 원천 차단).[^3]  
 
 2) **멀티벤더면 ‘공통 스키마’가 아니라 ‘Provider별 컴파일 타깃’을 두기**  
-Gemini도 subset JSON Schema임을 공식적으로 밝히고, OpenAI/Claude도 지원 키워드/동작이 1:1 호환이 아닙니다. ([ai.google.dev](https://ai.google.dev/gemini-api/docs/structured-output?utm_source=openai))  
-실무적으로는 “도메인 모델(내부 표준) → provider별로 변환/린트 → 런타임 검증”이 가장 덜 아픕니다. ([reddit.com](https://www.reddit.com/r/LLMDevs/comments/1tarfl4/i_got_tired_of_digging_through_structured_outputs/?utm_source=openai))  
+Gemini도 subset JSON Schema임을 공식적으로 밝히고, OpenAI/Claude도 지원 키워드/동작이 1:1 호환이 아닙니다.[^4]  
+실무적으로는 “도메인 모델(내부 표준) → provider별로 변환/린트 → 런타임 검증”이 가장 덜 아픕니다.[^6]  
 
 3) **refusal/중단/부분 응답을 ‘정상 플로우’로 취급하고 설계**  
-OpenAI는 Structured Outputs에서도 안전 정책에 따라 refusal이 가능하며, 이를 감지하기 위한 필드를 제공한다고 설명합니다. ([openai.com](https://openai.com/index/introducing-structured-outputs-in-the-api/?utm_source=openai))  
+OpenAI는 Structured Outputs에서도 안전 정책에 따라 refusal이 가능하며, 이를 감지하기 위한 필드를 제공한다고 설명합니다.[^2]  
 즉 “스키마만 맞으면 끝”이 아니라, **거절/불완전 응답을 상태 머신으로 다뤄야** 장애가 줄어듭니다.
 
 ### 흔한 함정/안티패턴
-- “JSON mode면 스키마도 맞겠지”라는 기대: 문서상 명확히 아니고, 결국 validator+retry 지옥으로 갑니다. ([platform.openai.com](https://platform.openai.com/docs/guides/structured-outputs?api-mode=chat&utm_source=openai))  
-- 스키마를 과하게 복잡하게 만들기: 스키마가 커질수록 모델이 채워야 할 결정 수가 늘고, 성능/정확도에 부담이 생길 수 있습니다(구조화가 ‘reasoning tax’가 될 수 있다는 연구들도 이 지점을 다룹니다). ([arxiv.org](https://arxiv.org/abs/2606.09410?utm_source=openai))  
-- “provider가 보장하니 서버 검증 생략”: 멀티모델/멀티리전/버전 변경에서 가장 먼저 터집니다. (게이트웨이에서 정규화/검증한다는 현장 경험담이 반복됩니다.) ([reddit.com](https://www.reddit.com/r/LLMDevs/comments/1ufap2m/we_sent_the_same_json_schema_to_gpt55_claude/?utm_source=openai))  
+- “JSON mode면 스키마도 맞겠지”라는 기대: 문서상 명확히 아니고, 결국 validator+retry 지옥으로 갑니다.[^1]  
+- 스키마를 과하게 복잡하게 만들기: 스키마가 커질수록 모델이 채워야 할 결정 수가 늘고, 성능/정확도에 부담이 생길 수 있습니다(구조화가 ‘reasoning tax’가 될 수 있다는 연구들도 이 지점을 다룹니다).[^7]  
+- “provider가 보장하니 서버 검증 생략”: 멀티모델/멀티리전/버전 변경에서 가장 먼저 터집니다. (게이트웨이에서 정규화/검증한다는 현장 경험담이 반복됩니다.)[^8]  
 
 ### 비용/성능/안정성 트레이드오프
 - **안정성↑**: 파싱 실패/재시도 감소 → 전체 지연시간/비용이 내려가는 경우가 많음  
 - **유연성↓**: 스키마 설계/버전 관리 비용 증가, “예외 케이스” 표현이 어려워짐  
-- **성능(정확도)↔**: 스키마가 복잡하면 모델의 여유 용량을 잡아먹어 품질이 떨어질 수 있음(모델/태스크에 따라 체감이 큼). ([arxiv.org](https://arxiv.org/abs/2606.09410?utm_source=openai))  
+- **성능(정확도)↔**: 스키마가 복잡하면 모델의 여유 용량을 잡아먹어 품질이 떨어질 수 있음(모델/태스크에 따라 체감이 큼).[^7]  
 
 ---
 
 ## 🚀 마무리
 2026년 6월 시점의 결론은 간단합니다.
 
-- “JSON을 뱉어라”는 이제 기본이고, **진짜 프로덕션은 schema enforcement**가 기준입니다. ([openai.com](https://openai.com/index/introducing-structured-outputs-in-the-api/?utm_source=openai))  
-- 다만 “JSON Schema”라고 해서 표준 전체가 아니라 **provider별 subset + 제약**이 존재합니다(특히 객체의 닫힌 세계/required 강제 같은 형태가 실무 안정성에 직결). ([jsonic.io](https://jsonic.io/guides/openai-structured-outputs?utm_source=openai))  
-- 함수 호출/에이전트 파이프라인에서는 “스키마 강제 + 서버 검증 + provider별 변환” 3단 방어가 가장 현실적입니다. ([reddit.com](https://www.reddit.com/r/LLMDevs/comments/1ufap2m/we_sent_the_same_json_schema_to_gpt55_claude/?utm_source=openai))  
+- “JSON을 뱉어라”는 이제 기본이고, **진짜 프로덕션은 schema enforcement**가 기준입니다.[^2]  
+- 다만 “JSON Schema”라고 해서 표준 전체가 아니라 **provider별 subset + 제약**이 존재합니다(특히 객체의 닫힌 세계/required 강제 같은 형태가 실무 안정성에 직결).[^3]  
+- 함수 호출/에이전트 파이프라인에서는 “스키마 강제 + 서버 검증 + provider별 변환” 3단 방어가 가장 현실적입니다.[^8]  
 
 도입 판단 기준(추천):
 - 다운스트림이 typed/엄격하고, 자동화로 비용을 아끼고 싶다면 → **Structured Outputs 우선**
 - 출력 형태가 유동적이고 실험이 우선이면 → **JSON mode + 느슨한 validator**(혹은 아예 비정형)로 시작, 이후 계약이 굳으면 스키마화
 
 다음 학습 추천:
-- OpenAI Structured Outputs의 constrained decoding/제약(공식 소개 + 가이드) ([openai.com](https://openai.com/index/introducing-structured-outputs-in-the-api/?utm_source=openai))  
-- Gemini structured output 문서(지원 키워드 subset 확인) ([ai.google.dev](https://ai.google.dev/gemini-api/docs/structured-output?utm_source=openai))  
-- Claude structured outputs(툴 정의/스키마 기반 강제 출력 전략) ([claude.com](https://claude.com/blog/structured-outputs-on-the-claude-developer-platform?utm_source=openai))
+- OpenAI Structured Outputs의 constrained decoding/제약(공식 소개 + 가이드)[^2]  
+- Gemini structured output 문서(지원 키워드 subset 확인)[^4]  
+- Claude structured outputs(툴 정의/스키마 기반 강제 출력 전략)[^5]
+
+[^1]: <https://platform.openai.com/docs/guides/structured-outputs?api-mode=chat>
+[^2]: <https://openai.com/index/introducing-structured-outputs-in-the-api/>
+[^3]: <https://jsonic.io/guides/openai-structured-outputs>
+[^4]: <https://ai.google.dev/gemini-api/docs/structured-output>
+[^5]: <https://claude.com/blog/structured-outputs-on-the-claude-developer-platform>
+[^6]: <https://www.reddit.com/r/LLMDevs/comments/1tarfl4/i_got_tired_of_digging_through_structured_outputs/>
+[^7]: <https://arxiv.org/abs/2606.09410>
+[^8]: <https://www.reddit.com/r/LLMDevs/comments/1ufap2m/we_sent_the_same_json_schema_to_gpt55_claude/>

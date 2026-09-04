@@ -1,12 +1,14 @@
 ---
 title: "Supervisor가 팀장이고 Worker가 실무자라면, 2026년형 Multi‑Agent Orchestration은 “대화형 LLM을 분산 시스템처럼 운영”하는 문제를 다룹니다"
+description: "2026년 7월 기준 multi-agent orchestration에서 supervisor/worker 패턴이 다시 주목받는 이유는 명확합니다. 단일 agent + tools로는 다음이 잘 안 풀립니다."
 date: 2026-07-29 03:20:52 +0900
 categories: [AI, Agent]
-tags: [ai, agent, trend, 2026-07]
+tags: [ai, agent]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -23,7 +25,7 @@ tags: [ai, agent, trend, 2026-07]
 - 품질을 끌어올리려면 **전문화(compiler, DB, security, writer 등)** 가 필요함
 - 비용/지연을 통제하려면 **어떤 step을 어떤 모델로** 돌릴지 강제해야 함
 
-Supervisor/worker는 “한 명이 다 한다”에서 “**오케스트레이션(결정)과 실행(행동)을 분리**”로 바꾸는 구조입니다. LangGraph는 이를 state graph로 명시해 디버깅 가능하게 만들었고(슈퍼바이저 노드가 worker 서브그래프를 라우팅) ([learn.engineering.vips.edu](https://learn.engineering.vips.edu/agent-protocols/langgraph-supervisor-pattern?utm_source=openai)), OpenAI Agents SDK는 manager(agents-as-tools) vs handoffs(위임)라는 두 축으로 오케스트레이션 선택지를 정리했습니다. ([openai.github.io](https://openai.github.io/openai-agents-python/multi_agent/?utm_source=openai))
+Supervisor/worker는 “한 명이 다 한다”에서 “**오케스트레이션(결정)과 실행(행동)을 분리**”로 바꾸는 구조입니다. LangGraph는 이를 state graph로 명시해 디버깅 가능하게 만들었고(슈퍼바이저 노드가 worker 서브그래프를 라우팅)[^1], OpenAI Agents SDK는 manager(agents-as-tools) vs handoffs(위임)라는 두 축으로 오케스트레이션 선택지를 정리했습니다.[^2]
 
 **언제 쓰면 좋나**
 - 워크플로가 “대충 LLM에게 맡기면 되지”가 아니라, **SLA/비용/감사(audit)** 가 있는 서비스(사내 운영 자동화, 티켓 처리, 문서 추출/검증 등)
@@ -42,7 +44,7 @@ Supervisor/worker는 “한 명이 다 한다”에서 “**오케스트레이�
 - **Supervisor(Orchestrator/Manager)**: 현재 상태(state)와 목표를 보고 “다음에 누굴 실행할지” 결정
 - **Worker(Specialist)**: 좁은 범위의 책임을 가진 실행 유닛(툴 호출/분석/검증/작성 등)
 
-LangGraph 스타일에서는 supervisor가 **라우터 노드**로 존재하고, worker는 **각각 독립 프롬프트+툴을 가진 노드/서브그래프**로 구성됩니다. 이 구조의 장점은 control flow가 코드/그래프로 고정되어 **재현/리플레이/체크포인팅**이 가능하다는 점입니다. ([learn.engineering.vips.edu](https://learn.engineering.vips.edu/agent-protocols/langgraph-supervisor-pattern?utm_source=openai))
+LangGraph 스타일에서는 supervisor가 **라우터 노드**로 존재하고, worker는 **각각 독립 프롬프트+툴을 가진 노드/서브그래프**로 구성됩니다. 이 구조의 장점은 control flow가 코드/그래프로 고정되어 **재현/리플레이/체크포인팅**이 가능하다는 점입니다.[^1]
 
 ### 2) 내부 작동 방식(흐름)
 실무에서 “작동한다” 수준을 넘어서려면, 메시지/상태/결정이 어떻게 흐르는지 명확해야 합니다.
@@ -64,10 +66,10 @@ LangGraph 스타일에서는 supervisor가 **라우터 노드**로 존재하고,
 여기서 2026년 관점의 핵심은 “multi-agent = 메시지 많이 주고받기”가 아니라,
 - **Supervisor 컨텍스트는 얇게(오케스트레이션 전용)**
 - **Worker 컨텍스트는 두껍게(작업 전용)**
-로 나눠서 **컨텍스트 윈도우와 툴 스키마 폭발을 막는 것**입니다. (LangChain의 async-deep-agents도 비슷한 취지로 supervisor와 subagent의 컨텍스트를 분리하는 접근을 설명합니다.) ([github.com](https://github.com/langchain-ai/async-deep-agents?utm_source=openai))
+로 나눠서 **컨텍스트 윈도우와 툴 스키마 폭발을 막는 것**입니다. (LangChain의 async-deep-agents도 비슷한 취지로 supervisor와 subagent의 컨텍스트를 분리하는 접근을 설명합니다.)[^3]
 
 ### 3) 다른 접근과의 차이점(선택 기준)
-OpenAI Agents SDK 문서 기준으로 보면 크게 두 가지가 자주 쓰입니다. ([openai.github.io](https://openai.github.io/openai-agents-python/multi_agent/?utm_source=openai))
+OpenAI Agents SDK 문서 기준으로 보면 크게 두 가지가 자주 쓰입니다.[^2]
 
 - **Agents as tools (Manager pattern)**  
   Supervisor가 계속 유저-facing “소유권”을 갖고, worker를 tool처럼 호출.  
@@ -75,7 +77,7 @@ OpenAI Agents SDK 문서 기준으로 보면 크게 두 가지가 자주 쓰입�
   - 단점: supervisor가 결과를 계속 읽고 합치면 token이 누적되기 쉬움
 
 - **Handoffs (Decentralized)**  
-  triage가 라우팅하면, 그 worker가 해당 턴의 주도권을 가져감. ([openai.github.io](https://openai.github.io/openai-agents-python/multi_agent/?utm_source=openai))  
+  triage가 라우팅하면, 그 worker가 해당 턴의 주도권을 가져감.[^2]  
   - 장점: 각 agent 프롬프트를 극도로 좁게 유지 가능, 장황한 “중간 보고”가 줄어듦
   - 단점: “최종 합성”을 어디서 책임질지 애매해지면 품질 편차/UX 흔들림
 
@@ -91,7 +93,7 @@ Supervisor/worker를 production에 넣을 때는 대체로 **Manager(중앙집�
   - `log_analyst`: 로그/에러 패턴 요약(여기서는 샘플 로그 파일을 읽는 tool)
   - `kb_retriever`: runbook/운영 지침 검색(여기서는 로컬 KB를 grep)
   - `risk_checker`: 조치의 위험도/권한 검토(정책 룰 기반)
-- 기술 스택: **OpenAI Agents SDK (Python)** 의 “agents as tools” 스타일(= supervisor가 worker를 tool로 호출) ([openai.github.io](https://openai.github.io/openai-agents-python/multi_agent/?utm_source=openai))
+- 기술 스택: **OpenAI Agents SDK (Python)** 의 “agents as tools” 스타일(= supervisor가 worker를 tool로 호출)[^2]
 
 ### 0) 의존성/환경
 ```bash
@@ -242,7 +244,7 @@ if __name__ == "__main__":
 - runbook에서 체크리스트/완화/롤백 추출
 - timeout 상향 같은 조치에 “approval 필요” 플래그
 
-이 예제의 포인트는 “toy 계산”이 아니라, 실제 운영에서 중요한 **(1) 얇은 supervisor, (2) 전용 worker, (3) 정책 게이트**를 최소 코드로 구현한 겁니다. Agents SDK는 이런 오케스트레이션 패턴(agents as tools vs handoffs)을 공식 문서로 정리해두고 있습니다. ([openai.github.io](https://openai.github.io/openai-agents-python/multi_agent/?utm_source=openai))
+이 예제의 포인트는 “toy 계산”이 아니라, 실제 운영에서 중요한 **(1) 얇은 supervisor, (2) 전용 worker, (3) 정책 게이트**를 최소 코드로 구현한 겁니다. Agents SDK는 이런 오케스트레이션 패턴(agents as tools vs handoffs)을 공식 문서로 정리해두고 있습니다.[^2]
 
 ---
 
@@ -250,16 +252,16 @@ if __name__ == "__main__":
 ### Best Practice
 1) **Worker 계약(Contract)을 ‘입력/출력 스키마’로 고정**
 - “좋은 글 써줘”가 아니라 `hypothesis`, `checks`, `mitigations[]` 같은 구조로.
-- OpenAI 쪽 가이드도 “컴포넌트를 composable하게” 만들고 프롬프트를 역할 중심으로 좁히라고 강조합니다. ([openai.com](https://openai.com/business/guides-and-resources/a-practical-guide-to-building-ai-agents/?utm_source=openai))
+- OpenAI 쪽 가이드도 “컴포넌트를 composable하게” 만들고 프롬프트를 역할 중심으로 좁히라고 강조합니다.[^4]
 
 2) **State를 두 층으로 나눠라: flow state vs agent state**
 - flow state: 진행단계, 예산, 승인여부, artifacts
 - agent state: 각 worker의 내부 chain-of-thought에 해당하는 중간 텍스트는 가급적 저장하지 말고 **요약만** 남기기
-- 그래프 기반 접근(LangGraph)은 typed state/체크포인트/리플레이를 강조하는 흐름이 강합니다. ([arxiv.org](https://arxiv.org/abs/2607.19297?utm_source=openai))
+- 그래프 기반 접근(LangGraph)은 typed state/체크포인트/리플레이를 강조하는 흐름이 강합니다.[^5]
 
 3) **Supervisor는 “라우팅 + 합성 + 종료조건”만**
 - supervisor가 도메인 세부를 알기 시작하면 컨텍스트가 다시 비대해집니다.
-- LangGraph 쪽에서도 tool 기반 supervisor 패턴이 context engineering 제어에 유리하다고 언급합니다. ([reference.langchain.com](https://reference.langchain.com/python/langgraph-supervisor?utm_source=openai))
+- LangGraph 쪽에서도 tool 기반 supervisor 패턴이 context engineering 제어에 유리하다고 언급합니다.[^6]
 
 ### 흔한 함정/안티패턴
 - **무한 핑퐁 루프**: worker A가 “B에게 물어봐” → B가 “A가 해야” → 비용 폭발  
@@ -270,10 +272,10 @@ if __name__ == "__main__":
   → 해결: tool은 worker에 캡슐화하고, supervisor는 “worker 호출 툴”만 가진다(위 코드 구조).
 
 ### 비용/성능/안정성 트레이드오프
-- 비용: 대체로 **2~3배 토큰/호출**이 되는 순간이 많습니다(재시도/중복 요약/핑퐁). 커뮤니티에서도 이 패턴이 반복적으로 언급됩니다. ([reddit.com](https://www.reddit.com/r/LangChain/comments/1sxmbgk/anyone_running_multiagent_setups_in_prod_curious/?utm_source=openai))  
+- 비용: 대체로 **2~3배 토큰/호출**이 되는 순간이 많습니다(재시도/중복 요약/핑퐁). 커뮤니티에서도 이 패턴이 반복적으로 언급됩니다.[^7]  
 - 성능(지연): 병렬 fan-out(여러 worker 동시 실행)는 빨라지지만, merge/합성에서 다시 병목이 생김
 - 안정성: supervisor가 모든 것을 결정하게 하면 “한 모델의 판단 실패”가 전체 실패로 이어짐  
-  → 그래서 실무에서는 **결정의 일부를 code로 고정(규칙 라우팅)** 하고, LLM은 애매한 구간에만 쓰는 하이브리드가 많습니다(Agents SDK도 code-orchestrated와 LLM-orchestrated를 혼합 가능하다고 설명). ([openai.github.io](https://openai.github.io/openai-agents-python/multi_agent/?utm_source=openai))
+  → 그래서 실무에서는 **결정의 일부를 code로 고정(규칙 라우팅)** 하고, LLM은 애매한 구간에만 쓰는 하이브리드가 많습니다(Agents SDK도 code-orchestrated와 LLM-orchestrated를 혼합 가능하다고 설명).[^2]
 
 ---
 
@@ -287,5 +289,13 @@ Supervisor/worker 패턴은 “에이전트를 여러 개 붙이면 똑똑해진
 - (경고) Evals/관측성에 투자할 수 없으면 multi-agent는 “문제 증폭기”가 될 수 있음
 
 다음 학습 추천:
-- OpenAI Agents SDK의 orchestration(agents as tools vs handoffs) 문서로 패턴 선택 기준을 먼저 정리하고 ([openai.github.io](https://openai.github.io/openai-agents-python/multi_agent/?utm_source=openai))
-- LangGraph supervisor 패턴을 state graph로 구현해 **checkpoint/리플레이/디버깅**까지 포함한 운영 모델을 잡는 순서를 추천합니다. ([learn.engineering.vips.edu](https://learn.engineering.vips.edu/agent-protocols/langgraph-supervisor-pattern?utm_source=openai))
+- OpenAI Agents SDK의 orchestration(agents as tools vs handoffs) 문서로 패턴 선택 기준을 먼저 정리하고[^2]
+- LangGraph supervisor 패턴을 state graph로 구현해 **checkpoint/리플레이/디버깅**까지 포함한 운영 모델을 잡는 순서를 추천합니다.[^1]
+
+[^1]: <https://learn.engineering.vips.edu/agent-protocols/langgraph-supervisor-pattern>
+[^2]: <https://openai.github.io/openai-agents-python/multi_agent/>
+[^3]: <https://github.com/langchain-ai/async-deep-agents>
+[^4]: <https://openai.com/business/guides-and-resources/a-practical-guide-to-building-ai-agents/>
+[^5]: <https://arxiv.org/abs/2607.19297>
+[^6]: <https://reference.langchain.com/python/langgraph-supervisor>
+[^7]: <https://www.reddit.com/r/LangChain/comments/1sxmbgk/anyone_running_multiagent_setups_in_prod_curious/>

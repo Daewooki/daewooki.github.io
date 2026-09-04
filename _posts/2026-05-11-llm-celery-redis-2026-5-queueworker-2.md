@@ -1,12 +1,14 @@
 ---
 title: "LLM 백엔드 비동기 처리, “Celery + Redis”로 끝내도 될까? (2026년 5월 기준 Queue/Worker 아키텍처 심층 분석)"
+description: "이때 Queue/Worker는 “느린 작업을 웹 요청 경로에서 떼어내고”, 재시도와 격리로 시스템을 안정화하는 가장 현실적인 선택입니다."
 date: 2026-05-11 04:11:04 +0900
 categories: [Backend, Architecture]
-tags: [backend, architecture, trend, 2026-05]
+tags: [backend, architecture]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -35,7 +37,7 @@ LLM을 백엔드에 붙이면 금방 이런 병목이 생깁니다.
 - 작업이 아주 가볍고 신뢰성이 덜 중요(예: “로그 적재” 정도) → 큐 운영비가 더 큼
 - “정확히 한 번(exactly-once)”을 강제해야 하는 금융/정산 성격의 핵심 트랜잭션(이건 워크플로/사가 + idempotency가 더 중요)
 
-추가로 2026년 5월 기준, LLM 제공 API 자체도 비동기 옵션을 강화했습니다. 예를 들어 OpenAI Responses API의 **background mode**(장시간 작업을 비동기로 시작하고 polling/stream 재접속)나 **Batch API**(대량 요청을 24시간 윈도우로 처리, 비용 절감/별도 rate limit pool)는 “우리 큐가 해야 할 일을 일부 대체”할 수 있습니다. 다만 이건 “벤더 내부 큐”이고, 우리 시스템의 관측/재처리/도메인 워크플로까지 커버하진 않습니다. ([platform.openai.com](https://platform.openai.com/docs/guides/background?utm_source=openai))
+추가로 2026년 5월 기준, LLM 제공 API 자체도 비동기 옵션을 강화했습니다. 예를 들어 OpenAI Responses API의 **background mode**(장시간 작업을 비동기로 시작하고 polling/stream 재접속)나 **Batch API**(대량 요청을 24시간 윈도우로 처리, 비용 절감/별도 rate limit pool)는 “우리 큐가 해야 할 일을 일부 대체”할 수 있습니다. 다만 이건 “벤더 내부 큐”이고, 우리 시스템의 관측/재처리/도메인 워크플로까지 커버하진 않습니다.[^1]
 
 ---
 
@@ -54,9 +56,9 @@ Celery에서 Redis를 broker로 쓰면(리스트 기반 transport), task message
 - `task_acks_late=True`  
   “작업을 다 끝낸 뒤 ack” → 워커가 죽으면 작업이 다시 실행될 수 있어 신뢰성이 올라가지만, **중복 실행** 가능성이 커집니다(LLM 비용/부작용 주의).
 - Redis broker의 `visibility_timeout`  
-  워커가 메시지를 가져갔는데 ack가 없으면 일정 시간 뒤 “다른 워커에게 재전달”될 수 있습니다. 문서에서도 visibility timeout을 설정할 수 있지만, 너무 공격적으로 설정하면 오히려 신뢰성/중복 실행/재큐잉 폭풍을 만들 수 있다고 경고합니다. ([docs.celeryq.dev](https://docs.celeryq.dev/en/v5.5.3/getting-started/backends-and-brokers/redis.html?utm_source=openai))
+  워커가 메시지를 가져갔는데 ack가 없으면 일정 시간 뒤 “다른 워커에게 재전달”될 수 있습니다. 문서에서도 visibility timeout을 설정할 수 있지만, 너무 공격적으로 설정하면 오히려 신뢰성/중복 실행/재큐잉 폭풍을 만들 수 있다고 경고합니다.[^2]
 - “워커 종료”는 운영에서 진짜 중요  
-  Redis/SQS처럼 visibility timeout 메커니즘이 있는 broker에서는 Celery가 **soft shutdown**으로 “미처리(unacked) 메시지를 다시 큐로 돌려놓는” 동작을 더 안전하게 만들려는 개선이 들어가고 있습니다(종료 직전에 visibility timeout을 리셋해 re-queue를 돕는 취지). 2026년 Celery 5.6 계열 변경 로그에 이 내용이 명시돼 있습니다. ([docs.celeryq.dev](https://docs.celeryq.dev/en/stable/changelog.html?utm_source=openai))
+  Redis/SQS처럼 visibility timeout 메커니즘이 있는 broker에서는 Celery가 **soft shutdown**으로 “미처리(unacked) 메시지를 다시 큐로 돌려놓는” 동작을 더 안전하게 만들려는 개선이 들어가고 있습니다(종료 직전에 visibility timeout을 리셋해 re-queue를 돕는 취지). 2026년 Celery 5.6 계열 변경 로그에 이 내용이 명시돼 있습니다.[^3]
 
 핵심 차이점: “Celery는 HTTP async가 아니라 ‘distributed task processing’”
 - FastAPI/asyncio는 “요청 처리 모델”의 비동기고,
@@ -262,8 +264,8 @@ def get_job(job_id: str):
 - `GET /jobs/{id}`로 polling(또는 WebSocket/SSE로 확장)
 
 여기서 중요한 연결점:
-- OpenAI의 **background mode**를 쓰면 “LLM 호출 자체를 vendor 쪽에서 비동기로 돌리고 polling”할 수 있습니다. 하지만 우리는 여전히 “우리 도메인 작업(인덱싱/권한/감사/재처리)”을 orchestrate해야 해서 Celery 같은 워커가 유효합니다. ([platform.openai.com](https://platform.openai.com/docs/guides/background?utm_source=openai))
-- 대량/비실시간 처리(예: 하루치 문서 전수 요약)는 OpenAI **Batch API**로 비용/레이트리밋을 분리해 먹는 게 훨씬 유리할 수 있습니다. ([platform.openai.com](https://platform.openai.com/docs/guides/batch/?utm_source=openai))
+- OpenAI의 **background mode**를 쓰면 “LLM 호출 자체를 vendor 쪽에서 비동기로 돌리고 polling”할 수 있습니다. 하지만 우리는 여전히 “우리 도메인 작업(인덱싱/권한/감사/재처리)”을 orchestrate해야 해서 Celery 같은 워커가 유효합니다.[^1]
+- 대량/비실시간 처리(예: 하루치 문서 전수 요약)는 OpenAI **Batch API**로 비용/레이트리밋을 분리해 먹는 게 훨씬 유리할 수 있습니다.[^4]
 
 ---
 
@@ -276,7 +278,7 @@ def get_job(job_id: str):
 - 외부 부작용(메일 발송 등)은 outbox 패턴/중복 방지 키를 반드시 적용
 
 ### Best Practice 2) Redis visibility_timeout은 “최대 작업시간”이 아니라 “장애 복구 정책”이다
-문서에서는 Redis broker의 visibility timeout을 설정할 수 있지만, 신뢰성에 영향이 있고(너무 짧으면 중복 실행/재큐 폭풍), shutdown 시 unacked 메시지를 재큐잉하는 동작도 영향을 받습니다. ([docs.celeryq.dev](https://docs.celeryq.dev/en/v5.5.3/getting-started/backends-and-brokers/redis.html?utm_source=openai))  
+문서에서는 Redis broker의 visibility timeout을 설정할 수 있지만, 신뢰성에 영향이 있고(너무 짧으면 중복 실행/재큐 폭풍), shutdown 시 unacked 메시지를 재큐잉하는 동작도 영향을 받습니다.[^2]  
 권장 판단:
 - LLM job의 p99 수행시간 + 네트워크 흔들림 + 워커 shutdown grace를 고려
 - “30분짜리 작업”이면 visibility_timeout 30분이 아니라 **40~60분**이 안전한 경우가 많음
@@ -294,7 +296,7 @@ Celery는 기본적으로 프로세스/스레드 기반 태스크 실행 모델�
 ### 비용/성능/안정성 트레이드오프(LLM 특화)
 - **재시도**는 안정성을 올리지만 비용을 폭발시킴 → 429/5xx만 재시도하고, “입력 오류/정책 거절”은 즉시 실패 처리
 - **결과 저장(result backend)**를 Redis에 오래 두면 메모리/운영비 증가 → 상태는 DB로, Redis는 캐시/락 용도로 최소화
-- **OpenAI background mode / Batch**를 섞으면 워커 부담은 줄지만, 벤더 저장/보관 정책(ZDR 비호환 등)과 TTL(예: background polling용 임시 저장)을 이해해야 함 ([platform.openai.com](https://platform.openai.com/docs/guides/background?utm_source=openai))
+- **OpenAI background mode / Batch**를 섞으면 워커 부담은 줄지만, 벤더 저장/보관 정책(ZDR 비호환 등)과 TTL(예: background polling용 임시 저장)을 이해해야 함[^1]
 
 ---
 
@@ -304,12 +306,15 @@ Celery는 기본적으로 프로세스/스레드 기반 태스크 실행 모델�
 도입 판단 기준(현실 체크리스트)
 - 작업이 10초 이상, 실패/재시도가 잦다 → Queue/Worker가 맞다
 - 중복 실행이 치명적(비용/부작용) → idempotency/upsert/outbox 없으면 시작하지 말 것
-- “대량 비실시간 처리”가 많다 → OpenAI Batch 같은 벤더 비동기와 혼합 설계를 고려 ([platform.openai.com](https://platform.openai.com/docs/guides/batch/?utm_source=openai))
-- 워커 종료/배포가 잦다 → Redis visibility timeout, shutdown 동작(soft shutdown 등)을 운영정책으로 잡아라 ([docs.celeryq.dev](https://docs.celeryq.dev/en/stable/changelog.html?utm_source=openai))
+- “대량 비실시간 처리”가 많다 → OpenAI Batch 같은 벤더 비동기와 혼합 설계를 고려[^4]
+- 워커 종료/배포가 잦다 → Redis visibility timeout, shutdown 동작(soft shutdown 등)을 운영정책으로 잡아라[^3]
 
 다음 학습 추천
 - Celery Redis broker의 visibility timeout/ack/shutdown 동작을 “장애 시나리오”로 재현해보기(워커 kill -9, 네트워크 단절, Redis failover)
 - LLM 비용 최적화: (1) 캐시/중복제거, (2) Batch 처리, (3) 실패 분류 기반 재시도 정책
 - “상태 저장을 Redis에 둘지 DB에 둘지”를 팀의 운영 역량/데이터 보존 요구로 결정하기
 
-원하시면, 위 예제를 (1) PostgreSQL에 job 테이블로 상태 영속화, (2) 작업 취소(cancel), (3) 우선순위 큐(긴 작업/짧은 작업 분리), (4) OpenAI background mode를 “워커 내부에서 polling”으로 결합하는 형태로 확장한 버전까지 이어서 작성해드릴게요.
+[^1]: <https://platform.openai.com/docs/guides/background>
+[^2]: <https://docs.celeryq.dev/en/v5.5.3/getting-started/backends-and-brokers/redis.html>
+[^3]: <https://docs.celeryq.dev/en/stable/changelog.html>
+[^4]: <https://platform.openai.com/docs/guides/batch/>

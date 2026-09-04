@@ -1,12 +1,14 @@
 ---
-title: "RAG 성능을 좌우하는 Chunking 전략: 2026년 8월 기준 “Overlap vs Semantic Chunking” 실전 선택 가이드"
+title: "RAG 성능을 좌우하는 Chunking 전략: “Overlap vs Semantic Chunking” 실전 선택 가이드"
+description: "RAG에서 “검색이 잘 안 된다”는 문제의 상당수는 Retriever나 Embedding이 아니라 document splitting(=chunking)에서 이미 결정됩니다."
 date: 2026-08-21 01:46:57 +0900
 categories: [AI, RAG]
-tags: [ai, rag, trend, 2026-08]
+tags: [ai, rag]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -25,7 +27,7 @@ RAG에서 “검색이 잘 안 된다”는 문제의 상당수는 Retriever나 
 
 언제 쓰면 안 되나?
 - 코퍼스가 매우 짧고(예: 각 문서가 1~2문단) 질문도 단순한 경우: 과한 chunking은 오히려 중복 인덱싱만 만듭니다.
-- 다이어그램/도면(P&ID 등)처럼 정보가 시각적/공간적으로 인코딩된 문서: 텍스트 chunking만으로 한계가 크며 multimodal 접근이 필요합니다. ([arxiv.org](https://arxiv.org/abs/2603.24556))
+- 다이어그램/도면(P&ID 등)처럼 정보가 시각적/공간적으로 인코딩된 문서: 텍스트 chunking만으로 한계가 크며 multimodal 접근이 필요합니다.[^1]
 
 ---
 
@@ -36,16 +38,16 @@ RAG에서 “검색이 잘 안 된다”는 문제의 상당수는 Retriever나 
 1. **Document splitting**: 어디를 “끊을지” 결정  
    - content-independent: token/char/sentence/paragraph 기반  
    - content-dependent: speaker turn(콜 transcript), 섹션 경계, 코드 블록/표 경계 등  
-   Cohere의 가이드도 이 분리를 명시하고, transcript처럼 구조를 보존해야 하는 경우 content-dependent split이 유리하다고 설명합니다. ([docs.cohere.com](https://docs.cohere.com/page/chunking-strategies))
+   Cohere의 가이드도 이 분리를 명시하고, transcript처럼 구조를 보존해야 하는 경우 content-dependent split이 유리하다고 설명합니다.[^2]
 
 2. **Chunk assembly**: split 조각들을 “얼마나 묶어서” 최종 chunk로 만들지(=chunk size 정책)
    - 작은 chunk: retrieval precision↑, 문맥↓
    - 큰 chunk: 문맥↑, retrieval dilution↑  
-   Hugging Face cookbook도 “너무 작으면 아이디어가 잘리고, 너무 크면 의미가 희석된다”고 정리합니다. ([huggingface.co](https://huggingface.co/learn/cookbook/advanced_rag))
+   Hugging Face cookbook도 “너무 작으면 아이디어가 잘리고, 너무 크면 의미가 희석된다”고 정리합니다.[^3]
 
 3. **Overlap**: 끊긴 경계의 손실을 “중복”으로 복구  
    - 장점: 경계에서 핵심 문장/근거가 반으로 잘리는 리스크 완화
-   - 단점: 인덱스 중복(비용/저장/latency) + 상위 K 결과가 유사 chunk로 도배될 위험 ([docs.cohere.com](https://docs.cohere.com/page/chunking-strategies))
+   - 단점: 인덱스 중복(비용/저장/latency) + 상위 K 결과가 유사 chunk로 도배될 위험[^2]
 
 ### 2) Overlap vs Semantic chunking의 구조적 차이
 #### Overlap(슬라이딩/윈도우) 기반
@@ -65,10 +67,10 @@ RAG에서 “검색이 잘 안 된다”는 문제의 상당수는 Retriever나 
 - **약점**: 임베딩 비용/시간 + 임계치 튜닝이 도메인 의존적. 표/코드/레이아웃 문서는 오히려 구조 기반이 더 낫기도 함(아래 참고).
 
 ### 3) 2026년 트렌드: “한 가지 chunker”가 아니라 “문서별 선택(Adaptive)”
-2026년 논문 흐름에서 눈에 띄는 건 **Adaptive Chunking**입니다. 핵심은 “어떤 chunker가 최고냐”가 아니라, 문서의 특징(구조/참조/블록 무결성 등)에 따라 **문서별로 chunking 전략을 고르는 것**. intrinsic metric(RC, ICC, DCC, BI, SC)을 정의해 chunk 품질을 직접 평가하고, 모델/프롬프트를 바꾸지 않고도 정답률을 올렸다고 보고합니다. ([arxiv.org](https://arxiv.org/abs/2603.25333))
+2026년 논문 흐름에서 눈에 띄는 건 **Adaptive Chunking**입니다. 핵심은 “어떤 chunker가 최고냐”가 아니라, 문서의 특징(구조/참조/블록 무결성 등)에 따라 **문서별로 chunking 전략을 고르는 것**. intrinsic metric(RC, ICC, DCC, BI, SC)을 정의해 chunk 품질을 직접 평가하고, 모델/프롬프트를 바꾸지 않고도 정답률을 올렸다고 보고합니다.[^4]
 
-또한 2026년 산업 문서(오일&가스) 평가에서는 **structure-aware chunking이 semantic이나 baseline 대비 top-K retrieval에서 유리하고 비용도 낮았다**고 보고합니다. 특히 표/도면류는 텍스트-only RAG의 한계를 분명히 지적합니다. ([arxiv.org](https://arxiv.org/abs/2603.24556))  
-PDF 파싱/변환 쪽에서도 “hierarchical splitting + metadata enrichment”가 정확도에 크게 기여한다는 결과가 반복됩니다. ([arxiv.org](https://arxiv.org/abs/2604.04948?utm_source=openai))
+또한 2026년 산업 문서(오일&가스) 평가에서는 **structure-aware chunking이 semantic이나 baseline 대비 top-K retrieval에서 유리하고 비용도 낮았다**고 보고합니다. 특히 표/도면류는 텍스트-only RAG의 한계를 분명히 지적합니다.[^1]  
+PDF 파싱/변환 쪽에서도 “hierarchical splitting + metadata enrichment”가 정확도에 크게 기여한다는 결과가 반복됩니다.[^5]
 
 ---
 
@@ -100,14 +102,12 @@ import numpy as np
 import faiss
 from sentence_transformers import SentenceTransformer
 
-
 # --------- 데이터 모델 ---------
 @dataclass
 class Chunk:
     chunk_id: str
     text: str
     meta: Dict
-
 
 # --------- 유틸: 코드블록 보호 + heading 기반 섹션 분해 ---------
 CODE_FENCE_RE = re.compile(r"```.*?\n.*?\n```", re.DOTALL)
@@ -155,7 +155,6 @@ def split_markdown_by_headings(md: str) -> List[Tuple[str, str]]:
 
     return [(title, _restore(text)) for title, text in sections if text]
 
-
 # --------- 유틸: 문장 단위 분해(간단 버전) ---------
 SENT_SPLIT_RE = re.compile(r"(?<=[.!?])\s+|\n+")
 
@@ -163,7 +162,6 @@ def to_sentences(text: str) -> List[str]:
     sents = [s.strip() for s in SENT_SPLIT_RE.split(text) if s.strip()]
     # 너무 짧은 조각은 앞에 붙이는 등 후처리 가능(실무에서는 권장)
     return sents
-
 
 # --------- Semantic chunking (breakpoint based) ---------
 def semantic_chunk_sentences(
@@ -205,7 +203,6 @@ def semantic_chunk_sentences(
 
     return [c for c in chunks if c]
 
-
 # --------- Overlap (선택): chunk 경계 완충 ---------
 def apply_overlap(chunks: List[str], overlap_chars: int = 200) -> List[str]:
     if overlap_chars <= 0 or len(chunks) <= 1:
@@ -218,7 +215,6 @@ def apply_overlap(chunks: List[str], overlap_chars: int = 200) -> List[str]:
         prefix = prev[-overlap_chars:] if len(prev) > overlap_chars else prev
         out.append((prefix + "\n" + cur).strip())
     return out
-
 
 # --------- 인덱싱: FAISS ---------
 class FaissIndex:
@@ -246,7 +242,6 @@ class FaissIndex:
                 continue
             results.append((self.chunks[idx], float(score)))
         return results
-
 
 # --------- 현실적 시나리오: 정책/런북 문서 ingest ---------
 def ingest_markdown_docs(docs: List[Tuple[str, str]]) -> List[Chunk]:
@@ -286,7 +281,6 @@ def ingest_markdown_docs(docs: List[Tuple[str, str]]) -> List[Chunk]:
                     )
                 )
     return all_chunks
-
 
 if __name__ == "__main__":
     # 예시: SRE 런북 + 보안 정책 같은 “현실 문서”를 가정(텍스트는 짧게 축약)
@@ -343,9 +337,9 @@ Exceptions require approval from Security and are time-boxed.
 - overlap 덕분에 바로 앞 문장(맥락)까지 일부 같이 들어오는 형태가 됩니다.
 
 이 파이프라인이 실무적으로 중요한 이유:
-- Hugging Face가 말한 것처럼 recursive/구조 보존이 문서 전체 구조를 유지하는 데 유리하고 ([huggingface.co](https://huggingface.co/learn/cookbook/advanced_rag))
-- Cohere가 강조한 overlap의 “경계 완충”을 과도한 중복 없이 최소로만 적용하며 ([docs.cohere.com](https://docs.cohere.com/page/chunking-strategies))
-- 최근 연구들이 반복해서 보여주는 “structure-aware가 종종 semantic보다 싸고 잘 먹힌다”는 결과를 반영하기 때문입니다. ([arxiv.org](https://arxiv.org/abs/2603.24556))
+- Hugging Face가 말한 것처럼 recursive/구조 보존이 문서 전체 구조를 유지하는 데 유리하고[^3]
+- Cohere가 강조한 overlap의 “경계 완충”을 과도한 중복 없이 최소로만 적용하며[^2]
+- 최근 연구들이 반복해서 보여주는 “structure-aware가 종종 semantic보다 싸고 잘 먹힌다”는 결과를 반영하기 때문입니다.[^1]
 
 ---
 
@@ -353,20 +347,20 @@ Exceptions require approval from Security and are time-boxed.
 ### Best Practice (바로 적용 가능)
 1) **heading path / metadata를 chunk에 넣어라**
 - “섹션 제목 + 문서 경로”는 retrieval precision을 올리는 가장 싼 방법입니다.
-- PDF→Markdown 파이프라인 평가에서도 hierarchical splitting과 metadata enrichment가 정확도에 크게 기여한다고 보고됩니다. ([arxiv.org](https://arxiv.org/abs/2604.04948?utm_source=openai))
+- PDF→Markdown 파이프라인 평가에서도 hierarchical splitting과 metadata enrichment가 정확도에 크게 기여한다고 보고됩니다.[^5]
 
 2) **semantic chunking은 ‘전체 문서’가 아니라 ‘구조로 잘라낸 섹션 내부’에서만**
 - 전체 문서에 semantic을 돌리면 비용이 크고, 표/코드/목차 등 잡음이 breakpoint를 오염시킵니다.
-- 먼저 structure-aware split → 그 내부에서 semantic은 “미세 조정” 역할이 가장 안정적입니다(실무 체감 + 최근 구조 기반 우세 결과와도 부합). ([arxiv.org](https://arxiv.org/abs/2603.24556))
+- 먼저 structure-aware split → 그 내부에서 semantic은 “미세 조정” 역할이 가장 안정적입니다(실무 체감 + 최근 구조 기반 우세 결과와도 부합).[^1]
 
 3) **Overlap은 기본값이 아니라 “보험료”로 취급**
 - overlap은 중복 인덱싱 비용을 영구히 발생시키므로 “필요 최소”로.
-- 특히 semantic chunking까지 쓰면 overlap을 크게 줄이거나(예: 10% 미만) 아예 꺼도 되는 케이스가 많습니다. ([docs.cohere.com](https://docs.cohere.com/page/chunking-strategies))
+- 특히 semantic chunking까지 쓰면 overlap을 크게 줄이거나(예: 10% 미만) 아예 꺼도 되는 케이스가 많습니다.[^2]
 
 ### 흔한 함정 / 안티패턴
 - **고정 token chunk + 큰 overlap만으로 모든 문서를 해결하려는 접근**: 빠르게 만들 수는 있지만, 섹션/표/코드 경계를 무시하면 top-K가 “비슷한 중복 chunk”로 채워져 실제 근거가 묻힙니다.
-- **semantic chunking 임계치(breakpoint_sim)를 한 번 정하고 영원히 고정**: 도메인/문체가 바뀌면 바로 성능이 흔들립니다. 2026년에는 문서별 전략 선택(Adaptive)이 유효하다는 근거가 쌓이는 중입니다. ([arxiv.org](https://arxiv.org/abs/2603.25333))
-- **시각적 문서(P&ID/복잡한 표)를 텍스트로만 해결하려 함**: 연구에서도 순수 텍스트 chunking은 한계가 명확합니다. ([arxiv.org](https://arxiv.org/abs/2603.24556))
+- **semantic chunking 임계치(breakpoint_sim)를 한 번 정하고 영원히 고정**: 도메인/문체가 바뀌면 바로 성능이 흔들립니다. 2026년에는 문서별 전략 선택(Adaptive)이 유효하다는 근거가 쌓이는 중입니다.[^4]
+- **시각적 문서(P&ID/복잡한 표)를 텍스트로만 해결하려 함**: 연구에서도 순수 텍스트 chunking은 한계가 명확합니다.[^1]
 
 ### 비용/성능/안정성 트레이드오프(의사결정 기준)
 - 비용이 가장 큰 축: **semantic chunking(임베딩 비용) + overlap(저장/검색 중복)**
@@ -376,19 +370,25 @@ Exceptions require approval from Security and are time-boxed.
   2) chunk size 재조정(Reader context window 고려)
   3) overlap 최소 적용
   4) 그래도 부족하면 섹션 내부 semantic chunking
-  5) 코퍼스가 다양한 대규모면 Adaptive(문서별 선택)로 확장 ([arxiv.org](https://arxiv.org/abs/2603.25333))
+  5) 코퍼스가 다양한 대규모면 Adaptive(문서별 선택)로 확장[^4]
 
 ---
 
 ## 🚀 마무리
-2026년 8월 기준 chunking의 결론은 “semantic이냐 overlap이냐”의 이분법이 아니라, **구조 보존(structure-aware) → 필요 시 semantic → overlap은 최소 보험**의 레이어드 전략입니다. 최근 연구/가이드에서도 구조 보존과 문서별 전략 선택(Adaptive), 그리고 overlap의 장단점(완충 vs 중복)이 반복해서 강조됩니다. ([arxiv.org](https://arxiv.org/abs/2603.24556))
+2026년 8월 기준 chunking의 결론은 “semantic이냐 overlap이냐”의 이분법이 아니라, **구조 보존(structure-aware) → 필요 시 semantic → overlap은 최소 보험**의 레이어드 전략입니다. 최근 연구/가이드에서도 구조 보존과 문서별 전략 선택(Adaptive), 그리고 overlap의 장단점(완충 vs 중복)이 반복해서 강조됩니다.[^1]
 
 도입 판단 기준(빠른 체크리스트):
 - 문서에 heading/섹션이 있다 → structure-aware 먼저
 - 질문이 “정의/조건/예외/표 수치” 중심이다 → semantic(섹션 내부) 고려
 - “근거가 반쯤 잘린다” 이슈가 있다 → overlap을 최소로만 추가
-- 문서 타입이 다양하고 한 전략이 자주 깨진다 → Adaptive chunking(문서별 선택) 실험 ([arxiv.org](https://arxiv.org/abs/2603.25333))
+- 문서 타입이 다양하고 한 전략이 자주 깨진다 → Adaptive chunking(문서별 선택) 실험[^4]
 
 다음 학습 추천:
-- chunk 품질을 intrinsic metric으로 평가하고 문서별로 chunker를 고르는 Adaptive Chunking 흐름 ([arxiv.org](https://arxiv.org/abs/2603.25333))
-- PDF → Markdown 변환과 hierarchical splitting/metadata enrichment가 QA 정확도에 미치는 영향(“chunking 이전 단계”까지 포함) ([arxiv.org](https://arxiv.org/abs/2604.04948?utm_source=openai))
+- chunk 품질을 intrinsic metric으로 평가하고 문서별로 chunker를 고르는 Adaptive Chunking 흐름[^4]
+- PDF → Markdown 변환과 hierarchical splitting/metadata enrichment가 QA 정확도에 미치는 영향(“chunking 이전 단계”까지 포함)[^5]
+
+[^1]: <https://arxiv.org/abs/2603.24556>
+[^2]: <https://docs.cohere.com/page/chunking-strategies>
+[^3]: <https://huggingface.co/learn/cookbook/advanced_rag>
+[^4]: <https://arxiv.org/abs/2603.25333>
+[^5]: <https://arxiv.org/abs/2604.04948>

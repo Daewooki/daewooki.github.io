@@ -1,5 +1,6 @@
 ---
 title: "Docker 멀티스테이지 빌드 활용법: 이미지 크기와 보안을 동시에 잡기"
+description: "Docker image는 배포 단위이자 운영 환경 그 자체라서, 크기와 보안 수준이 곧 비용과 장애 확률로 이어집니다."
 date: 2025-12-21 09:00:00 +0900
 categories: [Infrastructure, Docker]
 tags: [infrastructure, docker]

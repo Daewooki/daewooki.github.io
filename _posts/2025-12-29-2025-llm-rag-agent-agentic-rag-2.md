@@ -1,12 +1,14 @@
 ---
-title: "2025년형 LLM RAG Agent 튜토리얼: “검색 → 검증 → 재검색”까지 자동화하는 Agentic RAG 설계/구현"
+title: "LLM RAG Agent 튜토리얼: “검색 → 검증 → 재검색”까지 자동화하는 Agentic RAG 설계/구현"
+description: "2024~2025년에 RAG를 실제 서비스에 붙여본 팀들이 공통으로 부딪히는 벽이 있습니다. “Vector search로 top-k 뽑고 LLM에 넣는 선형 파이프라인”이 생각보다 쉽게 무너진다는 점입니다."
 date: 2025-12-29 02:27:19 +0900
 categories: [AI, Tutorial]
-tags: [ai, tutorial, trend, 2025-12]
+tags: [ai, tutorial]
 ---
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -17,7 +19,7 @@ tags: [ai, tutorial, trend, 2025-12]
 ## 들어가며
 2024~2025년에 RAG를 실제 서비스에 붙여본 팀들이 공통으로 부딪히는 벽이 있습니다. **“Vector search로 top-k 뽑고 LLM에 넣는 선형 파이프라인”**이 생각보다 쉽게 무너진다는 점입니다. 질문이 애매하거나, 답이 여러 문서에 흩어져 있거나, 첫 검색 결과가 부정확하면 모델은 그럴듯한 문장을 만들어 내며 실패합니다.
 
-그래서 최근 튜토리얼/프레임워크들이 강조하는 방향은 **Agentic RAG**입니다. “검색”을 한 번 하고 끝내는 게 아니라, **LLM이 도구(tool)를 사용해** 다음을 반복 수행합니다: (1) 질문 재작성, (2) 다중 소스 조회, (3) 검색 결과 품질 평가, (4) 필요 시 재검색/경로 변경. LangChain/LangGraph, LlamaIndex Workflows 같은 오케스트레이션 레이어가 이 흐름을 전제로 발전하고 있습니다. ([ibm.com](https://www.ibm.com/think/tutorials/agentic-rag?utm_source=openai))
+그래서 최근 튜토리얼/프레임워크들이 강조하는 방향은 **Agentic RAG**입니다. “검색”을 한 번 하고 끝내는 게 아니라, **LLM이 도구(tool)를 사용해** 다음을 반복 수행합니다: (1) 질문 재작성, (2) 다중 소스 조회, (3) 검색 결과 품질 평가, (4) 필요 시 재검색/경로 변경. LangChain/LangGraph, LlamaIndex Workflows 같은 오케스트레이션 레이어가 이 흐름을 전제로 발전하고 있습니다.[^1]
 
 ---
 
@@ -27,7 +29,7 @@ tags: [ai, tutorial, trend, 2025-12]
 
 - user query → embedding → vector DB 검색 → top-k context → LLM answer
 
-Agentic RAG는 여기서 **Retriever를 “필요할 때 호출하는 Tool”**로 바꿉니다. 즉, LLM은 “지금은 답을 써야 할지 / 더 찾아야 할지 / 질문을 바꿔야 할지”를 판단하고, 그에 따라 tool call을 수행합니다. IBM의 agentic RAG 튜토리얼도 “agent가 외부 정보/도구를 활용해 멀티스텝으로 자가 수정한다”는 점을 전면에 둡니다. ([ibm.com](https://www.ibm.com/think/tutorials/agentic-rag?utm_source=openai))
+Agentic RAG는 여기서 **Retriever를 “필요할 때 호출하는 Tool”**로 바꿉니다. 즉, LLM은 “지금은 답을 써야 할지 / 더 찾아야 할지 / 질문을 바꿔야 할지”를 판단하고, 그에 따라 tool call을 수행합니다. IBM의 agentic RAG 튜토리얼도 “agent가 외부 정보/도구를 활용해 멀티스텝으로 자가 수정한다”는 점을 전면에 둡니다.[^1]
 
 ### 2) 핵심 루프: Retrieve → Grade → (Rewrite | Generate)
 2025년형 구현에서 가장 실전적인 패턴은 아래 3단계 루프입니다.
@@ -38,13 +40,13 @@ Agentic RAG는 여기서 **Retriever를 “필요할 때 호출하는 Tool”**�
    - 관련성이 낮으면: **query rewrite** 후 재검색  
    - 관련성이 높으면: **최종 답변 생성**  
 
-LangGraph 기반 튜토리얼에서도 retrieval 후 “grade_documents” 같은 노드로 relevance를 판정하고, routing으로 rewrite/generate를 분기하는 구성이 대표적입니다. ([medium.com](https://medium.com/%40mohitagr18/the-ai-that-thinks-before-it-searches-a-deep-dive-into-agentic-rag-82e5db9a0826?utm_source=openai))
+LangGraph 기반 튜토리얼에서도 retrieval 후 “grade_documents” 같은 노드로 relevance를 판정하고, routing으로 rewrite/generate를 분기하는 구성이 대표적입니다.[^2]
 
 ### 3) Orchestration 레이어가 중요한 이유: “제어 가능성”
 Agentic RAG는 필연적으로 **루프/분기/상태(state)**가 생깁니다. 그래서 프레임워크도 “graph/workflow” 형태로 진화합니다.
 
-- **LlamaIndex Workflows**: event-driven step으로 구성하고, 상태/재시도/관측성을 워크플로우 단위로 다룹니다. 또한 자동 instrument로 Phoenix 같은 observability 도구 연동을 언급합니다. ([docs.llamaindex.ai](https://docs.llamaindex.ai/en/stable/module_guides/workflow/?utm_source=openai))  
-- **LangGraph**: state graph로 노드를 구성하고, tool 호출과 조건 분기를 명시적으로 설계할 수 있는 방향으로 널리 사용됩니다. ([medium.com](https://medium.com/%40mohitagr18/the-ai-that-thinks-before-it-searches-a-deep-dive-into-agentic-rag-82e5db9a0826?utm_source=openai))  
+- **LlamaIndex Workflows**: event-driven step으로 구성하고, 상태/재시도/관측성을 워크플로우 단위로 다룹니다. 또한 자동 instrument로 Phoenix 같은 observability 도구 연동을 언급합니다.[^3]  
+- **LangGraph**: state graph로 노드를 구성하고, tool 호출과 조건 분기를 명시적으로 설계할 수 있는 방향으로 널리 사용됩니다.[^2]  
 
 ---
 
@@ -210,7 +212,7 @@ if __name__ == "__main__":
 
 ## ⚡ 실전 팁
 1) **무한 루프 방지**는 기능이 아니라 “안전장치”
-Agentic RAG는 잘 설계하지 않으면 “rewrite→retrieve→rewrite…”로 비용만 태웁니다. 위 코드처럼 `MAX_ATTEMPTS`를 두고, 초과 시 fallback 응답(“근거 부족”)으로 종료하세요. LangGraph/LlamaIndex Workflows 모두 루프/분기를 전제로 하지만, 종료 조건은 개발자가 책임져야 합니다. ([medium.com](https://medium.com/%40mohitagr18/the-ai-that-thinks-before-it-searches-a-deep-dive-into-agentic-rag-82e5db9a0826?utm_source=openai))
+Agentic RAG는 잘 설계하지 않으면 “rewrite→retrieve→rewrite…”로 비용만 태웁니다. 위 코드처럼 `MAX_ATTEMPTS`를 두고, 초과 시 fallback 응답(“근거 부족”)으로 종료하세요. LangGraph/LlamaIndex Workflows 모두 루프/분기를 전제로 하지만, 종료 조건은 개발자가 책임져야 합니다.[^2]
 
 2) **Grade(평가) 노드가 성능을 좌우한다**
 대부분 팀이 “Retriever 튜닝”에만 몰입하는데, Agentic RAG에선 **retrieval 이후의 품질 평가(grade)**가 병목입니다.
@@ -220,10 +222,10 @@ Agentic RAG는 잘 설계하지 않으면 “rewrite→retrieve→rewrite…”�
   - `need_more_sources` 같은 필드를 추가하세요(구조화 출력 강제).
 
 3) **RAG는 ‘chunk’가 아니라 ‘context’를 설계하는 일**
-LlamaIndex 쪽에서도 문서 처리/워크플로우를 강조하는 흐름이 강합니다. 단순 split이 아니라 “문서를 AI-friendly하게 변환하고, 에이전트가 쓰기 좋은 형태로 제공”하는 쪽이 2025년의 실전 포인트입니다. ([docs.llamaindex.ai](https://docs.llamaindex.ai/en/stable/understanding/?utm_source=openai))
+LlamaIndex 쪽에서도 문서 처리/워크플로우를 강조하는 흐름이 강합니다. 단순 split이 아니라 “문서를 AI-friendly하게 변환하고, 에이전트가 쓰기 좋은 형태로 제공”하는 쪽이 2025년의 실전 포인트입니다.[^4]
 
 4) **Observability 없으면 개선 불가능**
-Agentic RAG는 노드가 늘고 경로가 분기되기 때문에, “왜 실패했는지”를 추적하지 못하면 운영이 불가능합니다. LlamaIndex Workflows는 워크플로우 단계 관측성(예: Phoenix 연동)을 문서에서 언급합니다. ([docs.llamaindex.ai](https://docs.llamaindex.ai/en/stable/module_guides/workflow/?utm_source=openai))  
+Agentic RAG는 노드가 늘고 경로가 분기되기 때문에, “왜 실패했는지”를 추적하지 못하면 운영이 불가능합니다. LlamaIndex Workflows는 워크플로우 단계 관측성(예: Phoenix 연동)을 문서에서 언급합니다.[^3]  
 최소한 다음은 로깅/트레이싱하세요:
 - query rewrite 전/후
 - retrieval top-k와 점수
@@ -233,11 +235,14 @@ Agentic RAG는 노드가 늘고 경로가 분기되기 때문에, “왜 실패�
 ---
 
 ## 🚀 마무리
-2025년형 RAG 구현의 핵심은 “Vector DB 붙이기”가 아니라, **LLM이 검색을 ‘도구’로 쓰며 스스로 경로를 바꾸는 제어 구조(loops/branches/state)**를 설계하는 데 있습니다. Agentic RAG를 도입하면, 애매한 질문·저품질 검색 결과·다중 문서 종합 같은 실제 문제에서 훨씬 견고해집니다. ([ibm.com](https://www.ibm.com/think/tutorials/agentic-rag?utm_source=openai))
+2025년형 RAG 구현의 핵심은 “Vector DB 붙이기”가 아니라, **LLM이 검색을 ‘도구’로 쓰며 스스로 경로를 바꾸는 제어 구조(loops/branches/state)**를 설계하는 데 있습니다. Agentic RAG를 도입하면, 애매한 질문·저품질 검색 결과·다중 문서 종합 같은 실제 문제에서 훨씬 견고해집니다.[^1]
 
 다음 학습 추천(순서):
-- LangGraph로 “Retrieve→Grade→Rewrite” 그래프를 2~3가지 변형으로 만들어 보기 ([medium.com](https://medium.com/%40mohitagr18/the-ai-that-thinks-before-it-searches-a-deep-dive-into-agentic-rag-82e5db9a0826?utm_source=openai))  
-- LlamaIndex Workflows로 동일 패턴을 event-driven step으로 재구현하며 관측성/재시도/상태 관리를 익히기 ([docs.llamaindex.ai](https://docs.llamaindex.ai/en/stable/module_guides/workflow/?utm_source=openai))  
+- LangGraph로 “Retrieve→Grade→Rewrite” 그래프를 2~3가지 변형으로 만들어 보기[^2]  
+- LlamaIndex Workflows로 동일 패턴을 event-driven step으로 재구현하며 관측성/재시도/상태 관리를 익히기[^3]  
 - 마지막으로, grade 기준을 제품 KPI(정답률/근거 포함률/비용/latency)에 맞춰 수치화하고 실험 루프를 돌리기 (여기서부터가 “진짜 RAG 엔지니어링”입니다)
 
-원하시면 위 예제를 기반으로 **(1) 다중 retriever 라우팅**, **(2) citation 강제 + 근거 부족 시 “모른다” 정책**, **(3) Phoenix/OTel 트레이싱 포함** 버전으로 확장한 코드까지 이어서 정리해드릴게요.
+[^1]: <https://www.ibm.com/think/tutorials/agentic-rag>
+[^2]: <https://medium.com/%40mohitagr18/the-ai-that-thinks-before-it-searches-a-deep-dive-into-agentic-rag-82e5db9a0826>
+[^3]: <https://docs.llamaindex.ai/en/stable/module_guides/workflow/>
+[^4]: <https://docs.llamaindex.ai/en/stable/understanding/>
