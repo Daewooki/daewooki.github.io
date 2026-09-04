@@ -1,20 +1,46 @@
 #!/usr/bin/env python3
 """
-LLM 웹 검색을 이용한 최신 트렌드 기반 블로그 포스트 자동 생성
-- OpenAI GPT-5.2 + Web Search 도구 활용
-- 월·목: 뉴스 1 + 기술 1, 그 외: 기술 2
-- 최근 DEDUP_DAYS일 내 사용된 카테고리는 제외하여 중복 방지
+최신 IT 뉴스/기술 블로그 포스트 자동 생성 (OpenAI Responses API + web_search)
+
+흐름
+1. discover_topics : 웹 검색으로 최근 며칠간 IT 전반의 후보 주제를 수집 (JSON)
+2. select_topics   : 최근 글(post_history.json)과 겹치는 주제 제외, 도메인 편중 완화, 뉴스/기술 번갈아 선택
+3. write_post      : 주제별로 웹 검색 + 장문 작성 (JSON: title/slug/description/category/tags/body)
+4. postprocess     : 추적 파라미터 제거, 인용 정리, 마무리 제안문 제거, 제목 정리
+5. create_post_file: front matter + 본문 저장, history 갱신
+
+환경 변수
+- OPENAI_API_KEY (필수)
+- OPENAI_MODEL   (기본 gpt-5.2)
+- NUM_POSTS      (기본 2; 뉴스/기술을 번갈아 선택)
+- POSTS_DIR      (기본 <repo>/_posts; 로컬 테스트용)
 """
+
+from __future__ import annotations
 
 import json
 import os
 import random
 import re
-from datetime import datetime, timedelta
+import sys
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from openai import OpenAI
 
+
+MODEL = os.environ.get("OPENAI_MODEL", "gpt-5.2")
+KST = timezone(timedelta(hours=9), name="KST")  # 한국은 DST가 없어 고정 오프셋으로 충분 (tzdata 불필요)
+ROOT = Path(__file__).resolve().parent.parent
+POSTS_DIR = Path(os.environ.get("POSTS_DIR") or (ROOT / "_posts"))
+HISTORY_PATH = Path(__file__).resolve().parent / "post_history.json"
+
+DEDUP_DAYS = 90          # 이 기간 안에 다룬 주제와 겹치면 제외
+DOMAIN_BALANCE_DAYS = 14 # 이 기간의 도메인 분포를 보고 편중 완화
+HISTORY_KEEP_DAYS = 400  # history 파일 보관 기간
+KEYWORD_OVERLAP_LIMIT = 0.4  # Jaccard 유사도가 이 이상이면 같은 주제로 간주
+
+SITE_URL = "https://daewooki.github.io"
 
 GA_TAG = """<!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7990TVG7C7"></script>
@@ -25,519 +51,662 @@ GA_TAG = """<!-- Google tag (gtag.js) -->
 
   gtag('config', 'G-7990TVG7C7');
 </script>
-
 """
 
-# 카테고리 풀
-# - id: 고유/고정값 (중복 방지 로직에서 참조)
-# - type: "news" = 뉴스/트렌드 분석, "tech" = 기술 심층/튜토리얼
-# - {date} 플레이스홀더는 실행 시 현재 년월로 치환
-SEARCH_CATEGORIES = [
-    # ===================== News (10) =====================
-    {"id": "news-llm-models", "category": "AI", "subcategory": "News", "type": "news",
-     "search_query": "{date} LLM 신규 모델 출시 발표 GPT Claude Gemini",
-     "focus": "LLM 신규 모델 출시, 성능 비교, 업계 반응"},
-    {"id": "news-ai-invest", "category": "AI", "subcategory": "News", "type": "news",
-     "search_query": "{date} AI 스타트업 투자 인수합병 뉴스",
-     "focus": "AI 스타트업 동향, 투자 유치, 인수합병 소식"},
-    {"id": "news-bigtech-updates", "category": "AI", "subcategory": "News", "type": "news",
-     "search_query": "{date} OpenAI Anthropic Google AI API 발표 업데이트",
-     "focus": "빅테크 AI 기업 신규 발표, API 업데이트, 정책 변화"},
-    {"id": "news-ai-regulation", "category": "AI", "subcategory": "News", "type": "news",
-     "search_query": "{date} AI 규제 법안 정책 윤리 뉴스",
-     "focus": "AI 규제 동향, 각국 정책, 윤리적 이슈"},
-    {"id": "news-opensource", "category": "AI", "subcategory": "News", "type": "news",
-     "search_query": "{date} 오픈소스 AI 모델 공개 Llama Mistral Qwen",
-     "focus": "오픈소스 LLM/VLM 공개, 파생 모델, 라이선스 이슈"},
-    {"id": "news-ai-hardware", "category": "AI", "subcategory": "News", "type": "news",
-     "search_query": "{date} AI 반도체 GPU NVIDIA Rebellions Furiosa 칩 뉴스",
-     "focus": "AI 가속기/GPU/NPU 소식, 공급망, AI 칩 기업 동향"},
-    {"id": "news-dev-tools", "category": "AI", "subcategory": "News", "type": "news",
-     "search_query": "{date} AI 개발자 도구 새 출시 IDE 에이전트",
-     "focus": "새 출시된 개발자 도구, AI IDE/CLI, 에이전트 기반 툴"},
-    {"id": "news-ai-security", "category": "AI", "subcategory": "News", "type": "news",
-     "search_query": "{date} AI 보안 취약점 prompt injection jailbreak 이슈",
-     "focus": "AI 보안 이슈, 모델 탈옥, 프롬프트 인젝션 사례"},
-    {"id": "news-enterprise-adoption", "category": "AI", "subcategory": "News", "type": "news",
-     "search_query": "{date} 기업 AI 도입 사례 케이스 스터디",
-     "focus": "엔터프라이즈 AI 도입 사례, ROI, 실패담/성공담"},
-    {"id": "news-ai-research", "category": "AI", "subcategory": "News", "type": "news",
-     "search_query": "{date} AI 논문 연구 결과 주요 발표 arxiv",
-     "focus": "주목할 AI 연구 논문, 새로운 기법, 벤치마크 결과"},
-
-    # ===================== Tech: Agent (6) =====================
-    {"id": "tech-agent-frameworks", "category": "AI", "subcategory": "Agent", "type": "tech",
-     "search_query": "{date} AI Agent 개발 방법 LangGraph AutoGen CrewAI",
-     "focus": "AI 에이전트 프레임워크 비교, 멀티 에이전트 구현"},
-    {"id": "tech-agent-tool-use", "category": "AI", "subcategory": "Agent", "type": "tech",
-     "search_query": "{date} AI Agent tool use function calling 구현",
-     "focus": "에이전트 도구 사용, Function Calling 패턴"},
-    {"id": "tech-agent-agentic-rag", "category": "AI", "subcategory": "Agent", "type": "tech",
-     "search_query": "{date} Agentic RAG 자율 에이전트 구현 방법",
-     "focus": "Agentic RAG, 자율적 정보 검색 에이전트"},
-    {"id": "tech-agent-mcp", "category": "AI", "subcategory": "Agent", "type": "tech",
-     "search_query": "{date} Model Context Protocol MCP 서버 구현 Claude",
-     "focus": "MCP 프로토콜, 에이전트 확장 서버 구축"},
-    {"id": "tech-agent-memory", "category": "AI", "subcategory": "Agent", "type": "tech",
-     "search_query": "{date} AI Agent memory long-term 상태 관리 구현",
-     "focus": "에이전트 장단기 메모리, 상태 관리 전략"},
-    {"id": "tech-agent-orchestration", "category": "AI", "subcategory": "Agent", "type": "tech",
-     "search_query": "{date} multi-agent orchestration supervisor worker 패턴",
-     "focus": "멀티 에이전트 오케스트레이션, supervisor/worker 패턴"},
-
-    # ===================== Tech: RAG (6) =====================
-    {"id": "tech-rag-advanced", "category": "AI", "subcategory": "RAG", "type": "tech",
-     "search_query": "{date} RAG 고급 기법 HyDE Reranking Query Expansion",
-     "focus": "RAG 성능 최적화, 고급 검색 기법"},
-    {"id": "tech-rag-vectordb", "category": "AI", "subcategory": "RAG", "type": "tech",
-     "search_query": "{date} 벡터DB 비교 Pinecone Weaviate Qdrant Chroma",
-     "focus": "벡터 데이터베이스 선택 가이드, 성능 비교"},
-    {"id": "tech-rag-graph", "category": "AI", "subcategory": "RAG", "type": "tech",
-     "search_query": "{date} GraphRAG knowledge graph RAG 구현",
-     "focus": "GraphRAG, 지식 그래프 기반 검색 증강"},
-    {"id": "tech-rag-hybrid", "category": "AI", "subcategory": "RAG", "type": "tech",
-     "search_query": "{date} hybrid search BM25 vector search RAG",
-     "focus": "하이브리드 검색(BM25+벡터), 랭킹 병합 전략"},
-    {"id": "tech-rag-chunking", "category": "AI", "subcategory": "RAG", "type": "tech",
-     "search_query": "{date} RAG chunking strategy document splitting 전략",
-     "focus": "문서 청킹 전략, 오버랩/semantic chunking"},
-    {"id": "tech-rag-embedding", "category": "AI", "subcategory": "RAG", "type": "tech",
-     "search_query": "{date} embedding model 비교 OpenAI Cohere BGE",
-     "focus": "임베딩 모델 비교, 도메인별 선택 가이드"},
-
-    # ===================== Tech: Coding (6) =====================
-    {"id": "tech-coding-assist", "category": "AI", "subcategory": "Coding", "type": "tech",
-     "search_query": "{date} AI 코딩 어시스턴트 Cursor Copilot Windsurf 활용법",
-     "focus": "AI 코딩 도구 활용, 생산성 향상 팁"},
-    {"id": "tech-coding-vibe", "category": "AI", "subcategory": "Coding", "type": "tech",
-     "search_query": "{date} Vibe Coding AI 프로토타이핑 빠른 개발 방법",
-     "focus": "AI 활용 빠른 프로토타이핑, MVP 개발"},
-    {"id": "tech-coding-ui-gen", "category": "AI", "subcategory": "Coding", "type": "tech",
-     "search_query": "{date} AI 코드 생성 프론트엔드 v0 bolt.new 활용",
-     "focus": "AI 기반 UI 생성, 프론트엔드 자동화 도구"},
-    {"id": "tech-coding-cli-agents", "category": "AI", "subcategory": "Coding", "type": "tech",
-     "search_query": "{date} Claude Code Codex CLI 에이전트 활용",
-     "focus": "CLI 기반 AI 코딩 에이전트, 자동화 워크플로"},
-    {"id": "tech-coding-review", "category": "AI", "subcategory": "Coding", "type": "tech",
-     "search_query": "{date} AI 코드 리뷰 자동화 테스트 생성",
-     "focus": "AI 기반 코드 리뷰/테스트 자동화, PR 봇"},
-    {"id": "tech-coding-debug", "category": "AI", "subcategory": "Coding", "type": "tech",
-     "search_query": "{date} AI 디버깅 에러 분석 LLM 활용",
-     "focus": "LLM을 활용한 디버깅, 에러 분석 워크플로"},
-
-    # ===================== Tech: LLM (7) =====================
-    {"id": "tech-llm-prompt-cot", "category": "AI", "subcategory": "LLM", "type": "tech",
-     "search_query": "{date} 프롬프트 엔지니어링 고급 기법 Chain of Thought",
-     "focus": "프롬프트 최적화, 고급 프롬프팅 기법"},
-    {"id": "tech-llm-finetune", "category": "AI", "subcategory": "LLM", "type": "tech",
-     "search_query": "{date} LLM Fine-tuning LoRA QLoRA 방법 튜토리얼",
-     "focus": "LLM 파인튜닝, 효율적 학습 방법"},
-    {"id": "tech-llm-eval", "category": "AI", "subcategory": "LLM", "type": "tech",
-     "search_query": "{date} LLM 평가 방법 벤치마크 MMLU HumanEval",
-     "focus": "LLM 성능 평가, 벤치마크 해석"},
-    {"id": "tech-llm-structured", "category": "AI", "subcategory": "LLM", "type": "tech",
-     "search_query": "{date} LLM structured output JSON mode schema 제약",
-     "focus": "구조화된 출력, JSON 스키마 강제, 함수 호출"},
-    {"id": "tech-llm-caching", "category": "AI", "subcategory": "LLM", "type": "tech",
-     "search_query": "{date} LLM prompt caching 비용 절감 Anthropic OpenAI",
-     "focus": "프롬프트 캐싱, 캐시 히트율 최적화, 비용 절감"},
-    {"id": "tech-llm-context", "category": "AI", "subcategory": "LLM", "type": "tech",
-     "search_query": "{date} LLM long context window 활용 compaction",
-     "focus": "긴 컨텍스트 활용, compaction/summary, lost in the middle"},
-    {"id": "tech-llm-cost", "category": "AI", "subcategory": "LLM", "type": "tech",
-     "search_query": "{date} LLM API 비용 최적화 토큰 절약 routing",
-     "focus": "LLM 비용 최적화, 모델 라우팅, 토큰 절약"},
-
-    # ===================== Tech: MLOps (5) =====================
-    {"id": "tech-mlops-serving", "category": "AI", "subcategory": "MLOps", "type": "tech",
-     "search_query": "{date} LLM 서빙 vLLM TGI Ollama 배포 방법",
-     "focus": "LLM 서빙 인프라, 로컬 배포, 최적화"},
-    {"id": "tech-mlops-monitor", "category": "AI", "subcategory": "MLOps", "type": "tech",
-     "search_query": "{date} AI 애플리케이션 모니터링 LangSmith Langfuse",
-     "focus": "LLM 앱 모니터링, 디버깅, 비용 추적"},
-    {"id": "tech-mlops-tracing", "category": "AI", "subcategory": "MLOps", "type": "tech",
-     "search_query": "{date} LLM observability OpenTelemetry tracing",
-     "focus": "LLM 앱 observability, OpenTelemetry 트레이싱"},
-    {"id": "tech-mlops-gpu", "category": "AI", "subcategory": "MLOps", "type": "tech",
-     "search_query": "{date} GPU LLM 서빙 최적화 quantization 추론 가속",
-     "focus": "GPU 활용 최적화, 양자화, 추론 가속 기법"},
-    {"id": "tech-mlops-batch", "category": "AI", "subcategory": "MLOps", "type": "tech",
-     "search_query": "{date} LLM batch inference API 대량 처리 비용",
-     "focus": "배치 추론, 대량 요청 처리, 비동기 파이프라인"},
-
-    # ===================== Tech: Multimodal (4) =====================
-    {"id": "tech-multimodal-vlm", "category": "AI", "subcategory": "Multimodal", "type": "tech",
-     "search_query": "{date} 멀티모달 AI Vision Language Model 활용법",
-     "focus": "비전-언어 모델 활용, 이미지 분석 AI"},
-    {"id": "tech-multimodal-voice", "category": "AI", "subcategory": "Multimodal", "type": "tech",
-     "search_query": "{date} AI 음성 TTS STT 실시간 음성 에이전트",
-     "focus": "음성 AI, 실시간 음성 대화 구현"},
-    {"id": "tech-multimodal-ocr", "category": "AI", "subcategory": "Multimodal", "type": "tech",
-     "search_query": "{date} OCR document AI 문서 이해 LLM 추출",
-     "focus": "문서 OCR/이해, 구조화 추출, 표·PDF 처리"},
-    {"id": "tech-multimodal-video", "category": "AI", "subcategory": "Multimodal", "type": "tech",
-     "search_query": "{date} 비디오 AI video understanding generation",
-     "focus": "비디오 이해/생성 AI, 프레임 분석 파이프라인"},
-
-    # ===================== Tech: Backend (5) =====================
-    {"id": "tech-backend-api", "category": "Backend", "subcategory": "API", "type": "tech",
-     "search_query": "{date} FastAPI LLM API 서버 구축 스트리밍",
-     "focus": "LLM API 서버 구축, 스트리밍 응답 처리"},
-    {"id": "tech-backend-arch", "category": "Backend", "subcategory": "Architecture", "type": "tech",
-     "search_query": "{date} AI 애플리케이션 아키텍처 설계 패턴",
-     "focus": "AI 앱 설계 패턴, 확장 가능한 구조"},
-    {"id": "tech-backend-queue", "category": "Backend", "subcategory": "Architecture", "type": "tech",
-     "search_query": "{date} LLM 백엔드 queue worker Celery Redis 비동기",
-     "focus": "LLM 비동기 처리, 큐/워커 아키텍처"},
-    {"id": "tech-backend-rate-limit", "category": "Backend", "subcategory": "API", "type": "tech",
-     "search_query": "{date} LLM API rate limit retry backoff 패턴",
-     "focus": "LLM API 호출 안정화, rate limit/retry 패턴"},
-    {"id": "tech-backend-prompt-injection", "category": "Backend", "subcategory": "Security", "type": "tech",
-     "search_query": "{date} prompt injection 방어 LLM 보안 guardrail",
-     "focus": "프롬프트 인젝션 방어, guardrail 설계"},
-
-    # ===================== Tech: Infra (2) =====================
-    {"id": "tech-infra-k8s", "category": "Infra", "subcategory": "Kubernetes", "type": "tech",
-     "search_query": "{date} Kubernetes LLM 배포 GPU 오토스케일링",
-     "focus": "쿠버네티스 GPU 워크로드, LLM 서빙 오토스케일"},
-    {"id": "tech-infra-serverless", "category": "Infra", "subcategory": "Serverless", "type": "tech",
-     "search_query": "{date} serverless LLM 배포 Modal Runpod AWS Lambda",
-     "focus": "서버리스 LLM 배포, cold start 대응"},
-
-    # ===================== Tech: Prototyping (2) =====================
-    {"id": "tech-prototype-rapid-ui", "category": "AI", "subcategory": "Prototyping", "type": "tech",
-     "search_query": "{date} Streamlit Gradio 빠른 AI 데모 UI 구현",
-     "focus": "Streamlit/Gradio 기반 빠른 AI 데모 UI"},
-    {"id": "tech-prototype-fullstack", "category": "AI", "subcategory": "Prototyping", "type": "tech",
-     "search_query": "{date} Next.js AI 앱 Vercel AI SDK fullstack",
-     "focus": "Next.js + Vercel AI SDK 기반 fullstack AI 앱"},
-
-    # ===================== Tech: Data (2) =====================
-    {"id": "tech-data-synth", "category": "AI", "subcategory": "Data", "type": "tech",
-     "search_query": "{date} 합성 데이터 생성 LLM synthetic data 활용",
-     "focus": "LLM 합성 데이터 생성, 파인튜닝용 데이터 구축"},
-    {"id": "tech-data-curation", "category": "AI", "subcategory": "Data", "type": "tech",
-     "search_query": "{date} 데이터 큐레이션 dedup dataset quality 전처리",
-     "focus": "학습 데이터 큐레이션, 중복 제거, 품질 평가"},
+# 블로그 카테고리(1단계). 뉴스 글은 [News, <도메인>], 기술 글은 [<도메인>, <세부>] 로 저장.
+DOMAINS = [
+    "Backend", "Frontend", "Mobile", "Languages", "Database", "Cloud", "DevOps",
+    "Infrastructure", "Security", "AI", "Data", "Networking", "Systems",
+    "OpenSource", "Tools", "Architecture", "Testing", "Performance", "Web", "Hardware",
 ]
 
-# 중복 방지 윈도우 (일)
-DEDUP_DAYS = 14
+# ---------------------------------------------------------------------------
+# 프롬프트
+# ---------------------------------------------------------------------------
 
-# 뉴스를 생성할 요일 (0=월 ... 6=일)
-NEWS_WEEKDAYS = {0, 3}  # 월, 목
+BLOG_PROFILE = """이 블로그는 백엔드·인프라·AI 프로토타이핑을 주로 하는 10년차 개발자 권대욱의 개인 기술 블로그입니다.
+주제 범위는 IT 전반입니다: 프로그래밍 언어, 프레임워크, 백엔드, 프론트엔드, 모바일, 데이터베이스, 클라우드,
+DevOps, 인프라, 보안, AI/ML, 데이터, 네트워크, OS/시스템, 오픈소스, 개발 도구, 아키텍처, 테스트, 성능, 하드웨어."""
 
-HISTORY_PATH = Path(__file__).parent / "post_history.json"
+DISCOVER_INSTRUCTIONS = f"""당신은 한국어 개발자 기술 블로그의 편집자입니다.
+{BLOG_PROFILE}
+
+당신의 일은 오늘 쓸 만한 글감을 찾는 것입니다. 반드시 web_search 도구를 여러 번(최소 6회, 서로 다른 분야로) 사용해
+실제로 최근에 일어난 일과, 지금 깊게 다룰 가치가 있는 기술 주제를 찾으세요. 기억에 의존해 지어내지 마세요.
+검색 예시: "this week in programming", "release notes <언어/프레임워크>", "GitHub trending", "Hacker News top",
+"security advisory CVE", "postgres release", "kubernetes release", "rust blog", "engineering blog", "AI model release",
+한국어 검색("개발자 뉴스", "기술 블로그")도 섞어서."""
+
+WRITER_INSTRUCTIONS = f"""당신은 이 블로그의 주인입니다.
+{BLOG_PROFILE}
+
+당신은 남의 글을 요약하는 기자가 아니라, 직접 써 보고 판단한 것을 정리하는 현업 개발자입니다.
+아래 규칙은 반드시 지킵니다.
+
+[목소리]
+- 한국어로 쓰되 기술 용어는 영어 그대로 씁니다. 존댓말 서술체("~합니다", "~입니다")를 기본으로 하고, 가끔 1인칭("내 경우", "나는 ~로 결정했다")으로 경험과 판단을 드러냅니다.
+- 인사말, 자기소개, "이 글에서는 ~를 다룹니다" 같은 메타 문장, 광고 톤, 과장은 쓰지 않습니다.
+- 글의 마지막은 판단이나 정리로 끝냅니다. 독자에게 무언가를 제안하거나("원하시면 ~해 드릴게요"), 질문을 던지거나, 추가 요청을 유도하는 문장은 절대 쓰지 않습니다.
+- 이모지를 쓰지 않습니다. 굵은 글씨(**)는 글 전체에서 5번 이하로만 씁니다. 따옴표로 단어를 감싸 강조하는 습관("진짜", "제대로")을 쓰지 않습니다.
+- 영어 단어를 괄호로 병기하는 습관("계약(Contract)", "경계(Boundary)")을 쓰지 않습니다. 필요한 용어는 영어로만 씁니다.
+- 같은 문장 구조나 같은 접속사를 반복하지 않습니다. 목록만 나열하지 말고, 문단으로 근거와 트레이드오프를 설명합니다.
+
+[제목]
+- 60자 이내. 연도·월·"기준"·"~판"·"~형"·"~식" 같은 시점 표기를 넣지 않습니다. 따옴표 훅, 클릭베이트, 느낌표를 쓰지 않습니다. 콜론은 최대 1개.
+- 무엇을 다루는지 한눈에 보이는 담백한 기술 블로그 제목으로 씁니다. 예: "PostgreSQL 18의 비동기 I/O가 바꾸는 것", "Stripe가 OpenRouter를 인수한 이유".
+
+[구조]
+- 소제목(##, ###)은 주제에 맞게 직접 정합니다. "들어가며", "핵심 개념", "실전 코드", "실전 팁", "마무리" 같은 상투적 소제목은 쓰지 않습니다.
+- 최소 5개 이상의 섹션. 본문에 # 제목, front matter, 날짜 스탬프를 넣지 않습니다.
+- 뉴스 글: 무슨 일이 있었는지(날짜·수치·이름을 정확히) → 배경과 맥락 → 왜 중요한지(개발자·아키텍처·비용에 미치는 영향) → 반론과 회의론 → 앞으로 지켜볼 것 → 지금 할 수 있는 일.
+- 기술 글: 어떤 문제를 푸는지와 언제 쓰면 안 되는지 → 원리와 내부 동작 → 실제로 동작하는 코드(의존성·버전·실행 명령·예상 출력 포함, 장난감 예제 금지, 현실적인 시나리오) → 함정과 트레이드오프 → 도입 판단 기준.
+
+[분량과 깊이]
+- 길수록 좋습니다. 코드를 제외하고 최소 8,000자, 목표 10,000~15,000자. 다만 내용 없는 반복으로 늘리지 않습니다.
+- 깊이 우선: "왜 그렇게 동작하는지", 수치, 비교, 실패 사례, 한계까지 씁니다.
+
+[출처]
+- 사실 주장에는 링크를 답니다. 앵커 텍스트는 문맥에 맞는 표현으로 씁니다. 예: [PostgreSQL 18 릴리스 노트](https://...), [Stripe 공식 발표](https://...).
+- 도메인 이름을 앵커로 쓰는 "([example.com](url))" 형식은 금지합니다. URL에 utm 같은 추적 파라미터를 붙이지 않습니다.
+- 본문 끝에 "## 참고 자료" 섹션을 두고 "- [제목](URL)" 형식으로 출처를 정리합니다.
+- 검색 결과에 없는 사실을 지어내지 않습니다. 확실하지 않으면 확실하지 않다고 씁니다."""
 
 
-NEWS_PROMPT = """당신은 10년 경력의 시니어 개발자이자 기술 블로거입니다.
-웹 검색 결과를 바탕으로 **뉴스/트렌드 분석 글**을 작성합니다.
-독자는 실무 개발자이며, 단순 사실 전달이 아닌 "내 일에 어떤 영향을 주는지" 해석을 원합니다.
+# ---------------------------------------------------------------------------
+# JSON 스키마 (Structured Outputs)
+# ---------------------------------------------------------------------------
 
-## 글 구조 (반드시 이 순서로 작성)
+CANDIDATES_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "candidates": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "type": {"type": "string", "enum": ["news", "tech"]},
+                    "domain": {"type": "string", "enum": DOMAINS},
+                    "topic": {"type": "string", "description": "한국어 한 줄 주제"},
+                    "angle": {"type": "string", "description": "이 글이 취할 관점/차별점 (한국어)"},
+                    "why_now": {"type": "string", "description": "지금 다뤄야 하는 이유: 날짜, 버전, 사건 (한국어)"},
+                    "search_queries": {"type": "array", "items": {"type": "string"}},
+                    "keywords": {"type": "array", "items": {"type": "string"},
+                                 "description": "영문 소문자 키워드 5개 (제품/기술명 위주)"},
+                    "sources": {"type": "array", "items": {"type": "string"},
+                                "description": "근거가 된 실제 URL"},
+                },
+                "required": ["type", "domain", "topic", "angle", "why_now",
+                             "search_queries", "keywords", "sources"],
+                "additionalProperties": False,
+            },
+        }
+    },
+    "required": ["candidates"],
+    "additionalProperties": False,
+}
 
-1. **## 들어가며** - 무슨 일이 있었는지 핵심 요약 (2-3문장)
+POST_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "title": {"type": "string"},
+        "slug": {"type": "string", "description": "영문 소문자 kebab-case, 3~7단어"},
+        "description": {"type": "string", "description": "글의 핵심 1~2문장, 120자 이내, 부제처럼"},
+        "category": {"type": "string", "enum": DOMAINS},
+        "subcategory": {"type": "string", "description": "짧은 영문 세부 분류: 제품/기술명 (예: PostgreSQL, Kubernetes, API, Rust)"},
+        "tags": {"type": "array", "items": {"type": "string"}, "description": "3~6개, 영문 소문자 kebab-case"},
+        "body_markdown": {"type": "string"},
+    },
+    "required": ["title", "slug", "description", "category", "subcategory", "tags", "body_markdown"],
+    "additionalProperties": False,
+}
 
-2. **---**
 
-3. **## 📰 무슨 일이 있었나** - 뉴스의 구체적 내용
-   - 날짜, 기업명, 제품명, 수치 등 팩트 중심
-   - 1차 소스(공식 발표/논문/보도자료) 우선
-
-4. **---**
-
-5. **## 🔍 왜 중요한가** - 개발자 관점의 영향
-   - 기존 대비 구체적으로 무엇이 달라지는지
-   - API/도구/아키텍처 선택에 미치는 영향
-
-6. **---**
-
-7. **## 💡 시사점과 전망** - 업계 흐름 해석
-   - 경쟁사/대안과의 비교
-   - 3-6개월 내 예상 시나리오
-   - 반대 의견/회의론도 함께 제시
-
-8. **---**
-
-9. **## 🚀 마무리** - 핵심 요약 + 개발자가 지금 할 수 있는 구체적 액션 1-2가지
-
-## 작성 규칙
-- 한국어로 작성, 기술 용어는 영어 그대로
-- **팩트 중심**: 날짜, 버전, 수치, 기업명 명시
-- **분석 중심**: 단순 전달이 아닌 "왜 중요한지" 해석
-- **균형감**: 장단점, 리스크도 함께
-- 글 분량: 1500-2200자
-- 이모지는 헤더에만 사용
-
-## 금지 사항
-- 인사말 금지, Front matter 금지, # 제목 금지
-- 검색 결과에 없는 내용 지어내기 금지
-- PR/광고 톤 금지
-"""
-
-TECH_PROMPT = """당신은 10년 경력의 시니어 개발자이자 기술 블로거입니다.
-웹 검색 결과를 바탕으로 **기술 심층 분석/튜토리얼 글**을 작성합니다.
-독자는 이미 개발 경력이 있으며, 표면적 소개가 아닌 "내 프로젝트에 어떻게 적용할지" 판단 기준을 원합니다.
-
-## 글 구조 (반드시 이 순서로 작성)
-
-1. **## 들어가며** - 이 기술이 해결하는 구체적 문제 + 언제 쓰면 좋고 언제 쓰면 안 되는지
-
-2. **---**
-
-3. **## 🔧 핵심 개념** - 기술의 핵심 원리
-   - 주요 개념 정의
-   - 내부 작동 방식 (단순 요약이 아닌 구조/흐름)
-   - 다른 접근과의 차이점
-
-4. **---**
-
-5. **## 💻 실전 코드** - 실행 가능한 예제
-   - 기본 사용법 + 현실적인 시나리오 코드 (toy 예제 X)
-   - 설정/의존성, 예상 출력 포함
-   - 필요하면 2-3단계로 빌드업 (초기 셋업 → 기본 동작 → 확장)
-
-```언어
-# 코드 예제
-```
-
-6. **---**
-
-7. **## ⚡ 실전 팁 & 함정** - 실무에서 놓치기 쉬운 포인트
-   - Best Practice 2-3가지
-   - 흔한 함정/안티패턴
-   - 비용/성능/안정성 트레이드오프
-
-8. **---**
-
-9. **## 🚀 마무리** - 핵심 정리 + 도입 판단 기준 + 다음 학습 추천
-
-## 작성 규칙
-- 한국어로 작성, 기술 용어는 영어 그대로
-- **코드 필수**: 실행 가능하고 현실적인 예제 (toy 예제 금지)
-- **깊이 우선**: "왜 이렇게 작동하는지"와 트레이드오프까지
-- **실무 가치**: 읽은 뒤 자기 프로젝트에 바로 적용 가능
-- 글 분량: 2000-3000자
-- 코드 블록: ```언어명 형식 (python, typescript, bash 등)
-
-## 금지 사항
-- 인사말 금지, Front matter 금지, # 제목 금지
-- 너무 기초적인 내용만 다루기 금지
-- 한계/단점 생략하고 과장하기 금지
-"""
-
+# ---------------------------------------------------------------------------
+# History
+# ---------------------------------------------------------------------------
 
 def load_history() -> list[dict]:
     if HISTORY_PATH.exists():
         try:
-            return json.loads(HISTORY_PATH.read_text(encoding="utf-8"))
+            data = json.loads(HISTORY_PATH.read_text(encoding="utf-8"))
+            return data if isinstance(data, list) else []
         except (json.JSONDecodeError, OSError):
             return []
     return []
 
 
-def save_history(history: list[dict]) -> None:
-    # DEDUP_DAYS * 3 보다 오래된 기록은 잘라내 파일 크기 관리
-    cutoff = datetime.now() - timedelta(days=DEDUP_DAYS * 3)
+def save_history(history: list[dict], today: datetime) -> None:
+    cutoff = today.date() - timedelta(days=HISTORY_KEEP_DAYS)
     kept = []
     for h in history:
         try:
-            d = datetime.strptime(h["date"], "%Y-%m-%d")
-        except (KeyError, ValueError):
+            d = datetime.strptime(h["date"], "%Y-%m-%d").date()
+        except (KeyError, ValueError, TypeError):
             continue
         if d >= cutoff:
             kept.append(h)
-    HISTORY_PATH.write_text(
-        json.dumps(kept, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
+    HISTORY_PATH.write_text(json.dumps(kept, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
-def recent_ids(history: list[dict], days: int) -> set[str]:
-    cutoff = datetime.now() - timedelta(days=days)
-    used: set[str] = set()
+def recent_entries(history: list[dict], today: datetime, days: int) -> list[dict]:
+    cutoff = today.date() - timedelta(days=days)
+    out = []
     for h in history:
         try:
-            d = datetime.strptime(h["date"], "%Y-%m-%d")
-        except (KeyError, ValueError):
+            d = datetime.strptime(h["date"], "%Y-%m-%d").date()
+        except (KeyError, ValueError, TypeError):
             continue
         if d >= cutoff:
-            cid = h.get("id")
-            if cid:
-                used.add(cid)
-    return used
+            out.append(h)
+    return out
 
 
-def pick_categories(today: datetime, num_posts: int, history: list[dict]) -> list[dict]:
-    used = recent_ids(history, DEDUP_DAYS)
-
-    news_pool = [c for c in SEARCH_CATEGORIES if c["type"] == "news" and c["id"] not in used]
-    tech_pool = [c for c in SEARCH_CATEGORIES if c["type"] == "tech" and c["id"] not in used]
-
-    # pool 고갈 시 전체 풀에서 다시 샘플링 (비상용)
-    if not news_pool:
-        news_pool = [c for c in SEARCH_CATEGORIES if c["type"] == "news"]
-    if not tech_pool:
-        tech_pool = [c for c in SEARCH_CATEGORIES if c["type"] == "tech"]
-
-    # 날짜 기반 결정적 셔플 (같은 날 재실행 시 동일 결과)
-    rng = random.Random(today.toordinal())
-    rng.shuffle(news_pool)
-    rng.shuffle(tech_pool)
-
-    is_news_day = today.weekday() in NEWS_WEEKDAYS
-    selected: list[dict] = []
-
-    if is_news_day and num_posts >= 1 and news_pool:
-        selected.append(news_pool.pop(0))
-
-    while len(selected) < num_posts and tech_pool:
-        selected.append(tech_pool.pop(0))
-
-    # 뉴스 요일이 아닌데 num_posts가 많아 기술 풀이 모자라면 뉴스로 보충
-    while len(selected) < num_posts and news_pool:
-        selected.append(news_pool.pop(0))
-
-    return selected[:num_posts]
+def existing_slugs(posts_dir: Path) -> set[str]:
+    slugs = set()
+    for p in posts_dir.glob("*.md"):
+        slugs.add(re.sub(r"^\d{4}-\d{2}-\d{2}-", "", p.stem))
+    return slugs
 
 
-def get_dynamic_date_str() -> str:
-    today = datetime.now()
-    return f"{today.year}년 {today.month}월"
+# ---------------------------------------------------------------------------
+# OpenAI 호출
+# ---------------------------------------------------------------------------
+
+def _extract_json(text: str) -> dict:
+    text = text.strip()
+    text = re.sub(r"^```(?:json)?\s*|\s*```$", "", text, flags=re.S)
+    start, end = text.find("{"), text.rfind("}")
+    if start == -1 or end == -1:
+        raise ValueError("응답에서 JSON 객체를 찾지 못했습니다")
+    return json.loads(text[start:end + 1])
 
 
-def search_and_generate_post(client: OpenAI, category_info: dict) -> tuple[str, str]:
-    post_type = category_info.get("type", "tech")
-    type_label = "뉴스/트렌드 분석" if post_type == "news" else "기술 심층 분석"
-    prompt = NEWS_PROMPT if post_type == "news" else TECH_PROMPT
+def _check_complete(resp) -> None:
+    if getattr(resp, "status", None) == "incomplete":
+        reason = getattr(getattr(resp, "incomplete_details", None), "reason", "unknown")
+        raise RuntimeError(f"응답이 잘렸습니다 (reason={reason})")
 
-    date_str = get_dynamic_date_str()
-    search_query = category_info["search_query"].replace("{date}", date_str)
 
-    print(f"🔍 [{type_label}] '{search_query}' 검색 중...")
-
-    response = client.responses.create(
-        model="gpt-5.2",
+def call_json(client: OpenAI, *, instructions: str, prompt: str, schema_name: str,
+              schema: dict, max_output_tokens: int, effort: str = "medium") -> dict:
+    base = dict(
+        model=MODEL,
+        instructions=instructions,
         tools=[{"type": "web_search"}],
-        input=f"""다음 주제에 대해 웹 검색을 수행하고, 검색 결과를 바탕으로 블로그 포스트를 작성해주세요.
-
-글 유형: {type_label}
-검색 주제: {search_query}
-집중 분야: {category_info['focus']}
-
-요구사항:
-1. 먼저 웹 검색으로 최신 정보를 수집하세요
-2. 검색 결과에서 가장 흥미롭고 중요한 내용을 선별하세요
-3. 아래 지침의 구조에 맞게 블로그 글을 작성하세요
-4. 첫 줄에 매력적인 제목을 작성하세요
-
-{prompt}
-""",
-        max_output_tokens=7000,
+        max_output_tokens=max_output_tokens,
+        reasoning={"effort": effort},
     )
+    try:
+        resp = client.responses.create(
+            input=prompt,
+            text={"format": {"type": "json_schema", "name": schema_name,
+                             "schema": schema, "strict": True}},
+            **base,
+        )
+        _check_complete(resp)
+        return json.loads(resp.output_text)
+    except Exception as e:  # noqa: BLE001 - 구조화 출력 실패 시 자유 출력으로 재시도
+        print(f"⚠️ structured output 실패 ({type(e).__name__}: {str(e)[:200]}) → 자유 출력으로 재시도")
+        resp = client.responses.create(
+            input=prompt + "\n\n출력은 코드펜스 없이, 위에서 요구한 필드를 가진 JSON 객체 하나만 작성하세요.",
+            **base,
+        )
+        _check_complete(resp)
+        return _extract_json(resp.output_text)
 
-    content = response.output_text
 
-    lines = content.strip().split("\n")
-    title = category_info["focus"]
-    body = content
+# ---------------------------------------------------------------------------
+# 1) 후보 주제 수집
+# ---------------------------------------------------------------------------
 
-    first_line = lines[0].strip()
-    if first_line and not first_line.startswith("#"):
-        title = first_line.strip('"').strip("'").strip()
-        body = "\n".join(lines[1:]).strip()
-    elif first_line.startswith("# "):
-        title = first_line[2:].strip()
-        body = "\n".join(lines[1:]).strip()
+def discover_topics(client: OpenAI, today: datetime, history: list[dict]) -> list[dict]:
+    recent = recent_entries(history, today, DEDUP_DAYS)
+    recent_lines = []
+    for h in sorted(recent, key=lambda x: x.get("date", ""), reverse=True)[:150]:
+        kw = ", ".join(h.get("keywords") or [])
+        recent_lines.append(f"- {h.get('date')} [{h.get('domain') or h.get('category', '')}] "
+                            f"{h.get('title') or h.get('id', '')}" + (f" (keywords: {kw})" if kw else ""))
+    recent_block = "\n".join(recent_lines) if recent_lines else "- (없음)"
 
-    return title, body
+    prompt = f"""오늘: {today:%Y-%m-%d} ({'월화수목금토일'[today.weekday()]}) KST
 
+할 일: 웹 검색을 충분히 수행해서 아래 두 종류의 글감 후보를 찾으세요.
 
-def create_post_file(category_info: dict, title: str, body: str, suffix: str = "") -> str:
-    today = datetime.now()
-    date_str = today.strftime("%Y-%m-%d")
-    time_str = today.strftime("%Y-%m-%d %H:%M:%S +0900")
+- news 6개: 최근 7일 이내에 실제로 일어난 일. 예: 언어/프레임워크/DB/커널/브라우저의 주요 릴리스, 보안 사고나 취약점,
+  인수합병·투자, 대규모 서비스 장애, 정책·규제, 빅테크 발표, 인기 오픈소스 프로젝트의 큰 변화, 개발자 커뮤니티에서 크게 논의된 글.
+- tech 6개: 지금 깊게 다룰 가치가 있는 기술 주제. 최근 릴리스·변경·논쟁 같은 "지금 다룰 이유"가 분명해야 합니다.
+  예: 새 버전에서 바뀐 API 사용법, 새로 주류가 된 패턴, 실측 기반 성능 비교, 마이그레이션 가이드, 운영에서 겪는 문제의 해법.
 
-    slug = re.sub(r"[^a-zA-Z0-9\s-]", "", title.lower())
-    slug = re.sub(r"\s+", "-", slug).strip("-")[:40]
+조건:
+- 후보 12개가 서로 다른 도메인을 최소 6개 이상 포함해야 합니다. AI 도메인은 최대 4개.
+- 아래 "최근 다룬 주제"와 같은 주제, 같은 제품의 같은 이슈는 제외합니다. 같은 제품이라도 새로운 사건(새 버전, 새 사고)이면 됩니다.
+- 각 후보의 sources에는 검색으로 확인한 실제 URL을 넣습니다. 확인되지 않은 것은 후보에 넣지 않습니다.
+- topic/angle/why_now는 한국어, keywords는 영문 소문자 5개(제품명·기술명 위주), search_queries는 그 글을 쓸 때 다시 검색할 질의 2~3개.
 
-    if not slug:
-        slug = f"{category_info['category'].lower()}-trend"
-
-    filename = f"{date_str}-{slug}{suffix}.md"
-
-    tags = [
-        category_info["category"].lower(),
-        category_info["subcategory"].lower(),
-        "trend",
-        date_str[:7],
-    ]
-
-    front_matter = f"""---
-title: "{title}"
-date: {time_str}
-categories: [{category_info['category']}, {category_info['subcategory']}]
-tags: [{', '.join(tags)}]
-render_with_liquid: false
----
-
+최근 다룬 주제 (최근 {DEDUP_DAYS}일, 제외 대상):
+{recent_block}
 """
+    data = call_json(client, instructions=DISCOVER_INSTRUCTIONS, prompt=prompt,
+                     schema_name="topic_candidates", schema=CANDIDATES_SCHEMA,
+                     max_output_tokens=16000, effort="medium")
+    cands = [c for c in data.get("candidates", []) if c.get("topic")]
+    for c in cands:
+        c["keywords"] = normalize_keywords(c.get("keywords") or [])
+        c["domain"] = c.get("domain") if c.get("domain") in DOMAINS else "Tools"
+        c["type"] = c.get("type") if c.get("type") in ("news", "tech") else "tech"
+    return cands
 
-    posts_dir = Path(__file__).parent.parent / "_posts"
-    posts_dir.mkdir(exist_ok=True)
-    filepath = posts_dir / filename
 
-    filepath.write_text(front_matter + GA_TAG + body, encoding="utf-8")
+# ---------------------------------------------------------------------------
+# 2) 주제 선택 (중복 제거 + 도메인 균형)
+# ---------------------------------------------------------------------------
 
+def normalize_keywords(words) -> list[str]:
+    out = []
+    for w in words:
+        w = re.sub(r"[^a-z0-9.+#-]", "", str(w).lower().strip().replace(" ", "-"))
+        if w and w not in out:
+            out.append(w)
+    return out[:8]
+
+
+def title_tokens(title: str) -> set[str]:
+    return {t for t in re.findall(r"[a-z0-9][a-z0-9.+#-]{1,}", (title or "").lower()) if len(t) > 2}
+
+
+def jaccard(a: set, b: set) -> float:
+    if not a or not b:
+        return 0.0
+    return len(a & b) / len(a | b)
+
+
+def is_duplicate(cand: dict, recent: list[dict]) -> tuple[bool, str]:
+    ck = set(cand.get("keywords") or [])
+    ct = title_tokens(cand.get("topic", "")) | ck
+    for h in recent:
+        hk = set(h.get("keywords") or [])
+        ht = title_tokens(h.get("title", "")) | hk
+        if hk and jaccard(ck, hk) >= KEYWORD_OVERLAP_LIMIT:
+            return True, h.get("title") or h.get("id", "")
+        if ct and ht and jaccard(ct, ht) >= KEYWORD_OVERLAP_LIMIT:
+            return True, h.get("title") or h.get("id", "")
+    return False, ""
+
+
+def select_topics(cands: list[dict], today: datetime, history: list[dict], num_posts: int) -> list[dict]:
+    recent = recent_entries(history, today, DEDUP_DAYS)
+    balance = recent_entries(history, today, DOMAIN_BALANCE_DAYS)
+    domain_load: dict[str, int] = {}
+    for h in balance:
+        d = h.get("domain") or h.get("category")
+        if d:
+            domain_load[d] = domain_load.get(d, 0) + 1
+
+    fresh = []
+    for c in cands:
+        dup, why = is_duplicate(c, recent)
+        if dup:
+            print(f"   ⏭️  중복 제외: {c['topic'][:60]}  ≈  {why[:60]}")
+            continue
+        fresh.append(c)
+
+    # 도메인 편중이 적은 순서 → 모델이 제시한 순서 (안정 정렬)
+    fresh.sort(key=lambda c: domain_load.get(c["domain"], 0))
+
+    # 뉴스/기술을 번갈아 선택. 한쪽이 모자라면 다른 쪽으로 채움.
+    order = ["news", "tech"] if today.toordinal() % 2 == 0 else ["tech", "news"]
+    selected: list[dict] = []
+    used_domains: set[str] = set()
+    i = 0
+    while len(selected) < num_posts and fresh:
+        want = order[i % 2]
+        pool = [c for c in fresh if c["type"] == want and c["domain"] not in used_domains] \
+            or [c for c in fresh if c["type"] == want] \
+            or [c for c in fresh if c["domain"] not in used_domains] \
+            or fresh
+        pick = pool[0]
+        fresh.remove(pick)
+        selected.append(pick)
+        used_domains.add(pick["domain"])
+        i += 1
+    return selected
+
+
+# ---------------------------------------------------------------------------
+# 3) 글 작성
+# ---------------------------------------------------------------------------
+
+def related_posts(cand: dict, history: list[dict], limit: int = 5) -> list[dict]:
+    ck = set(cand.get("keywords") or []) | title_tokens(cand.get("topic", ""))
+    scored = []
+    for h in history:
+        if not h.get("slug") or not h.get("title"):
+            continue
+        hk = set(h.get("keywords") or []) | title_tokens(h.get("title", ""))
+        s = jaccard(ck, hk)
+        if s > 0:
+            scored.append((s, h))
+    scored.sort(key=lambda x: x[0], reverse=True)
+    return [h for _, h in scored[:limit]]
+
+
+def write_post(client: OpenAI, cand: dict, history: list[dict], today: datetime) -> dict:
+    kind = "뉴스 분석" if cand["type"] == "news" else "기술 심층 분석"
+    rel = related_posts(cand, history)
+    rel_block = "\n".join(f"- [{h['title']}]({SITE_URL}/posts/{h['slug']}/)" for h in rel) or "- (없음)"
+    queries = "\n".join(f"- {q}" for q in cand.get("search_queries") or []) or "- (직접 정하세요)"
+    sources = "\n".join(f"- {s}" for s in cand.get("sources") or []) or "- (없음)"
+
+    prompt = f"""오늘: {today:%Y-%m-%d} KST
+글 종류: {kind}
+도메인: {cand['domain']}
+주제: {cand['topic']}
+관점: {cand['angle']}
+지금 다루는 이유: {cand['why_now']}
+
+추천 검색어:
+{queries}
+
+후보 수집 단계에서 확인한 URL (반드시 다시 열어 내용을 확인하고 쓸 것):
+{sources}
+
+이 블로그에서 예전에 다룬 관련 글 (내용을 반복하지 말 것. 문맥에 맞으면 본문에서 자연스럽게 링크해도 됨):
+{rel_block}
+
+작성 절차:
+1. web_search를 최소 5회 수행해 1차 소스(공식 문서, 릴리스 노트, 발표문, 논문, 원문 블로그)를 확보합니다.
+2. 확인된 사실만으로, 위 규칙에 맞는 장문의 글을 씁니다. 코드가 들어가는 글은 실제로 실행 가능한 수준으로 씁니다.
+3. JSON 필드로 출력합니다: title, slug, description, category, subcategory, tags, body_markdown.
+   body_markdown에는 front matter나 # 제목을 넣지 않습니다. 마지막 섹션은 "## 참고 자료"입니다.
+"""
+    return call_json(client, instructions=WRITER_INSTRUCTIONS, prompt=prompt,
+                     schema_name="blog_post", schema=POST_SCHEMA,
+                     max_output_tokens=40000, effort="medium")
+
+
+# ---------------------------------------------------------------------------
+# 4) 후처리 (기존 글 정리 스크립트에서도 재사용)
+# ---------------------------------------------------------------------------
+
+TRACKING_PARAMS = re.compile(r"(?:utm_[a-z]+|ref|ref_src|fbclid|gclid)=[^&#\s)]*", re.I)
+CITATION_GROUP = re.compile(
+    r"\(\s*(\[[^\]\n]+\]\(https?://[^)\s]+\)\s*(?:[,;、]\s*\[[^\]\n]+\]\(https?://[^)\s]+\)\s*)*)\)"
+)
+MD_LINK = re.compile(r"\[([^\]\n]+)\]\((https?://[^)\s]+)\)")
+OFFER_TRIGGER = re.compile(r"(원하시면|원하면|원하신다면|필요하시면|필요하면|말씀해\s*주시면|알려\s*주시면|알려주면|요청하시면)")
+OFFER_VERB = re.compile(r"(드릴게요|드리겠습니다|드릴\s*수\s*있|해\s*드릴|해드릴|드릴게|드립니다|드려요|제안드|도와드)")
+TITLE_STAMP = re.compile(
+    r"[\(（]?\s*20\d\d\s*년\s*(?:\d{1,2}\s*월)?\s*(?:기준|현재|판|버전)?\s*[\)）]?"
+)
+
+
+def strip_tracking(url: str) -> str:
+    if "?" not in url:
+        return url
+    base, _, rest = url.partition("?")
+    frag = ""
+    if "#" in rest:
+        rest, _, frag = rest.partition("#")
+    params = [p for p in rest.split("&") if p and not TRACKING_PARAMS.fullmatch(p)]
+    out = base + ("?" + "&".join(params) if params else "")
+    return out + ("#" + frag if frag else "")
+
+
+def strip_tracking_in_text(text: str) -> str:
+    return MD_LINK.sub(lambda m: f"[{m.group(1)}]({strip_tracking(m.group(2))})", text)
+
+
+def citations_to_footnotes(body: str) -> str:
+    """'문장 ([site.com](url))' 형태의 인용을 kramdown 각주 [^n] 로 바꾼다."""
+    if not CITATION_GROUP.search(body):
+        return body
+    numbers: dict[str, int] = {}
+    defs: list[str] = []
+
+    def ref_for(url: str) -> str:
+        url = strip_tracking(url)
+        if url not in numbers:
+            numbers[url] = len(numbers) + 1
+            defs.append(f"[^{numbers[url]}]: <{url}>")
+        return f"[^{numbers[url]}]"
+
+    def repl(m: re.Match) -> str:
+        refs = [ref_for(u) for _, u in MD_LINK.findall(m.group(1))]
+        return "".join(dict.fromkeys(refs))  # 같은 그룹 안의 중복 제거
+
+    # 앞 공백 + 인용 그룹 → 각주 (문장 부호 바로 뒤에 붙도록)
+    new_body = re.sub(r"[ \t]*" + CITATION_GROUP.pattern, repl, body)
+    if defs:
+        new_body = new_body.rstrip() + "\n\n" + "\n".join(defs) + "\n"
+    return new_body
+
+
+def _split_sentences(paragraph: str) -> list[str]:
+    parts = re.split(r"(?<=[.!?。])\s+(?=\S)", paragraph.strip())
+    return [p for p in parts if p]
+
+
+def remove_closing_offers(body: str) -> str:
+    """글 끝부분의 '원하시면 … 해 드릴게요' 류 문장을 제거한다 (마지막 3개 문단만 검사)."""
+    lines = body.rstrip().split("\n")
+    # 각주 정의 블록은 건드리지 않도록 분리
+    tail_defs: list[str] = []
+    while lines and re.match(r"^\[\^\d+\]:", lines[-1]):
+        tail_defs.insert(0, lines.pop())
+    while lines and not lines[-1].strip():
+        lines.pop()
+    text = "\n".join(lines)
+    paras = text.split("\n\n")
+    checked = 0
+    for i in range(len(paras) - 1, -1, -1):
+        p = paras[i]
+        if not p.strip():
+            continue
+        if "```" in p:
+            break
+        checked += 1
+        if checked > 3:
+            break
+        if OFFER_TRIGGER.search(p) and OFFER_VERB.search(p):
+            if p.lstrip().startswith(("-", "*", "#", ">", "|")) or "\n" in p.strip():
+                kept_lines = [ln for ln in p.split("\n")
+                              if not (OFFER_TRIGGER.search(ln) and OFFER_VERB.search(ln))]
+                paras[i] = "\n".join(kept_lines)
+            else:
+                kept = [s for s in _split_sentences(p)
+                        if not (OFFER_TRIGGER.search(s) and OFFER_VERB.search(s))]
+                paras[i] = " ".join(kept)
+    text = "\n\n".join(p for p in paras if p.strip())
+    if tail_defs:
+        text = text.rstrip() + "\n\n" + "\n".join(tail_defs)
+    return text.rstrip() + "\n"
+
+
+def clean_title(title: str) -> str:
+    t = title.strip().strip('"').strip("'").strip()
+    t = re.sub(r"^#+\s*", "", t)
+    t = TITLE_STAMP.sub(" ", t)
+    t = re.sub(r"\(\s*\)", "", t)
+    t = re.sub(r"\s+", " ", t)
+    t = re.sub(r"\s+([:：,，])", r"\1", t)          # "만들기 : SSE" → "만들기: SSE"
+    t = re.sub(r"([:：,，])\s*([:：,，])", r"\1", t)  # 중복 구두점 정리
+    return t.strip(" :：,，-–—")
+
+
+def clean_body(body: str) -> str:
+    b = body.replace("\r\n", "\n").strip()
+    # 모델이 front matter나 # 제목을 넣었으면 제거
+    if b.startswith("---"):
+        end = b.find("\n---", 3)
+        if end != -1:
+            b = b[end + 4:].lstrip()
+    b = re.sub(r"^#\s+[^\n]+\n+", "", b, count=1)
+    b = re.sub(r"^```(?:markdown|md)\s*\n(.*)\n```\s*$", r"\1", b, flags=re.S)
+    b = strip_tracking_in_text(b)
+    b = citations_to_footnotes(b)
+    b = remove_closing_offers(b)
+    b = re.sub(r"\n{3,}", "\n\n", b)
+    return b.strip() + "\n"
+
+
+def sanitize_slug(slug: str, fallback: str = "post") -> str:
+    s = re.sub(r"[^a-z0-9]+", "-", (slug or "").lower()).strip("-")
+    s = re.sub(r"-{2,}", "-", s)[:60].strip("-")
+    return s or fallback
+
+
+def sanitize_tags(tags) -> list[str]:
+    out: list[str] = []
+    for t in tags or []:
+        t = re.sub(r"[^a-z0-9.+#-]", "", str(t).lower().strip().replace(" ", "-")).strip("-")
+        if t and t not in out and t != "trend":
+            out.append(t)
+    return out[:6]
+
+
+def sanitize_subcategory(sub: str, fallback: str) -> str:
+    s = re.sub(r"[^A-Za-z0-9 .+#/-]", "", (sub or "")).strip()
+    s = re.sub(r"\s+", " ", s)[:30].strip()
+    if not s:
+        return fallback
+    return s if any(ch.isupper() for ch in s) else s.title()
+
+
+def yaml_str(s: str) -> str:
+    """YAML 큰따옴표 스칼라 (JSON 문자열은 YAML의 부분집합)."""
+    return json.dumps(s, ensure_ascii=False)
+
+
+# ---------------------------------------------------------------------------
+# 5) 파일 생성
+# ---------------------------------------------------------------------------
+
+def post_timestamp(now: datetime, index: int, num_posts: int) -> datetime:
+    """같은 날 여러 글이 1분 간격으로 몰리지 않도록 앞선 글을 몇 시간 앞으로 배치."""
+    rng = random.Random(f"{now:%Y-%m-%d}-{index}")
+    hours_back = (num_posts - 1 - index) * 3 + rng.randint(0, 45) / 60
+    ts = now - timedelta(hours=hours_back)
+    if ts.date() != now.date():
+        ts = now.replace(hour=0, minute=rng.randint(5, 50), second=rng.randint(0, 59))
+    return ts
+
+
+def create_post_file(post: dict, cand: dict, ts: datetime, taken_slugs: set[str]) -> tuple[str, dict]:
+    title = clean_title(post.get("title") or cand["topic"])
+    description = re.sub(r"\s+", " ", (post.get("description") or "")).strip()
+    body = clean_body(post.get("body_markdown") or "")
+    if len(body.strip()) < 500:
+        raise ValueError("본문이 비어 있거나 너무 짧습니다")
+
+    slug = sanitize_slug(post.get("slug"),
+                         fallback=sanitize_slug("-".join(cand.get("keywords") or [])[:60]))
+    base, n = slug, 2
+    while slug in taken_slugs:
+        slug = f"{base}-{n}"
+        n += 1
+    taken_slugs.add(slug)
+
+    domain = post.get("category") if post.get("category") in DOMAINS else cand["domain"]
+    if cand["type"] == "news":
+        categories = ["News", domain]
+    else:
+        categories = [domain, sanitize_subcategory(post.get("subcategory"), fallback=domain)]
+    tags = sanitize_tags(post.get("tags")) or sanitize_tags(cand.get("keywords"))
+
+    date_str = ts.strftime("%Y-%m-%d")
+    lines = ["---", f"title: {yaml_str(title)}"]
+    if description:
+        lines.append(f"description: {yaml_str(description)}")
+    lines += [
+        f"date: {ts:%Y-%m-%d %H:%M:%S %z}",
+        f"categories: [{', '.join(categories)}]",
+        f"tags: [{', '.join(tags)}]",
+        "render_with_liquid: false",
+        "---",
+        "",
+    ]
+    front_matter = "\n".join(lines)
+
+    POSTS_DIR.mkdir(parents=True, exist_ok=True)
+    filename = f"{date_str}-{slug}.md"
+    (POSTS_DIR / filename).write_text(front_matter + "\n" + body.rstrip() + "\n\n" + GA_TAG,
+                                      encoding="utf-8")
+
+    entry = {
+        "date": date_str,
+        "type": cand["type"],
+        "domain": domain,
+        "title": title,
+        "slug": slug,
+        "keywords": normalize_keywords((cand.get("keywords") or []) + tags),
+    }
     print(f"✅ 포스트 생성: {filename}")
-    return filename
+    print(f"   제목: {title}")
+    print(f"   분류: {categories} / tags: {tags} / 본문 {len(body):,}자")
+    return filename, entry
 
 
-def main():
+# ---------------------------------------------------------------------------
+# main
+# ---------------------------------------------------------------------------
+
+def main() -> int:
     api_key = os.environ.get("OPENAI_API_KEY")
     if not api_key:
         print("❌ OPENAI_API_KEY 환경변수가 설정되지 않았습니다.")
-        return
+        return 1
 
-    client = OpenAI(api_key=api_key)
-
-    print("🚀 최신 트렌드 기반 블로그 포스트 생성 시작!")
-    print("=" * 50)
-
-    num_posts = int(os.environ.get("NUM_POSTS", "2"))
-    today = datetime.now()
-
+    client = OpenAI(api_key=api_key, timeout=1200, max_retries=2)
+    num_posts = max(1, int(os.environ.get("NUM_POSTS", "2") or 2))
+    now = datetime.now(KST)
     history = load_history()
-    selected = pick_categories(today, num_posts, history)
 
-    weekday_kr = "월화수목금토일"[today.weekday()]
-    print(f"📅 {today:%Y-%m-%d} ({weekday_kr})")
-    print(f"📋 선택된 카테고리: {[c['id'] for c in selected]}")
+    print("🚀 최신 IT 뉴스/기술 포스트 생성 시작")
+    print("=" * 60)
+    print(f"📅 {now:%Y-%m-%d %H:%M} KST / model={MODEL} / posts={num_posts}")
 
-    generated_files = []
-    for i, category_info in enumerate(selected):
-        print(f"\n📝 [{i+1}/{len(selected)}] {category_info['id']} 글 생성 중...")
+    print("\n🔎 [1/3] 글감 후보 수집 (web search)")
+    try:
+        cands = discover_topics(client, now, history)
+    except Exception as e:  # noqa: BLE001
+        print(f"❌ 후보 수집 실패: {type(e).__name__}: {e}")
+        return 1
+    if not cands:
+        print("❌ 후보가 없습니다.")
+        return 1
+    for c in cands:
+        print(f"   - [{c['type']:4}] [{c['domain']:<14}] {c['topic'][:70]}")
 
+    print("\n🎯 [2/3] 주제 선택")
+    selected = select_topics(cands, now, history, num_posts)
+    if not selected:
+        print("❌ 선택 가능한 주제가 없습니다.")
+        return 1
+    for c in selected:
+        print(f"   ✔ [{c['type']}] [{c['domain']}] {c['topic'][:70]}")
+
+    print("\n✍️  [3/3] 글 작성")
+    taken = existing_slugs(POSTS_DIR)
+    generated: list[str] = []
+    for i, cand in enumerate(selected):
+        print(f"\n📝 [{i + 1}/{len(selected)}] {cand['topic'][:70]}")
         try:
-            title, body = search_and_generate_post(client, category_info)
-            suffix = f"-{i+1}" if len(selected) > 1 else ""
-            filename = create_post_file(category_info, title, body, suffix)
-            generated_files.append(filename)
-
-            history.append({
-                "date": today.strftime("%Y-%m-%d"),
-                "id": category_info["id"],
-            })
-        except Exception as e:
-            print(f"❌ 오류 발생: {e}")
+            post = write_post(client, cand, history, now)
+            ts = post_timestamp(now, i, len(selected))
+            filename, entry = create_post_file(post, cand, ts, taken)
+            generated.append(filename)
+            history.append(entry)
+        except Exception as e:  # noqa: BLE001
+            print(f"❌ 오류 발생: {type(e).__name__}: {str(e)[:300]}")
             continue
 
-    save_history(history)
-
-    print("\n" + "=" * 50)
-    print(f"🎉 완료! {len(generated_files)}개 포스트 생성됨:")
-    for f in generated_files:
+    save_history(history, now)
+    print("\n" + "=" * 60)
+    print(f"🎉 완료! {len(generated)}개 포스트 생성됨:")
+    for f in generated:
         print(f"   - {f}")
+    return 0 if generated else 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
