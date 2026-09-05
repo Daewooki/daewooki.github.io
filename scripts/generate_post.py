@@ -331,6 +331,7 @@ def discover_topics(client: OpenAI, today: datetime, history: list[dict]) -> lis
 
 조건:
 - 후보 12개가 서로 다른 도메인을 최소 6개 이상 포함해야 합니다. AI 도메인은 최대 4개.
+- 후보 12개는 서로 다른 사건·제품이어야 합니다. 같은 사건을 뉴스와 기술로 나누어 두 번 넣지 않습니다. keywords의 첫 항목은 그 글의 핵심 제품/사건 이름으로 씁니다.
 - 아래 "최근 다룬 주제"와 같은 주제, 같은 제품의 같은 이슈는 제외합니다. 같은 제품이라도 새로운 사건(새 버전, 새 사고)이면 됩니다.
 - 각 후보의 sources에는 검색으로 확인한 실제 URL을 넣습니다. 확인되지 않은 것은 후보에 넣지 않습니다.
 - topic/angle/why_now는 한국어, keywords는 영문 소문자 5개(제품명·기술명 위주), search_queries는 그 글을 쓸 때 다시 검색할 질의 2~3개.
@@ -381,6 +382,24 @@ def jaccard(a: set, b: set) -> float:
     return len(a & b) / len(a | b)
 
 
+GENERIC_KEYWORDS = {
+    "ai", "llm", "security", "backend", "frontend", "cloud", "devops", "database", "api", "release",
+    "open-source", "opensource", "performance", "testing", "news", "update", "tutorial", "guide",
+}
+
+
+def same_subject(a: dict, b: dict) -> bool:
+    """같은 실행 안에서 두 후보가 같은 제품/사건을 다루는지 (관점만 다른 경우를 잡기 위한 느슨한 기준)."""
+    ka = [k for k in (a.get("keywords") or []) if k not in GENERIC_KEYWORDS]
+    kb = [k for k in (b.get("keywords") or []) if k not in GENERIC_KEYWORDS]
+    if not ka or not kb:
+        return False
+    shared = set(ka) & set(kb)
+    if len(shared) >= 2:
+        return True
+    return ka[0] == kb[0]  # 첫 키워드는 보통 제품/사건 이름
+
+
 def is_duplicate(cand: dict, recent: list[dict]) -> tuple[bool, str]:
     ck = set(cand.get("keywords") or [])
     ct = title_tokens(cand.get("topic", "")) | ck
@@ -427,8 +446,13 @@ def select_topics(cands: list[dict], today: datetime, history: list[dict], num_p
             or fresh
         pick = pool[0]
         fresh.remove(pick)
-        # 같은 실행 안에서 같은 사건을 두 번 고르지 않도록
+        # 같은 실행 안에서 같은 사건/제품을 두 번 고르지 않도록 (뉴스와 기술로 관점만 다른 경우 포함)
         dup, why = is_duplicate(pick, [{"title": s["topic"], "keywords": s["keywords"]} for s in selected])
+        if not dup:
+            for s in selected:
+                if same_subject(pick, s):
+                    dup, why = True, s["topic"]
+                    break
         if dup:
             print(f"   ⏭️  오늘 선택분과 중복: {pick['topic'][:60]}  ≈  {why[:60]}")
             continue
