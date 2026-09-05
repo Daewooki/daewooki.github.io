@@ -6972,5 +6972,39 @@
       "llm",
       "sse"
     ]
+  },
+  {
+    "date": "2026-09-05",
+    "type": "news",
+    "domain": "Security",
+    "title": "Chrome 152 제로데이 공지가 패치 프로세스를 강제하는 방식",
+    "slug": "chrome-152-zero-day-forces-patching-process",
+    "keywords": [
+      "chrome",
+      "chromium",
+      "v8",
+      "cve-2026-85046",
+      "patch-management",
+      "zero-day",
+      "enterprise-policy",
+      "relaunch"
+    ]
+  },
+  {
+    "date": "2026-09-05",
+    "type": "tech",
+    "domain": "Testing",
+    "title": "Chrome 제로데이 주간에 브라우저 업데이트를 배포 파이프라인으로 굴리는 방법",
+    "slug": "chrome-zero-day-rollout-pipeline",
+    "keywords": [
+      "chrome",
+      "zero-day",
+      "e2e",
+      "rollout",
+      "policy",
+      "rollout-rings",
+      "enterprise-policy",
+      "playwright"
+    ]
   }
 ]
