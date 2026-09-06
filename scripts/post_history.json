@@ -7006,5 +7006,39 @@
       "enterprise-policy",
       "playwright"
     ]
+  },
+  {
+    "date": "2026-09-06",
+    "type": "tech",
+    "domain": "Tools",
+    "title": "OpenTelemetry Go Logs RC로 시작하는 로그 표준화",
+    "slug": "otel-go-logs-rc-adoption",
+    "keywords": [
+      "opentelemetry",
+      "otel-go",
+      "logs",
+      "sdk",
+      "semantic-conventions",
+      "golang",
+      "logging",
+      "observability"
+    ]
+  },
+  {
+    "date": "2026-09-06",
+    "type": "news",
+    "domain": "Languages",
+    "title": "Rust 1.98.1: trait object vtable 미스컴파일의 파급",
+    "slug": "rust-1981-trait-object-vtable-bug",
+    "keywords": [
+      "rust",
+      "rustc",
+      "trait-object",
+      "vtable",
+      "compiler",
+      "compiler-bug",
+      "trait-objects",
+      "ci"
+    ]
   }
 ]
