@@ -7040,5 +7040,39 @@
       "trait-objects",
       "ci"
     ]
+  },
+  {
+    "date": "2026-09-07",
+    "type": "news",
+    "domain": "DevOps",
+    "title": "Kubernetes 1.37 DRA 업데이트: GPU 운영팀이 보는 GA급 변화",
+    "slug": "kubernetes-dra-ga-gpu-ops",
+    "keywords": [
+      "kubernetes",
+      "dra",
+      "device-resource-assignment",
+      "scheduler",
+      "numa",
+      "gpu-ops",
+      "scheduling",
+      "device-drivers"
+    ]
+  },
+  {
+    "date": "2026-09-07",
+    "type": "tech",
+    "domain": "Database",
+    "title": "PostgreSQL 19 Beta 3 검증 윈도우: 확장·호환성·회귀",
+    "slug": "postgresql-19-beta3-test-window",
+    "keywords": [
+      "postgresql-19",
+      "postgresql",
+      "rds",
+      "extensions",
+      "upgrade-testing",
+      "beta-testing",
+      "rds-preview",
+      "ci"
+    ]
   }
 ]
