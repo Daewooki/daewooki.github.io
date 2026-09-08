@@ -7074,5 +7074,39 @@
       "rds-preview",
       "ci"
     ]
+  },
+  {
+    "date": "2026-09-08",
+    "type": "tech",
+    "domain": "Security",
+    "title": "OpenSSL 3.0 EOL 이후 런타임을 안전하게 퇴역시키는 운영 설계",
+    "slug": "retire-openssl-3-0-safely",
+    "keywords": [
+      "openssl",
+      "3.0",
+      "eol",
+      "fips",
+      "migration",
+      "sbom",
+      "containers",
+      "rollout"
+    ]
+  },
+  {
+    "date": "2026-09-08",
+    "type": "news",
+    "domain": "Web",
+    "title": "NGINX 1.31.5: Control API와 njs 리스크가 만나는 지점",
+    "slug": "nginx-control-api-njs-security",
+    "keywords": [
+      "nginx",
+      "1.31.5",
+      "njs",
+      "cve-2026-18329",
+      "control-api",
+      "security",
+      "api-gateway",
+      "cve"
+    ]
   }
 ]
