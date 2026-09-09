@@ -7108,5 +7108,39 @@
       "api-gateway",
       "cve"
     ]
+  },
+  {
+    "date": "2026-09-09",
+    "type": "news",
+    "domain": "Networking",
+    "title": "Nexus 9000 Silicon One RCE 대응: 패치 런북",
+    "slug": "nexus9000-siliconone-rce-patch-runbook",
+    "keywords": [
+      "cve-2026-20212",
+      "cisco-nexus-9000",
+      "silicon-one",
+      "nx-os",
+      "rce",
+      "cisco",
+      "nexus-9000",
+      "patch-management"
+    ]
+  },
+  {
+    "date": "2026-09-09",
+    "type": "tech",
+    "domain": "Infrastructure",
+    "title": "Terraform 1.16.1 import/panic 버그와 IaC 파이프라인 방어",
+    "slug": "terraform-import-panic-pipeline-guardrails",
+    "keywords": [
+      "terraform",
+      "1.16.1",
+      "import-blocks",
+      "createbeforedestroy",
+      "terraform-test",
+      "iac",
+      "cicd",
+      "policy-as-code"
+    ]
   }
 ]
