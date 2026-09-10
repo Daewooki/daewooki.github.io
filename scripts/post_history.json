@@ -7142,5 +7142,39 @@
       "cicd",
       "policy-as-code"
     ]
+  },
+  {
+    "date": "2026-09-10",
+    "type": "tech",
+    "domain": "Cloud",
+    "title": "AWS Tools Installer V2로 개발자 머신과 CI의 AWS 툴 설치를 표준화하기",
+    "slug": "standardize-aws-toolchain-installs",
+    "keywords": [
+      "aws-tools-installer-v2",
+      "powershell",
+      "awscli",
+      "developer-tools",
+      "automation",
+      "aws",
+      "ci",
+      "toolchain"
+    ]
+  },
+  {
+    "date": "2026-09-10",
+    "type": "news",
+    "domain": "Systems",
+    "title": "Linux stable 커널 롤아웃 체크리스트: 7.2.4",
+    "slug": "linux-stable-kernel-rollout-checklist-724",
+    "keywords": [
+      "linux-7.2.4",
+      "kernel",
+      "stable",
+      "upgrade",
+      "regression",
+      "linux-kernel",
+      "rollout",
+      "kexec"
+    ]
   }
 ]
