@@ -7176,5 +7176,39 @@
       "rollout",
       "kexec"
     ]
+  },
+  {
+    "date": "2026-09-11",
+    "type": "news",
+    "domain": "Frontend",
+    "title": "React 19.3: View Transitions·Fragment Refs 프로덕션 설계",
+    "slug": "react-19-3-view-transitions-fragment-refs",
+    "keywords": [
+      "react-19.3",
+      "view-transitions",
+      "fragment-refs",
+      "rsc",
+      "trusted-types",
+      "react",
+      "suspense",
+      "routing"
+    ]
+  },
+  {
+    "date": "2026-09-11",
+    "type": "tech",
+    "domain": "Cloud",
+    "title": "App Engine(Go)의 TLS 1.1 이하 차단에 대비한 트래픽 계측과 단계적 종료",
+    "slug": "app-engine-tls11-cutoff-traffic-audit",
+    "keywords": [
+      "app-engine",
+      "go-runtime",
+      "tls-1.1",
+      "tls-1.0",
+      "traffic-audit",
+      "gcp",
+      "tls",
+      "load-balancing"
+    ]
   }
 ]
