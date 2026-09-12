@@ -7210,5 +7210,39 @@
       "tls",
       "load-balancing"
     ]
+  },
+  {
+    "date": "2026-09-12",
+    "type": "tech",
+    "domain": "Data",
+    "title": "Grafana Knowledge Graph 이후: 서비스 의존성 그래프를 운영에 쓰는 법",
+    "slug": "grafana-knowledge-graph-ops-patterns",
+    "keywords": [
+      "grafana-knowledge-graph",
+      "grafana-cloud",
+      "application-observability",
+      "service-map",
+      "dependencies",
+      "grafana",
+      "observability",
+      "knowledge-graph"
+    ]
+  },
+  {
+    "date": "2026-09-12",
+    "type": "news",
+    "domain": "Mobile",
+    "title": "Android Security Bulletin 2026-09로 다시 짜는 모바일 보안 업데이트 운영",
+    "slug": "android-security-bulletin-patch-level-ops",
+    "keywords": [
+      "android-security-bulletin-2026-09",
+      "android",
+      "security-patch-level",
+      "cve",
+      "mobile-security",
+      "android-security",
+      "android-enterprise",
+      "byod"
+    ]
   }
 ]
