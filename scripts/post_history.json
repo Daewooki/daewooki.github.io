@@ -7244,5 +7244,38 @@
       "android-enterprise",
       "byod"
     ]
+  },
+  {
+    "date": "2026-09-13",
+    "type": "news",
+    "domain": "Languages",
+    "title": "Node.js 26.8.2 업그레이드를 공급망 위험으로 해석하기",
+    "slug": "nodejs-runtime-supply-chain-risk",
+    "keywords": [
+      "nodejs-26.8.2",
+      "nodejs",
+      "openssl",
+      "undici",
+      "npm",
+      "supply-chain",
+      "corepack"
+    ]
+  },
+  {
+    "date": "2026-09-13",
+    "type": "tech",
+    "domain": "DevOps",
+    "title": "GitHub Actions Node 20 제거 전에 런타임 계약 재정리와 마이그레이션 플랜",
+    "slug": "github-actions-node20-removal-runtime-contract-migration",
+    "keywords": [
+      "github-actions-node20-deprecation",
+      "github-actions",
+      "node20",
+      "node24",
+      "self-hosted-runners",
+      "ci-cd",
+      "self-hosted-runner",
+      "nodejs"
+    ]
   }
 ]
