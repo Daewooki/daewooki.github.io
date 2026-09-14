@@ -7277,5 +7277,37 @@
       "self-hosted-runner",
       "nodejs"
     ]
+  },
+  {
+    "date": "2026-09-14",
+    "type": "tech",
+    "domain": "OpenSource",
+    "title": "Forgejo 템플릿 리포지토리 RCE: 공격 경로와 방어선",
+    "slug": "forgejo-template-repo-rce-defense",
+    "keywords": [
+      "forgejo-16.0.4",
+      "forgejo",
+      "self-hosted-git",
+      "rce",
+      "hardening",
+      "ci-runner"
+    ]
+  },
+  {
+    "date": "2026-09-14",
+    "type": "news",
+    "domain": "Web",
+    "title": "Chrome Stable 2주 릴리스가 바꾸는 업데이트 운영",
+    "slug": "chrome-two-week-stable-ring-design",
+    "keywords": [
+      "chrome-153",
+      "chrome",
+      "release-cycle",
+      "enterprise-policy",
+      "update-strategy",
+      "enterprise",
+      "release-management",
+      "e2e-testing"
+    ]
   }
 ]
