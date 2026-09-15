@@ -7309,5 +7309,38 @@
       "release-management",
       "e2e-testing"
     ]
+  },
+  {
+    "date": "2026-09-15",
+    "type": "news",
+    "domain": "Infrastructure",
+    "title": "Terraform 1.16.2 업그레이드 체크리스트: 버전 고정만으로는 부족하다",
+    "slug": "terraform-1-16-2-upgrade-window-checklist",
+    "keywords": [
+      "terraform-1.16.2",
+      "terraform",
+      "iac",
+      "upgrade",
+      "providers",
+      "upgrade-checklist",
+      "provider-lockfile",
+      "plan-reproducibility"
+    ]
+  },
+  {
+    "date": "2026-09-15",
+    "type": "tech",
+    "domain": "Database",
+    "title": "MongoDB 7.0.41 패치 적용 가이드: 롤링 업데이트에서 확인할 것들",
+    "slug": "mongodb-7-0-41-rolling-update-checklist",
+    "keywords": [
+      "mongodb-7.0.41",
+      "mongodb",
+      "replica-set",
+      "sharding",
+      "rolling-upgrade",
+      "fcv",
+      "security-patch"
+    ]
   }
 ]
