@@ -7342,5 +7342,39 @@
       "fcv",
       "security-patch"
     ]
+  },
+  {
+    "date": "2026-09-16",
+    "type": "tech",
+    "domain": "Tools",
+    "title": "CISA KEV로 패치 우선순위 엔진 만들기",
+    "slug": "kev-patch-priority-engine",
+    "keywords": [
+      "cisa-kev-data",
+      "kev",
+      "vulnerability-management",
+      "automation",
+      "sre",
+      "security-automation",
+      "cmdb",
+      "jira"
+    ]
+  },
+  {
+    "date": "2026-09-16",
+    "type": "news",
+    "domain": "Systems",
+    "title": "systemd 안정 릴리스와 운영 기준: 백포트 vs 자체 업그레이드",
+    "slug": "systemd-stable-backport-vs-upgrade-policy",
+    "keywords": [
+      "systemd-261.3",
+      "systemd",
+      "linux",
+      "service-manager",
+      "upgrade",
+      "release-management",
+      "rollback",
+      "regression-testing"
+    ]
   }
 ]
