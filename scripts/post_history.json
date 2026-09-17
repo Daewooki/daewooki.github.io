@@ -7376,5 +7376,39 @@
       "rollback",
       "regression-testing"
     ]
+  },
+  {
+    "date": "2026-09-17",
+    "type": "news",
+    "domain": "Data",
+    "title": "Debezium 3.7 Beta2: 커넥터 성숙도와 CDC 확장",
+    "slug": "debezium-connector-maturity-and-cdc-expansion",
+    "keywords": [
+      "debezium-3.7.0-beta2",
+      "cockroachdb-connector",
+      "milvus-connector",
+      "sqlite-connector",
+      "cdc",
+      "debezium",
+      "cockroachdb",
+      "milvus"
+    ]
+  },
+  {
+    "date": "2026-09-17",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "Spring Boot 4 마이그레이션 실전: 진짜 깨지는 지점들",
+    "slug": "spring-boot-4-migration-real-breakages",
+    "keywords": [
+      "spring-boot-4-migration",
+      "spring-boot",
+      "spring-framework-7",
+      "jakarta-ee-11",
+      "servlet-6.1",
+      "jakarta-ee",
+      "servlet",
+      "openrewrite"
+    ]
   }
 ]
