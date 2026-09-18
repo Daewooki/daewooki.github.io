@@ -7410,5 +7410,39 @@
       "servlet",
       "openrewrite"
     ]
+  },
+  {
+    "date": "2026-09-18",
+    "type": "tech",
+    "domain": "Performance",
+    "title": "Go 1.27 size-specialized allocations 이후 GC·지연시간 튜닝 관점",
+    "slug": "go-size-specialized-allocations-gc-latency",
+    "keywords": [
+      "go-1.27",
+      "memory-allocation",
+      "runtime",
+      "pprof",
+      "latency",
+      "go",
+      "performance",
+      "gc"
+    ]
+  },
+  {
+    "date": "2026-09-18",
+    "type": "news",
+    "domain": "Tools",
+    "title": "Docker Desktop 4.91.0 업그레이드에서 로컬 환경을 지키는 법",
+    "slug": "docker-desktop-4910-upgrade-guardrails",
+    "keywords": [
+      "docker-desktop-4.91.0",
+      "docker-engine",
+      "containerd",
+      "compose",
+      "kubernetes",
+      "docker-desktop",
+      "upgrade-rings",
+      "rollback"
+    ]
   }
 ]
