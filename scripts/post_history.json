@@ -7444,5 +7444,39 @@
       "upgrade-rings",
       "rollback"
     ]
+  },
+  {
+    "date": "2026-09-19",
+    "type": "news",
+    "domain": "Networking",
+    "title": "Cloudflare Ashburn(IAD) 구간 5xx 급증이 SLO를 깨는 방식",
+    "slug": "cloudflare-iad-pop-outage-slo",
+    "keywords": [
+      "cloudflare-iad-5xx-2026-09-18",
+      "cloudflare",
+      "iad",
+      "edge",
+      "slo",
+      "pop-outage",
+      "multi-cdn",
+      "error-budget"
+    ]
+  },
+  {
+    "date": "2026-09-19",
+    "type": "tech",
+    "domain": "Security",
+    "title": "Cisco ISE CVE-2026-76460 패치 전후 운영 검증: 노출면·자산 매핑·HA·탐지",
+    "slug": "cisco-ise-cve-2026-76460-patch-verification",
+    "keywords": [
+      "cisco-ise-cve-2026-76460",
+      "cisco",
+      "ise",
+      "cve-2026-76460",
+      "hardening",
+      "cisco-ise",
+      "auth-bypass",
+      "ha-upgrade"
+    ]
   }
 ]
