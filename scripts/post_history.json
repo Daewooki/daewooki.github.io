@@ -7478,5 +7478,39 @@
       "auth-bypass",
       "ha-upgrade"
     ]
+  },
+  {
+    "date": "2026-09-20",
+    "type": "tech",
+    "domain": "Performance",
+    "title": "OppZGC: 유휴 코어를 쓰는 ZGC 스케줄링의 실전성",
+    "slug": "opportunistic-zgc-idle-core-scheduling",
+    "keywords": [
+      "oppzgc",
+      "openjdk",
+      "zgc",
+      "gc",
+      "latency",
+      "hotspot",
+      "tail-latency",
+      "kubernetes"
+    ]
+  },
+  {
+    "date": "2026-09-20",
+    "type": "news",
+    "domain": "Security",
+    "title": "GitLab CVE-2026-85706 야생 악용: 외부 노출 인스턴스 운영 런북",
+    "slug": "gitlab-cve-2026-85706-ops-runbook",
+    "keywords": [
+      "cve-2026-85706",
+      "gitlab",
+      "path-traversal",
+      "kev",
+      "patching",
+      "incident-response",
+      "forensics",
+      "waf"
+    ]
   }
 ]
