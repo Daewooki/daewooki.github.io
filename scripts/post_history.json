@@ -7512,5 +7512,39 @@
       "forensics",
       "waf"
     ]
+  },
+  {
+    "date": "2026-09-21",
+    "type": "news",
+    "domain": "Languages",
+    "title": "Java 27 GA: PQC·성능·프리뷰가 섞인 릴리스에서 업그레이드 전략을 나누는 법",
+    "slug": "java-27-upgrade-runbook-strategy",
+    "keywords": [
+      "java-27",
+      "openjdk",
+      "jdk",
+      "pqc",
+      "jep",
+      "java",
+      "jdk27",
+      "observability"
+    ]
+  },
+  {
+    "date": "2026-09-21",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Bonsai 2 27B ‘ternary’ 로컬 LLM을 8GB VRAM·WebGPU에 올릴 때 마주치는 품질·속도·운영 함정",
+    "slug": "bonsai2-ternary-27b-8gb-webgpu-pitfalls",
+    "keywords": [
+      "bonsai-2-27b",
+      "qwen",
+      "quantization",
+      "webgpu",
+      "local-llm",
+      "ternary-quantization",
+      "llama-cpp",
+      "evaluation"
+    ]
   }
 ]
