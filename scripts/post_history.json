@@ -7546,5 +7546,38 @@
       "llama-cpp",
       "evaluation"
     ]
+  },
+  {
+    "date": "2026-09-22",
+    "type": "tech",
+    "domain": "DevOps",
+    "title": "Kubernetes Pod-Level Resource Managers: 사이드카와 공존하는 NUMA·전용 코어 설계",
+    "slug": "kubernetes-pod-level-resource-managers-sidecar-numa",
+    "keywords": [
+      "podlevelresourcemanagers",
+      "kubernetes",
+      "kubelet",
+      "numa",
+      "topology-manager",
+      "cpu-manager",
+      "podresources-grpc"
+    ]
+  },
+  {
+    "date": "2026-09-22",
+    "type": "news",
+    "domain": "Web",
+    "title": "Firefox 156을 배포 파이프라인에 넣는 계약 설계",
+    "slug": "firefox-release-pipeline-contracts",
+    "keywords": [
+      "firefox-156",
+      "firefox",
+      "release-cadence",
+      "enterprise-policy",
+      "webrtc",
+      "rapid-release",
+      "e2e-testing",
+      "rollout"
+    ]
   }
 ]
