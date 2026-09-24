@@ -7613,5 +7613,38 @@
       "gpu-operator",
       "mig"
     ]
+  },
+  {
+    "date": "2026-09-24",
+    "type": "tech",
+    "domain": "Tools",
+    "title": "Helm 4 업그레이드의 난관은 배포 증명 체인이다",
+    "slug": "helm4-upgrade-deployment-attestation-chain",
+    "keywords": [
+      "helm",
+      "helm-v4",
+      "supply-chain",
+      "attestation",
+      "chart",
+      "kubernetes",
+      "oci",
+      "provenance"
+    ]
+  },
+  {
+    "date": "2026-09-24",
+    "type": "news",
+    "domain": "Database",
+    "title": "Redis 8.10: Compact Hash·JSONPath가 운영비를 흔드는 지점",
+    "slug": "redis-810-compact-hash-jsonpath-ops-cost",
+    "keywords": [
+      "redis-8.10",
+      "redis",
+      "compact-hash",
+      "jsonpath",
+      "performance",
+      "benchmarking",
+      "operations"
+    ]
   }
 ]
