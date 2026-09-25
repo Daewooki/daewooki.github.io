@@ -7646,5 +7646,39 @@
       "benchmarking",
       "operations"
     ]
+  },
+  {
+    "date": "2026-09-25",
+    "type": "news",
+    "domain": "Cloud",
+    "title": "Cloudflare R2 503 장애 대응: 객체 스토리지 의존성 분해",
+    "slug": "r2-503-outage-app-resilience-patterns",
+    "keywords": [
+      "cloudflare-r2-503-au-2026-09-23",
+      "cloudflare-r2",
+      "object-storage",
+      "503",
+      "resilience",
+      "retry-backoff",
+      "circuit-breaker",
+      "multi-region"
+    ]
+  },
+  {
+    "date": "2026-09-25",
+    "type": "tech",
+    "domain": "Infrastructure",
+    "title": "etcd v3.7.2 운영 리허설: 업그레이드·백업·복구·이미지 전략까지",
+    "slug": "etcd-372-kubernetes-ops-rehearsal",
+    "keywords": [
+      "etcd-3.7.2",
+      "etcd",
+      "upgrade",
+      "snapshot",
+      "operations",
+      "kubernetes",
+      "backup-restore",
+      "docker-images"
+    ]
   }
 ]
