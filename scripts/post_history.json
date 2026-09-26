@@ -7680,5 +7680,39 @@
       "backup-restore",
       "docker-images"
     ]
+  },
+  {
+    "date": "2026-09-26",
+    "type": "tech",
+    "domain": "Cloud",
+    "title": "Telemetry API 이후 Cloud Monitoring OTLP 메트릭 파이프라인 체크리스트",
+    "slug": "otlp-metrics-cloud-monitoring-checklist",
+    "keywords": [
+      "gcp-telemetry-api-ga",
+      "google-cloud-monitoring",
+      "otlp",
+      "opentelemetry",
+      "metrics-ingestion",
+      "google-cloud",
+      "cloud-monitoring",
+      "otel-collector"
+    ]
+  },
+  {
+    "date": "2026-09-26",
+    "type": "news",
+    "domain": "Networking",
+    "title": "AT&T 10DLC MMS 지연 장애와 앱 레이어 런북",
+    "slug": "att-10dlc-mms-delay-runbook",
+    "keywords": [
+      "bandwidth-att-mms-incident-2026-09-23",
+      "10dlc",
+      "mms",
+      "telecom",
+      "postmortem",
+      "att",
+      "incident-response",
+      "idempotency"
+    ]
   }
 ]
