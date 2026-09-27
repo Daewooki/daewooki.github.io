@@ -7714,5 +7714,38 @@
       "incident-response",
       "idempotency"
     ]
+  },
+  {
+    "date": "2026-09-27",
+    "type": "news",
+    "domain": "AI",
+    "title": "39분 ChatGPT 오류율 상승이 SLO를 태우는 방식",
+    "slug": "chatgpt-plus-pro-incident-slo",
+    "keywords": [
+      "openai-status-2026-09-22",
+      "chatgpt",
+      "incident",
+      "slo",
+      "dependency-management",
+      "openai-status",
+      "error-budget",
+      "retry-storm"
+    ]
+  },
+  {
+    "date": "2026-09-27",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "Cloudflare Python Workers를 실서비스로 운영하기 위한 체크리스트",
+    "slug": "cloudflare-python-workers-production-checklist",
+    "keywords": [
+      "cloudflare-python-workers-ga",
+      "python",
+      "cloudflare-workers",
+      "serverless",
+      "observability",
+      "packaging",
+      "durable-objects"
+    ]
   }
 ]
