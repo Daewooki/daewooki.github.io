@@ -7747,5 +7747,39 @@
       "packaging",
       "durable-objects"
     ]
+  },
+  {
+    "date": "2026-09-28",
+    "type": "tech",
+    "domain": "DevOps",
+    "title": "OTLP JSON 엄격 파싱이 Collector 파이프라인을 깨는 방식",
+    "slug": "otlp-json-strict-parsing-breaks-pipeline",
+    "keywords": [
+      "otelcol-0.161.0",
+      "opentelemetry-collector",
+      "otlp",
+      "jsonunmarshaler",
+      "schema",
+      "opentelemetry",
+      "otel-collector",
+      "otlp-json"
+    ]
+  },
+  {
+    "date": "2026-09-28",
+    "type": "news",
+    "domain": "OpenSource",
+    "title": "Discourse 월간 릴리스에 맞춘 셀프호스팅 업그레이드 운영",
+    "slug": "discourse-monthly-release-selfhost-upgrade-automation",
+    "keywords": [
+      "discourse-2026-09",
+      "discourse",
+      "monthly-release",
+      "self-hosted",
+      "upgrade",
+      "self-hosting",
+      "release-management",
+      "rollback"
+    ]
   }
 ]
