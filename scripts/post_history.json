@@ -7781,5 +7781,38 @@
       "release-management",
       "rollback"
     ]
+  },
+  {
+    "date": "2026-09-29",
+    "type": "news",
+    "domain": "Security",
+    "title": "GitHub SSH에서 ssh-rsa(SHA-1) 차단이 남기는 운영 과제",
+    "slug": "github-ssh-rsa-sha1-block",
+    "keywords": [
+      "github-ssh-sha1-deprecation",
+      "ssh-rsa",
+      "ed25519",
+      "rsa-sha2-512",
+      "deploy-keys",
+      "rsa-sha2",
+      "key-rotation",
+      "github-actions"
+    ]
+  },
+  {
+    "date": "2026-09-29",
+    "type": "tech",
+    "domain": "Data",
+    "title": "Prometheus 3.15.0 업그레이드 포인트: PromQL과 런타임 로그 레벨",
+    "slug": "prometheus-315-upgrade-promql-runtime-log-level",
+    "keywords": [
+      "prometheus-3.15.0",
+      "prometheus",
+      "promql",
+      "tsdb",
+      "runtime-log-level",
+      "query-cost",
+      "upgrade-checklist"
+    ]
   }
 ]
