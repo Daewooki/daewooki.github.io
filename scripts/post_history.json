@@ -7814,5 +7814,39 @@
       "query-cost",
       "upgrade-checklist"
     ]
+  },
+  {
+    "date": "2026-09-30",
+    "type": "tech",
+    "domain": "Languages",
+    "title": ".NET 11 RC1 채택 전략: Go-live RC와 업그레이드 링 설계",
+    "slug": "dotnet-11-rc1-go-live-adoption-strategy",
+    "keywords": [
+      ".net-11-rc1",
+      "dotnet",
+      "csharp",
+      "release-candidate",
+      "upgrade",
+      "release-management",
+      "upgrade-strategy",
+      "ci-cd"
+    ]
+  },
+  {
+    "date": "2026-09-30",
+    "type": "news",
+    "domain": "Database",
+    "title": "PostgreSQL 19 Beta 4: 확장·플랜 회귀·업그레이드 리허설",
+    "slug": "postgresql-19-beta4-ops-test-window",
+    "keywords": [
+      "postgresql-19-beta4",
+      "postgresql",
+      "extensions",
+      "regression-testing",
+      "pgupgrade",
+      "beta-testing",
+      "query-regression",
+      "pg-upgrade"
+    ]
   }
 ]
