@@ -7848,5 +7848,39 @@
       "query-regression",
       "pg-upgrade"
     ]
+  },
+  {
+    "date": "2026-10-01",
+    "type": "news",
+    "domain": "Web",
+    "title": "Firefox 157 Nova와 MFSA 동시 배포 런북",
+    "slug": "firefox-157-nova-mfsa-runbook",
+    "keywords": [
+      "firefox-157",
+      "firefox",
+      "mfsa2026-97",
+      "enterprise-policy",
+      "ui-rollout",
+      "enterprise-deployment",
+      "mfsa",
+      "nova-ui"
+    ]
+  },
+  {
+    "date": "2026-10-01",
+    "type": "tech",
+    "domain": "Systems",
+    "title": "systemd 262 업그레이드 실전 가이드: fscrypt v2·TPM 강화·빌드 옵션 변화가 운영 계약을 깨는 지점",
+    "slug": "systemd-262-upgrade-ops-checklist",
+    "keywords": [
+      "systemd-262",
+      "systemd",
+      "fscrypt",
+      "tpm2",
+      "upgrade",
+      "linux-ops",
+      "debian-unstable",
+      "image-build"
+    ]
   }
 ]
