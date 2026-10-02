@@ -7882,5 +7882,38 @@
       "debian-unstable",
       "image-build"
     ]
+  },
+  {
+    "date": "2026-10-02",
+    "type": "tech",
+    "domain": "Data",
+    "title": "Grafana 패치 업그레이드 검증 자동화 설계",
+    "slug": "grafana-patch-upgrade-automation",
+    "keywords": [
+      "grafana-13.1.7",
+      "grafana",
+      "observability",
+      "dashboards",
+      "upgrade",
+      "release-engineering",
+      "regression-testing",
+      "plugin-compatibility"
+    ]
+  },
+  {
+    "date": "2026-10-02",
+    "type": "news",
+    "domain": "Languages",
+    "title": "Rust 1.99.0 릴리스: C-ABI variadics와 raw pointer 레이아웃 API가 FFI/unsafe 계약을 바꾼다",
+    "slug": "rust-ffi-variadics-raw-layout",
+    "keywords": [
+      "rust-1.99.0",
+      "rust",
+      "ffi",
+      "variadics",
+      "unsafe",
+      "c-abi",
+      "memory-layout"
+    ]
   }
 ]
