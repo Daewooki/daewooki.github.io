@@ -7915,5 +7915,39 @@
       "c-abi",
       "memory-layout"
     ]
+  },
+  {
+    "date": "2026-10-03",
+    "type": "news",
+    "domain": "OpenSource",
+    "title": "Gitea v28: Git 네트워크 작업이 내부 프록시로 라우팅될 때 운영에서 깨지는 것들",
+    "slug": "gitea-v28-git-egress-internal-proxy-breakage",
+    "keywords": [
+      "gitea-28.0.0",
+      "gitea",
+      "self-hosted",
+      "upgrade",
+      "proxy",
+      "self-hosting",
+      "egress",
+      "actions"
+    ]
+  },
+  {
+    "date": "2026-10-03",
+    "type": "tech",
+    "domain": "Tools",
+    "title": "Git 2.56.0: 충돌 해결을 안전하게 만드는 팀 워크플로",
+    "slug": "git-2-56-resolved-conflict-workflow",
+    "keywords": [
+      "git-2.56.0",
+      "git",
+      "merge-conflict",
+      "workflow",
+      "performance",
+      "conflict-resolution",
+      "hooks",
+      "monorepo"
+    ]
   }
 ]
