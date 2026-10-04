@@ -7949,5 +7949,39 @@
       "hooks",
       "monorepo"
     ]
+  },
+  {
+    "date": "2026-10-04",
+    "type": "tech",
+    "domain": "Networking",
+    "title": "Envoy Gateway의 Strict Lua validation과 정책 코드 이식성",
+    "slug": "envoy-gateway-lua-strict-validation-portability",
+    "keywords": [
+      "envoy-gateway-1.9.2",
+      "envoy-gateway",
+      "lua",
+      "gateway-api",
+      "breaking-change",
+      "envoy",
+      "policy-as-code",
+      "ci"
+    ]
+  },
+  {
+    "date": "2026-10-04",
+    "type": "news",
+    "domain": "Security",
+    "title": "Apache httpd 2.4.69: HTTP/2 패치가 프록시 체인에 미치는 영향",
+    "slug": "apache-httpd-2469-proxy-chain-security",
+    "keywords": [
+      "apache-httpd-2.4.69",
+      "apache-http-server",
+      "http2",
+      "cve-2026-23918",
+      "reverse-proxy",
+      "apache-httpd",
+      "forward-proxy",
+      "cve"
+    ]
   }
 ]
