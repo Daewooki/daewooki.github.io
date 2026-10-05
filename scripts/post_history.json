@@ -7983,5 +7983,38 @@
       "forward-proxy",
       "cve"
     ]
+  },
+  {
+    "date": "2026-10-05",
+    "type": "news",
+    "domain": "Database",
+    "title": "MongoDB 9.0 업그레이드 리스크와 Queryable Encryption·OTel 검증",
+    "slug": "mongodb-9-upgrade-otel-qe-validation",
+    "keywords": [
+      "mongodb-9.0",
+      "mongodb",
+      "queryable-encryption",
+      "opentelemetry",
+      "upgrade",
+      "fcv",
+      "atlas"
+    ]
+  },
+  {
+    "date": "2026-10-05",
+    "type": "tech",
+    "domain": "Infrastructure",
+    "title": "Terraform plan JSON: format_version 계약과 소비자 테스트",
+    "slug": "terraform-plan-json-format-version-contract",
+    "keywords": [
+      "terraform-1.16.3",
+      "terraform",
+      "plan-json",
+      "format-version",
+      "iac",
+      "contract-testing",
+      "ci-cd",
+      "json-schema"
+    ]
   }
 ]
