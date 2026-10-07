@@ -8050,5 +8050,38 @@
       "mail-gateway",
       "ioc-hunting"
     ]
+  },
+  {
+    "date": "2026-10-07",
+    "type": "news",
+    "domain": "Mobile",
+    "title": "Android Security Bulletin 패치 레벨로 플릿 업데이트 운영하기",
+    "slug": "android-spl-fleet-operations",
+    "keywords": [
+      "android-security-bulletin-2026-10",
+      "android",
+      "security-patch-level",
+      "mdm",
+      "cve",
+      "android-security",
+      "security-bulletin",
+      "fleet-ops"
+    ]
+  },
+  {
+    "date": "2026-10-07",
+    "type": "tech",
+    "domain": "Web",
+    "title": "NGINX HTTP/3 구성 의존 CVE 대응 체크리스트",
+    "slug": "nginx-http3-quic-cve-mitigation-checklist",
+    "keywords": [
+      "cve-2026-90439",
+      "nginx",
+      "http3",
+      "quic",
+      "openssl",
+      "cve",
+      "security-hardening"
+    ]
   }
 ]
