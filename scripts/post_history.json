@@ -8083,5 +8083,38 @@
       "cve",
       "security-hardening"
     ]
+  },
+  {
+    "date": "2026-10-08",
+    "type": "tech",
+    "domain": "Systems",
+    "title": "Linux 7.3 RC 회귀 테스트·드라이버 검증 자동화 설계",
+    "slug": "linux-kernel-rc-regression-pipeline",
+    "keywords": [
+      "linux-7.3-rc6",
+      "linux-kernel",
+      "regression-testing",
+      "canary",
+      "kexec",
+      "canary-rollout",
+      "ebpf"
+    ]
+  },
+  {
+    "date": "2026-10-08",
+    "type": "news",
+    "domain": "Languages",
+    "title": "Python 3.10 EOL과 보안-only 전환이 멀티 런타임 운영을 강제한다",
+    "slug": "python-multi-runtime-lifecycle-upgrade",
+    "keywords": [
+      "python-3.10.22",
+      "python",
+      "cpython",
+      "security-release",
+      "eol",
+      "runtime-lifecycle",
+      "dependency-compatibility",
+      "upgrade-rings"
+    ]
   }
 ]
