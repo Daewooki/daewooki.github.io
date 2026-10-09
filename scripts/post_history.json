@@ -8116,5 +8116,39 @@
       "dependency-compatibility",
       "upgrade-rings"
     ]
+  },
+  {
+    "date": "2026-10-09",
+    "type": "news",
+    "domain": "DevOps",
+    "title": "GitHub Actions 장애에서 본 CI 큐 붕괴 메커니즘",
+    "slug": "github-actions-queue-failure-mechanism",
+    "keywords": [
+      "github-actions-2026-10-05",
+      "github-actions",
+      "hosted-runners",
+      "incident",
+      "queueing",
+      "ci-reliability",
+      "queued-jobs",
+      "self-hosted-runners"
+    ]
+  },
+  {
+    "date": "2026-10-09",
+    "type": "tech",
+    "domain": "Performance",
+    "title": "mod_pagespeed 2.2 운영: nginx에서 optimizer worker 붙이고 안전하게 업데이트하기",
+    "slug": "mod-pagespeed-22-nginx-worker-ops",
+    "keywords": [
+      "modpagespeed-2.2.0",
+      "modpagespeed",
+      "nginx",
+      "apache",
+      "performance",
+      "mod-pagespeed",
+      "security-updates",
+      "optimizer-worker"
+    ]
   }
 ]
