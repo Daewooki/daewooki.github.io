@@ -8150,5 +8150,39 @@
       "security-updates",
       "optimizer-worker"
     ]
+  },
+  {
+    "date": "2026-10-10",
+    "type": "tech",
+    "domain": "Cloud",
+    "title": "GCP Memorystore for Redis RDB 스냅샷 기본 활성화 이후 운영 계약 재정의",
+    "slug": "gcp-memorystore-redis-rdb-default-contract",
+    "keywords": [
+      "memorystore-redis-rdb",
+      "gcp-memorystore",
+      "redis",
+      "rdb-snapshot",
+      "operations",
+      "gcp",
+      "memorystore",
+      "terraform"
+    ]
+  },
+  {
+    "date": "2026-10-10",
+    "type": "news",
+    "domain": "Web",
+    "title": "Edge Stable 업데이트를 엔터프라이즈에서 검증하는 방법: CVE 우선순위·버전 준수율·재시작 정책",
+    "slug": "edge-chromium-security-ingest-enterprise",
+    "keywords": [
+      "edge-154.0.4258.62",
+      "microsoft-edge",
+      "chromium",
+      "enterprise-update",
+      "cve",
+      "intune",
+      "defender-xdr",
+      "patch-management"
+    ]
   }
 ]
