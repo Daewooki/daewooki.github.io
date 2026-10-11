@@ -8184,5 +8184,39 @@
       "defender-xdr",
       "patch-management"
     ]
+  },
+  {
+    "date": "2026-10-11",
+    "type": "news",
+    "domain": "Backend",
+    "title": "Deno 팀의 Cloudflare 합류: 런타임 종료가 남기는 리스크",
+    "slug": "deno-cloudflare-join-runtime-sunset-risks",
+    "keywords": [
+      "deno-cloudflare",
+      "deno",
+      "cloudflare-workers",
+      "workerd",
+      "runtime-lifecycle",
+      "durable-objects",
+      "oss-maintenance",
+      "migration"
+    ]
+  },
+  {
+    "date": "2026-10-11",
+    "type": "tech",
+    "domain": "Tools",
+    "title": "VS Code 1.140의 에이전트 워크플로 표준화",
+    "slug": "vscode-agent-workflow-standardization",
+    "keywords": [
+      "vscode-1.140",
+      "vscode",
+      "github-copilot",
+      "agent-workflows",
+      "enterprise-controls",
+      "copilot-harness",
+      "agent-host",
+      "worktree"
+    ]
   }
 ]
