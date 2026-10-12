@@ -8218,5 +8218,39 @@
       "agent-host",
       "worktree"
     ]
+  },
+  {
+    "date": "2026-10-12",
+    "type": "tech",
+    "domain": "Hardware",
+    "title": "NVIDIA Network Operator v26.1.0: Spectrum‑X GA와 SOS 운영 가이드",
+    "slug": "network-operator-spectrumx-sos-upgrade-guide",
+    "keywords": [
+      "nvidia-network-operator-26.10.0",
+      "spectrum-x",
+      "kubernetes",
+      "nic",
+      "operator",
+      "nvidia",
+      "network-operator",
+      "sriov"
+    ]
+  },
+  {
+    "date": "2026-10-12",
+    "type": "news",
+    "domain": "Tools",
+    "title": "GitHub stacked pull requests: 스택 단위 리뷰와 머지 큐",
+    "slug": "github-stacked-prs-merge-queue",
+    "keywords": [
+      "github-stacked-pull-requests",
+      "gh-stack",
+      "merge-queue",
+      "pull-requests",
+      "code-review",
+      "github",
+      "rebase",
+      "ai-agents"
+    ]
   }
 ]
