@@ -8252,5 +8252,39 @@
       "rebase",
       "ai-agents"
     ]
+  },
+  {
+    "date": "2026-10-13",
+    "type": "news",
+    "domain": "Frontend",
+    "title": "Next.js 16.4: Turbopack 캐시·번들 최적화로 모노레포 CI 비용 다시 보기",
+    "slug": "nextjs-164-turbopack-cache-ci-cost",
+    "keywords": [
+      "nextjs-16.4",
+      "nextjs",
+      "turbopack",
+      "bundle-size",
+      "build-cache",
+      "monorepo",
+      "ci-cd",
+      "cache-components"
+    ]
+  },
+  {
+    "date": "2026-10-13",
+    "type": "tech",
+    "domain": "Languages",
+    "title": "Node 27 연 1회 메이저에 맞춘 사내 런타임 정책 재설계",
+    "slug": "nodejs-annual-major-enterprise-runtime-policy",
+    "keywords": [
+      "nodejs-27",
+      "nodejs",
+      "release-cadence",
+      "lts",
+      "upgrade-policy",
+      "release-policy",
+      "runtime-governance",
+      "ci-testing"
+    ]
   }
 ]
