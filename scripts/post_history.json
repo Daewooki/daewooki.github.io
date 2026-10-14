@@ -8286,5 +8286,39 @@
       "runtime-governance",
       "ci-testing"
     ]
+  },
+  {
+    "date": "2026-10-14",
+    "type": "tech",
+    "domain": "Frontend",
+    "title": "TypeScript 6.0 마이그레이션: moduleResolution·target 기본값이 빌드를 깨는 경로",
+    "slug": "ts6-migration-moduleresolution-target-contracts",
+    "keywords": [
+      "typescript-6.0",
+      "typescript",
+      "moduleresolution",
+      "tsconfig",
+      "migration",
+      "typescript-6",
+      "monorepo",
+      "esm-cjs"
+    ]
+  },
+  {
+    "date": "2026-10-14",
+    "type": "news",
+    "domain": "Cloud",
+    "title": "Cloudflare IAD 성능 이슈가 전 서비스 에러로 번지는 패턴",
+    "slug": "cloudflare-iad-incident-resilience",
+    "keywords": [
+      "cloudflare-service-issues-2026-10-13",
+      "cloudflare",
+      "iad",
+      "cdn",
+      "incident-response",
+      "outage",
+      "multi-cdn",
+      "resilience"
+    ]
   }
 ]
