@@ -8320,5 +8320,39 @@
       "multi-cdn",
       "resilience"
     ]
+  },
+  {
+    "date": "2026-10-15",
+    "type": "news",
+    "domain": "Database",
+    "title": "PostgreSQL 19 RC 기간 확장에 맞춘 테스트 윈도우 재설계",
+    "slug": "postgresql-19-rc-window-redesign",
+    "keywords": [
+      "postgresql-19",
+      "rc1",
+      "ga-date",
+      "release-management",
+      "upgrade-testing",
+      "postgresql",
+      "extensions",
+      "query-plans"
+    ]
+  },
+  {
+    "date": "2026-10-15",
+    "type": "tech",
+    "domain": "Performance",
+    "title": "Go 1.27 HTTP/1 connection reuse 최적화와 순차 요청 지연시간",
+    "slug": "go-127-http1-connection-reuse-sequential-latency",
+    "keywords": [
+      "go1.27",
+      "net-http",
+      "http-transport",
+      "keep-alive",
+      "benchmark",
+      "go",
+      "http1",
+      "performance"
+    ]
   }
 ]
