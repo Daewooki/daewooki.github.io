@@ -8354,5 +8354,39 @@
       "http1",
       "performance"
     ]
+  },
+  {
+    "date": "2026-10-16",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Gemini API 모델 문자열을 계약으로 고정하는 운영 패턴",
+    "slug": "gemini-model-contract-governance",
+    "keywords": [
+      "gemini-api",
+      "gemini-3.6-flash",
+      "deprecation",
+      "model-routing",
+      "api-governance",
+      "model-governance",
+      "contract-testing",
+      "canary-release"
+    ]
+  },
+  {
+    "date": "2026-10-16",
+    "type": "news",
+    "domain": "DevOps",
+    "title": "Kubernetes 1.35.10 패치 릴리스: 정기 패치를 운영 계약으로 바꾸는 법",
+    "slug": "kubernetes-patch-release-ops-contract",
+    "keywords": [
+      "kubernetes-1.35.10",
+      "patch-release",
+      "k8s",
+      "cherry-pick",
+      "upgrade",
+      "kubernetes",
+      "patch-releases",
+      "release-engineering"
+    ]
   }
 ]
