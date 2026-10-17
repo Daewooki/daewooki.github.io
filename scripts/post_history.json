@@ -8388,5 +8388,39 @@
       "patch-releases",
       "release-engineering"
     ]
+  },
+  {
+    "date": "2026-10-17",
+    "type": "news",
+    "domain": "Infrastructure",
+    "title": "프랑스 슈퍼마켓 냉장 설비 사이버공격: IT 장애가 식품 손실로 바뀌는 OT/IoT 패턴",
+    "slug": "retail-refrigeration-ot-iot-cyberattack-pattern",
+    "keywords": [
+      "french-supermarket-cyberattack",
+      "ot-security",
+      "refrigeration",
+      "danfoss",
+      "incident-response",
+      "retail",
+      "cold-chain",
+      "iot"
+    ]
+  },
+  {
+    "date": "2026-10-17",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Muse Spark Open 오픈웨이트를 온프렘 에이전트로 운영하는 설계 포인트",
+    "slug": "muse-spark-open-onprem-agent-ops",
+    "keywords": [
+      "muse-spark-open",
+      "meta",
+      "open-weight",
+      "moe",
+      "long-context",
+      "open-weights",
+      "model-provenance",
+      "sbom"
+    ]
   }
 ]
