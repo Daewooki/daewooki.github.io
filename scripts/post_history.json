@@ -8422,5 +8422,39 @@
       "model-provenance",
       "sbom"
     ]
+  },
+  {
+    "date": "2026-10-18",
+    "type": "tech",
+    "domain": "Data",
+    "title": "ClickHouse 패치도 릴리스처럼 다루는 롤링 업그레이드 설계",
+    "slug": "clickhouse-patch-rolling-upgrade-contract-tests",
+    "keywords": [
+      "clickhouse-26.9.21.9",
+      "clickhouse",
+      "rolling-upgrade",
+      "replication",
+      "release-engineering",
+      "regression-testing",
+      "clickhouse-keeper",
+      "operations"
+    ]
+  },
+  {
+    "date": "2026-10-18",
+    "type": "news",
+    "domain": "Tools",
+    "title": "VS Code 1.142: 에이전트를 운영 가능한 기능으로 만드는 캔버스·채팅 이동·관리자 제어",
+    "slug": "vscode-1142-agent-operations-guide",
+    "keywords": [
+      "vscode-1.142",
+      "visual-studio-code",
+      "copilot",
+      "agent-canvas",
+      "enterprise-policy",
+      "vscode",
+      "agent-host",
+      "chat-migration"
+    ]
   }
 ]
