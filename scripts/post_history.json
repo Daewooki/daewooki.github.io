@@ -8456,5 +8456,39 @@
       "agent-host",
       "chat-migration"
     ]
+  },
+  {
+    "date": "2026-10-19",
+    "type": "news",
+    "domain": "Systems",
+    "title": "KDE Plasma 6.8의 X11 세션 퇴역이 바꾸는 데스크톱 운영 전략",
+    "slug": "plasma-68-x11-retirement-ops",
+    "keywords": [
+      "kde-plasma-6.8",
+      "kde",
+      "wayland",
+      "x11",
+      "linux-desktop",
+      "plasma-6-8",
+      "remote-desktop",
+      "runbook"
+    ]
+  },
+  {
+    "date": "2026-10-19",
+    "type": "tech",
+    "domain": "OpenSource",
+    "title": "Drupal 코어 보안 릴리스를 정기 배포 이벤트로 운영하기",
+    "slug": "drupal-core-security-release-rollout-playbook",
+    "keywords": [
+      "psa-2026-10-12",
+      "drupal-core",
+      "security-release",
+      "composer",
+      "deployment",
+      "drupal",
+      "composer-lock",
+      "drush"
+    ]
   }
 ]
