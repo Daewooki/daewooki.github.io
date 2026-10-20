@@ -8490,5 +8490,38 @@
       "composer-lock",
       "drush"
     ]
+  },
+  {
+    "date": "2026-10-20",
+    "type": "tech",
+    "domain": "Data",
+    "title": "Grafana 13.2 Saved Queries를 Terraform으로 팀 자산화하기",
+    "slug": "grafana-saved-queries-terraform-ops",
+    "keywords": [
+      "grafana-13.2",
+      "grafana",
+      "saved-queries",
+      "terraform",
+      "workload-identity-federation",
+      "rbac",
+      "query-library"
+    ]
+  },
+  {
+    "date": "2026-10-20",
+    "type": "news",
+    "domain": "Security",
+    "title": "Plex2Shell 야생 악용: 인터넷에 노출된 Plex 서버가 터지는 경로와 런북",
+    "slug": "plex2shell-plex-server-exposed-runbook",
+    "keywords": [
+      "plex2shell",
+      "plex-media-server",
+      "xmrig",
+      "exploited-in-the-wild",
+      "ioc",
+      "plex",
+      "vulnerability-chain",
+      "rce"
+    ]
   }
 ]
