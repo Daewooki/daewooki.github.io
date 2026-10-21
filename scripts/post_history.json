@@ -8523,5 +8523,39 @@
       "vulnerability-chain",
       "rce"
     ]
+  },
+  {
+    "date": "2026-10-21",
+    "type": "news",
+    "domain": "Security",
+    "title": "Tomcat 10.1 HTTP/2 mix-up 취약점 대응 런북",
+    "slug": "tomcat-http2-response-mixup-runbook",
+    "keywords": [
+      "apache-tomcat-10.1.61",
+      "tomcat",
+      "http2",
+      "cve-2026-101356",
+      "patching",
+      "apache-tomcat",
+      "async-servlet",
+      "response-mixup"
+    ]
+  },
+  {
+    "date": "2026-10-21",
+    "type": "tech",
+    "domain": "Networking",
+    "title": "Cilium 1.19.9 업그레이드 리허설: 실패를 시그널로 바꾸기",
+    "slug": "cilium-1199-upgrade-rehearsal-signals",
+    "keywords": [
+      "cilium-1.19.9",
+      "cilium",
+      "ebpf",
+      "kubernetes-networking",
+      "upgrade",
+      "iptables",
+      "observability",
+      "hubble"
+    ]
   }
 ]
