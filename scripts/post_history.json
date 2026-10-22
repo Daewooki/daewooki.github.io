@@ -8557,5 +8557,39 @@
       "observability",
       "hubble"
     ]
+  },
+  {
+    "date": "2026-10-22",
+    "type": "tech",
+    "domain": "Infrastructure",
+    "title": "Terraform 1.17 RC2: provider 요구사항 변수화와 minimal refresh",
+    "slug": "terraform-provider-requirements-minimal-refresh",
+    "keywords": [
+      "terraform-1.17.0-rc2",
+      "terraform",
+      "minimal-refresh",
+      "provider-requirements",
+      "iac",
+      "providers",
+      "drift-detection",
+      "ci-cd"
+    ]
+  },
+  {
+    "date": "2026-10-22",
+    "type": "news",
+    "domain": "Database",
+    "title": "SQLite 업그레이드 검증 체크리스트: 3.54.1이 던진 현실",
+    "slug": "sqlite-upgrade-verification-checklist",
+    "keywords": [
+      "sqlite-3.54.1",
+      "sqlite",
+      "embedded-db",
+      "upgrade",
+      "compatibility",
+      "upgrade-testing",
+      "query-planner",
+      "loadable-extensions"
+    ]
   }
 ]
