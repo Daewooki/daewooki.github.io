@@ -8591,5 +8591,39 @@
       "query-planner",
       "loadable-extensions"
     ]
+  },
+  {
+    "date": "2026-10-24",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "Spring Boot 4.1.2 업그레이드 운영 템플릿: 패치도 릴리스다",
+    "slug": "spring-boot-412-patch-upgrade-runbook",
+    "keywords": [
+      "spring-boot-4.1.2",
+      "spring-boot",
+      "java",
+      "dependency-upgrade",
+      "release-engineering",
+      "patch-upgrade",
+      "smoke-test",
+      "renovate"
+    ]
+  },
+  {
+    "date": "2026-10-24",
+    "type": "news",
+    "domain": "Systems",
+    "title": "Linux 커널 7.3 메인라인 이후 GA 롤아웃 검증 체크리스트",
+    "slug": "linux-kernel-73-ga-rollout-validation",
+    "keywords": [
+      "linux-7.3",
+      "linux-kernel",
+      "mainline-release",
+      "upgrade-testing",
+      "regression",
+      "release-engineering",
+      "canary-rollout",
+      "drivers"
+    ]
   }
 ]
