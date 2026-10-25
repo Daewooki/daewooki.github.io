@@ -8625,5 +8625,38 @@
       "canary-rollout",
       "drivers"
     ]
+  },
+  {
+    "date": "2026-10-25",
+    "type": "news",
+    "domain": "Networking",
+    "title": "Arista VeloCloud Orchestrator SQLi와 오케스트레이터 방어 설계",
+    "slug": "velocloud-orchestrator-sqli-defense-model",
+    "keywords": [
+      "velocloud-orchestrator",
+      "cve-2026-114625",
+      "arista",
+      "sd-wan",
+      "sqli",
+      "velocloud",
+      "incident-response"
+    ]
+  },
+  {
+    "date": "2026-10-25",
+    "type": "tech",
+    "domain": "DevOps",
+    "title": "Rundeck 6.3.0: Conditional Logic와 Docker 신뢰 체인 운영",
+    "slug": "rundeck-630-conditional-logic-trust-chain",
+    "keywords": [
+      "rundeck-6.3.0",
+      "rundeck",
+      "runbook-automation",
+      "conditional-logic",
+      "docker-images",
+      "docker",
+      "tls",
+      "supply-chain-security"
+    ]
   }
 ]
