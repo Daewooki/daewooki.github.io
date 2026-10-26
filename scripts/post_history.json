@@ -8658,5 +8658,39 @@
       "tls",
       "supply-chain-security"
     ]
+  },
+  {
+    "date": "2026-10-26",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "Apache Camel 보안 권고 38건 한 번에 소화하기: 컴포넌트별 영향도 기반 전략",
+    "slug": "camel-advisories-component-upgrade-strategy",
+    "keywords": [
+      "apache-camel-4.23.0",
+      "camel-4.22.1",
+      "camel-4.18.5",
+      "security-advisory",
+      "upgrade-guide",
+      "apache-camel",
+      "cve-triage",
+      "dependency-inventory"
+    ]
+  },
+  {
+    "date": "2026-10-26",
+    "type": "news",
+    "domain": "Cloud",
+    "title": "GCP europe-west2 power event 장애에서 본 존 이슈의 리전 확산 경로와 페일오버 설계",
+    "slug": "gcp-europe-west2-power-event-failover",
+    "keywords": [
+      "google-cloud-europe-west2",
+      "power-event",
+      "zonal-outage",
+      "failover",
+      "control-plane",
+      "google-cloud",
+      "outage-analysis",
+      "multi-region"
+    ]
   }
 ]
