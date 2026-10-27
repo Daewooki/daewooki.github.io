@@ -8692,5 +8692,39 @@
       "outage-analysis",
       "multi-region"
     ]
+  },
+  {
+    "date": "2026-10-27",
+    "type": "news",
+    "domain": "Languages",
+    "title": "Node.js 보안 릴리스가 올 때 사내 런타임 정책을 굳히는 방법",
+    "slug": "nodejs-security-release-runtime-policy",
+    "keywords": [
+      "nodejs-october-2026-security-releases",
+      "nodejs-26.12.1",
+      "nodejs-24.22.1",
+      "nodejs-22.23.4",
+      "cve-2026-111497",
+      "nodejs",
+      "security-release",
+      "runtime-policy"
+    ]
+  },
+  {
+    "date": "2026-10-27",
+    "type": "tech",
+    "domain": "Web",
+    "title": "NGINX 1.31.8 업그레이드: 패키지 기준으로 버전 진실 맞추기",
+    "slug": "nginx-mainline-package-version-source-of-truth",
+    "keywords": [
+      "nginx-1.31.8",
+      "mainline",
+      "debian-packages",
+      "upgrade-policy",
+      "versioning",
+      "nginx",
+      "debian",
+      "windows"
+    ]
   }
 ]
