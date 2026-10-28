@@ -8726,5 +8726,39 @@
       "debian",
       "windows"
     ]
+  },
+  {
+    "date": "2026-10-28",
+    "type": "tech",
+    "domain": "Languages",
+    "title": "Python security-only 릴리스에서 공급망이 흔들리는 지점",
+    "slug": "python-security-only-source-release-supply-chain",
+    "keywords": [
+      "python-3.13.18",
+      "python",
+      "security-bugfix",
+      "source-release",
+      "release-lifecycle",
+      "security-release",
+      "supply-chain",
+      "sigstore"
+    ]
+  },
+  {
+    "date": "2026-10-28",
+    "type": "news",
+    "domain": "Security",
+    "title": "PHP2Shell 긴급 패치 런북: PHP 런타임 결함이 운영을 강제할 때",
+    "slug": "php2shell-runtime-patch-runbook",
+    "keywords": [
+      "php2shell",
+      "php",
+      "cve-2026-109618",
+      "cve-2026-109619",
+      "unauth-rce",
+      "cve",
+      "incident-response",
+      "waf"
+    ]
   }
 ]
