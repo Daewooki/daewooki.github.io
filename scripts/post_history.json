@@ -8760,5 +8760,39 @@
       "incident-response",
       "waf"
     ]
+  },
+  {
+    "date": "2026-10-29",
+    "type": "news",
+    "domain": "Tools",
+    "title": "Octoverse 2026이 굳힌 에이전트 PR 운영 계약",
+    "slug": "octoverse-2026-agent-pr-contract",
+    "keywords": [
+      "github-octoverse-2026",
+      "github",
+      "copilot",
+      "agents",
+      "pull-requests",
+      "octoverse",
+      "agentic-workflows",
+      "code-review"
+    ]
+  },
+  {
+    "date": "2026-10-29",
+    "type": "tech",
+    "domain": "Mobile",
+    "title": "Android Studio Rabbit 2 BYOA/ACP: IDE 내 에이전트 권한 경계 설계",
+    "slug": "android-studio-byoa-acp-security-boundary",
+    "keywords": [
+      "android-studio-2026.2.2",
+      "android-studio",
+      "acp",
+      "byoa",
+      "agp",
+      "ide-security",
+      "agentic-dev",
+      "policy-proxy"
+    ]
   }
 ]
