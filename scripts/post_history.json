@@ -8794,5 +8794,39 @@
       "agentic-dev",
       "policy-proxy"
     ]
+  },
+  {
+    "date": "2026-10-30",
+    "type": "tech",
+    "domain": "DevOps",
+    "title": "Atlantis 0.49.0: Terraform/OpenTofu 번들 제거의 파장",
+    "slug": "atlantis-0490-iac-execution-contract",
+    "keywords": [
+      "atlantis-0.49.0",
+      "atlantis",
+      "terraform",
+      "opentofu",
+      "docker",
+      "supply-chain",
+      "reproducible-builds",
+      "kubernetes"
+    ]
+  },
+  {
+    "date": "2026-10-30",
+    "type": "news",
+    "domain": "Web",
+    "title": "Firefox 159 조직 배포: 기능보다 중요한 변화 포인트",
+    "slug": "firefox-159-enterprise-deployment-checklist",
+    "keywords": [
+      "firefox-159.0",
+      "firefox",
+      "release-notes",
+      "browser",
+      "enterprise-policy",
+      "enterprise-deployment",
+      "browser-policy",
+      "rollout"
+    ]
   }
 ]
