@@ -8828,5 +8828,39 @@
       "browser-policy",
       "rollout"
     ]
+  },
+  {
+    "date": "2026-10-31",
+    "type": "news",
+    "domain": "Database",
+    "title": "Valkey 9.0.7 보안 릴리스 롤링 업그레이드 체크리스트",
+    "slug": "valkey-907-security-rolling-upgrade",
+    "keywords": [
+      "valkey-9.0.7",
+      "valkey",
+      "redis",
+      "ghsa",
+      "security-release",
+      "rolling-upgrade",
+      "valkey-cluster",
+      "acl"
+    ]
+  },
+  {
+    "date": "2026-10-31",
+    "type": "tech",
+    "domain": "Hardware",
+    "title": "EDK II PXE pre-boot RCE: 패치 전파 지연을 운영으로 줄이는 법",
+    "slug": "edk2-pxe-preboot-rce-patch-propagation",
+    "keywords": [
+      "edk2-ghsa-99cj-7hg9-mp4m",
+      "tianocore",
+      "edk2",
+      "uefi",
+      "pxe",
+      "firmware-security",
+      "sbom",
+      "incident-response"
+    ]
   }
 ]
