@@ -8862,5 +8862,39 @@
       "sbom",
       "incident-response"
     ]
+  },
+  {
+    "date": "2026-11-01",
+    "type": "tech",
+    "domain": "Architecture",
+    "title": "Kubernetes Workload Conformance로 만드는 워크로드 계약서",
+    "slug": "kubernetes-workload-conformance-runtime-contract",
+    "keywords": [
+      "k8s-workload-conformance-wg",
+      "kubernetes",
+      "conformance",
+      "platform-engineering",
+      "runtime-contract",
+      "policy-as-code",
+      "golden-path",
+      "opa-rego"
+    ]
+  },
+  {
+    "date": "2026-11-01",
+    "type": "news",
+    "domain": "Tools",
+    "title": "Copilot Cloud agent sessions 장애가 드러낸 에이전트 IDE/CLI의 장애 전파 경로",
+    "slug": "copilot-agent-sessions-failure-propagation",
+    "keywords": [
+      "github-copilot-cloud-incident-2026-10-29",
+      "github",
+      "copilot",
+      "agent-sessions",
+      "statuspage",
+      "github-copilot",
+      "resilience",
+      "rate-limiting"
+    ]
   }
 ]
