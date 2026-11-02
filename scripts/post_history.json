@@ -8896,5 +8896,39 @@
       "resilience",
       "rate-limiting"
     ]
+  },
+  {
+    "date": "2026-11-02",
+    "type": "news",
+    "domain": "Data",
+    "title": "Prometheus 3.16.0-rc.2를 운영 리허설로 쓰는 마이그레이션 테스트 계획",
+    "slug": "prometheus-316-rc-migration-rehearsal",
+    "keywords": [
+      "prometheus-3.16.0-rc.2",
+      "prometheus",
+      "remote-write",
+      "metrics",
+      "upgrade-testing",
+      "observability",
+      "migration",
+      "rc-testing"
+    ]
+  },
+  {
+    "date": "2026-11-02",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Cloudflare Workers AI GLM-5.3 KV cache 노출로 정리하는 LLM 서빙 멀티테넌시 격리 체크리스트",
+    "slug": "llm-serving-multitenant-isolation-kv-cache",
+    "keywords": [
+      "cloudflare-glm-5.3-kv-cache",
+      "workers-ai",
+      "kv-cache",
+      "sglang",
+      "tenant-isolation",
+      "llm-serving",
+      "multitenancy",
+      "cloudflare"
+    ]
   }
 ]
