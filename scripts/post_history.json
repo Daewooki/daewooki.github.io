@@ -8930,5 +8930,38 @@
       "multitenancy",
       "cloudflare"
     ]
+  },
+  {
+    "date": "2026-11-03",
+    "type": "tech",
+    "domain": "Cloud",
+    "title": "OpenStack Ironic configdrive gzip bomb DoS를 막는 운영 패턴",
+    "slug": "ironic-configdrive-dos-resource-limits",
+    "keywords": [
+      "openstack-ironic-ossa-2026-049",
+      "openstack",
+      "ironic",
+      "configdrive",
+      "dos",
+      "security",
+      "operations"
+    ]
+  },
+  {
+    "date": "2026-11-03",
+    "type": "news",
+    "domain": "OpenSource",
+    "title": "GNU patch 2.8.1 보안 릴리스: 빌드 도구 취약점이 공급망으로 번지는 경로",
+    "slug": "gnu-patch-toolchain-cve-supply-chain",
+    "keywords": [
+      "gnu-patch-2.8.1",
+      "gnu-patch",
+      "cve-2026-115207",
+      "supply-chain",
+      "ci-build",
+      "cve",
+      "ci-cd",
+      "sbom"
+    ]
   }
 ]
