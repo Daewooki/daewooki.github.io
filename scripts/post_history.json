@@ -8963,5 +8963,38 @@
       "ci-cd",
       "sbom"
     ]
+  },
+  {
+    "date": "2026-11-04",
+    "type": "news",
+    "domain": "Systems",
+    "title": "Linux stable 브랜치 EOL과 커널 롤아웃 계약",
+    "slug": "post-ga-stable-kernel-rollout",
+    "keywords": [
+      "linux-7.3.1",
+      "linux-kernel",
+      "stable-release",
+      "rollout",
+      "regression",
+      "stable-branch",
+      "eol",
+      "canary-rollout"
+    ]
+  },
+  {
+    "date": "2026-11-04",
+    "type": "tech",
+    "domain": "Data",
+    "title": "Grafana의 운영 단위를 대시보드에서 Notebooks로 옮기는 법",
+    "slug": "grafana-cross-dashboard-variables-notebooks-ops",
+    "keywords": [
+      "grafana-13.3.0",
+      "grafana",
+      "notebooks",
+      "dashboard-variables",
+      "observability",
+      "dashboards",
+      "terraform"
+    ]
   }
 ]
