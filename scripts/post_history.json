@@ -8996,5 +8996,38 @@
       "dashboards",
       "terraform"
     ]
+  },
+  {
+    "date": "2026-11-05",
+    "type": "tech",
+    "domain": "Security",
+    "title": "WordPress 업그레이드 윈도우 TOCTOU RCE: 업데이트 순간을 공격면으로 보지 않기",
+    "slug": "wordpress-upgrade-window-rce-defense",
+    "keywords": [
+      "cve-2026-119977",
+      "wordpress",
+      "kev",
+      "rce",
+      "hardening",
+      "waf-rules",
+      "auto-updates"
+    ]
+  },
+  {
+    "date": "2026-11-05",
+    "type": "news",
+    "domain": "AI",
+    "title": "OpenAI의 GitHub 겨냥 딜: 코딩 에이전트가 재편하는 플랫폼 레이어",
+    "slug": "openai-github-platform-layer-shift",
+    "keywords": [
+      "openai-github-deal",
+      "openai",
+      "github",
+      "agentic-coding",
+      "platform-strategy",
+      "scm",
+      "agentic-dev",
+      "audit-logs"
+    ]
   }
 ]
