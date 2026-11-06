@@ -9029,5 +9029,39 @@
       "agentic-dev",
       "audit-logs"
     ]
+  },
+  {
+    "date": "2026-11-06",
+    "type": "news",
+    "domain": "Web",
+    "title": "Chrome 157 Stable 승격 후 48시간 배포 리듬 재설계",
+    "slug": "chrome-157-stable-enterprise-rollout-pattern",
+    "keywords": [
+      "chrome-157",
+      "chrome",
+      "chromium",
+      "stable-channel",
+      "enterprise-policy",
+      "enterprise",
+      "release-management",
+      "patching"
+    ]
+  },
+  {
+    "date": "2026-11-06",
+    "type": "tech",
+    "domain": "Infrastructure",
+    "title": "Caddy 2.11.9: reverse_proxy 기본값 변화 안전 배포",
+    "slug": "caddy-reverse-proxy-defaults-safe-rollout",
+    "keywords": [
+      "caddy-2.11.9",
+      "caddy",
+      "reverse-proxy",
+      "acme",
+      "http2",
+      "http3",
+      "observability",
+      "rollout"
+    ]
   }
 ]
