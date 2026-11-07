@@ -9063,5 +9063,37 @@
       "observability",
       "rollout"
     ]
+  },
+  {
+    "date": "2026-11-07",
+    "type": "tech",
+    "domain": "Database",
+    "title": "MariaDB 13 Stable rolling release 채택 가이드: LTS와 롤링을 운영 정책으로 나누기",
+    "slug": "mariadb-13-stable-rolling-policy",
+    "keywords": [
+      "mariadb-13.0",
+      "mariadb",
+      "rolling-release",
+      "ga",
+      "upgrade-policy",
+      "lts",
+      "duckdb"
+    ]
+  },
+  {
+    "date": "2026-11-07",
+    "type": "news",
+    "domain": "Security",
+    "title": "SonicOS SSLVPN SAML/MFA 우회가 드러낸 인증 경계 붕괴",
+    "slug": "sonicos-sslvpn-saml-mfa-bypass-runbook",
+    "keywords": [
+      "cve-2026-19868",
+      "sonicos",
+      "sonicwall",
+      "sslvpn",
+      "saml",
+      "mfa-bypass",
+      "incident-response"
+    ]
   }
 ]
