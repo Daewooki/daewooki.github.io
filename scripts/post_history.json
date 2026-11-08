@@ -9095,5 +9095,39 @@
       "mfa-bypass",
       "incident-response"
     ]
+  },
+  {
+    "date": "2026-11-08",
+    "type": "news",
+    "domain": "OpenSource",
+    "title": "zlib 1.4의 ‘작은’ 변경이 다운스트림 빌드·패키징을 깨는 방식",
+    "slug": "zlib-14-small-breaking-changes",
+    "keywords": [
+      "zlib-1.4",
+      "zlib",
+      "deflate",
+      "msvc",
+      "supply-chain",
+      "packaging",
+      "cmake",
+      "ci"
+    ]
+  },
+  {
+    "date": "2026-11-08",
+    "type": "tech",
+    "domain": "Testing",
+    "title": "Vitest 5.1 업그레이드: 기본값 변화로 CI 계약 고정",
+    "slug": "vitest-5-1-ci-defaults-contract",
+    "keywords": [
+      "vitest-5.1",
+      "vitest",
+      "vite",
+      "nodejs",
+      "ci-testing",
+      "testing",
+      "ci",
+      "upgrade"
+    ]
   }
 ]
