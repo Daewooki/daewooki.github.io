@@ -9129,5 +9129,39 @@
       "ci",
       "upgrade"
     ]
+  },
+  {
+    "date": "2026-11-09",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "Wagtail 8.1 업그레이드 포인트: API·자동화 변화가 계약을 흔드는 지점",
+    "slug": "wagtail-8-1-api-automation-contract",
+    "keywords": [
+      "wagtail-8.1",
+      "wagtail",
+      "django",
+      "cms",
+      "api",
+      "api-contract",
+      "workflow",
+      "caching"
+    ]
+  },
+  {
+    "date": "2026-11-09",
+    "type": "news",
+    "domain": "Performance",
+    "title": "mod_pagespeed 2.8.0 보안 업데이트: nginx 모듈 재배포 롤아웃 리스크",
+    "slug": "mod-pagespeed-280-nginx-module-rollout-risk",
+    "keywords": [
+      "modpagespeed-2.8.0",
+      "modpagespeed",
+      "nginx",
+      "pagespeed",
+      "security-update",
+      "mod-pagespeed",
+      "ngx-pagespeed",
+      "security"
+    ]
   }
 ]
