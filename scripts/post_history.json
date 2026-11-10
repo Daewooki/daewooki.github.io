@@ -9163,5 +9163,38 @@
       "ngx-pagespeed",
       "security"
     ]
+  },
+  {
+    "date": "2026-11-10",
+    "type": "news",
+    "domain": "Database",
+    "title": "ClickHouse 26.10: 회귀 테스트로 업그레이드 리스크를 수치화하는 법",
+    "slug": "clickhouse-26-10-regression-benchmark-plan",
+    "keywords": [
+      "clickhouse-26.10",
+      "clickhouse",
+      "sql",
+      "benchmark",
+      "upgrade",
+      "release-notes",
+      "regression-testing",
+      "query-planner"
+    ]
+  },
+  {
+    "date": "2026-11-10",
+    "type": "tech",
+    "domain": "Networking",
+    "title": "Cloudflare targeted zone builds에서 배우는 Kafka 커밋과 스케줄러 분리",
+    "slug": "cloudflare-targeted-zone-builds-kafka-scheduler",
+    "keywords": [
+      "dns-targeted-zone-builds",
+      "cloudflare",
+      "kafka",
+      "scheduler",
+      "dns",
+      "offset-commit",
+      "config-propagation"
+    ]
   }
 ]
