@@ -9196,5 +9196,39 @@
       "offset-commit",
       "config-propagation"
     ]
+  },
+  {
+    "date": "2026-11-11",
+    "type": "tech",
+    "domain": "Hardware",
+    "title": "gputaskman으로 프로세스 단위 VRAM 누수를 재현 가능하게 만들기",
+    "slug": "gputaskman-vram-snapshot-diff-patterns",
+    "keywords": [
+      "gputaskman",
+      "gpu",
+      "vram",
+      "kv-cache",
+      "observability",
+      "vram-observability",
+      "llm-serving",
+      "windows-wddm"
+    ]
+  },
+  {
+    "date": "2026-11-11",
+    "type": "news",
+    "domain": "Languages",
+    "title": ".NET 11 GA 이후 메이저 런타임 업그레이드를 연 1회로 운영하는 법",
+    "slug": "dotnet-11-ga-annual-upgrade-operating-model",
+    "keywords": [
+      "dotnet-11",
+      "dotnet",
+      "csharp",
+      "aspnetcore",
+      "efcore",
+      "sdk-pinning",
+      "rollout-rings",
+      "aspnet-core"
+    ]
   }
 ]
