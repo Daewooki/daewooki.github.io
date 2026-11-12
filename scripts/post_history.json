@@ -9230,5 +9230,38 @@
       "rollout-rings",
       "aspnet-core"
     ]
+  },
+  {
+    "date": "2026-11-12",
+    "type": "news",
+    "domain": "Cloud",
+    "title": "Cloudflare 인증서 프로비저닝 장애가 운영 장애로 번지는 경로",
+    "slug": "cloudflare-certificate-provisioning-failure-paths",
+    "keywords": [
+      "cloudflare-ssl-certificate-provisioning",
+      "cloudflare",
+      "tls",
+      "acme",
+      "incident-response",
+      "certificate-provisioning",
+      "runbook",
+      "monitoring"
+    ]
+  },
+  {
+    "date": "2026-11-12",
+    "type": "tech",
+    "domain": "Frontend",
+    "title": "SvelteKit 배포 장애 체크리스트: Node·prerender·Vercel 라우팅 계약",
+    "slug": "sveltekit-vercel-adapter-deploy-failure-points",
+    "keywords": [
+      "sveltekit-2026-11-10",
+      "sveltekit",
+      "adapter-vercel",
+      "prerender",
+      "nodejs",
+      "vercel",
+      "deployment"
+    ]
   }
 ]
