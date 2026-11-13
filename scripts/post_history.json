@@ -9263,5 +9263,39 @@
       "vercel",
       "deployment"
     ]
+  },
+  {
+    "date": "2026-11-13",
+    "type": "tech",
+    "domain": "Mobile",
+    "title": "Android Security Bulletin 패치 레벨을 플릿 운영 계약으로 굳히는 법",
+    "slug": "android-asb-fleet-contract-policy",
+    "keywords": [
+      "android-security-bulletin-2026-11",
+      "android",
+      "security-patch-level",
+      "mdm",
+      "fleet",
+      "fleet-ops",
+      "android-enterprise",
+      "play-integrity"
+    ]
+  },
+  {
+    "date": "2026-11-13",
+    "type": "news",
+    "domain": "Languages",
+    "title": "PowerShell 7.7 GA: 운영 자동화 롤아웃 설계와 검증",
+    "slug": "powershell-77-ga-operational-rollout",
+    "keywords": [
+      "powershell-7.7",
+      "powershell",
+      "dotnet-11",
+      "remoting",
+      "hardening",
+      "winrm",
+      "ssh",
+      "security-hardening"
+    ]
   }
 ]
