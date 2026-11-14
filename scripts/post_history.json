@@ -9297,5 +9297,39 @@
       "ssh",
       "security-hardening"
     ]
+  },
+  {
+    "date": "2026-11-14",
+    "type": "news",
+    "domain": "Web",
+    "title": "Firefox 160 배포를 위한 브라우저 업그레이드 계약 재작성",
+    "slug": "firefox-160-upgrade-contract",
+    "keywords": [
+      "firefox-160",
+      "firefox",
+      "release-notes",
+      "web-platform",
+      "enterprise",
+      "webtransport",
+      "webdriver-bidi",
+      "browser-upgrades"
+    ]
+  },
+  {
+    "date": "2026-11-14",
+    "type": "tech",
+    "domain": "DevOps",
+    "title": "Docker Engine 29.10.0 RC로 패키징 계약을 먼저 고정하는 법",
+    "slug": "docker-rc-packaging-contract-rehearsal",
+    "keywords": [
+      "docker-engine-29.10.0-rc1",
+      "docker-engine",
+      "packaging",
+      "rpm",
+      "supply-chain",
+      "rhel-family",
+      "ci-cd",
+      "upgrade-rehearsal"
+    ]
   }
 ]
