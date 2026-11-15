@@ -9331,5 +9331,38 @@
       "ci-cd",
       "upgrade-rehearsal"
     ]
+  },
+  {
+    "date": "2026-11-15",
+    "type": "tech",
+    "domain": "Systems",
+    "title": "systemd Rust 옵션 이후의 빌드 계약: -Drust=auto가 흔드는 지점",
+    "slug": "systemd-rust-auto-build-contract",
+    "keywords": [
+      "systemd-pr-44324",
+      "systemd",
+      "rust",
+      "meson",
+      "packaging",
+      "reproducible-builds",
+      "ci"
+    ]
+  },
+  {
+    "date": "2026-11-15",
+    "type": "news",
+    "domain": "Mobile",
+    "title": "iOS 26.7.3 보안 업데이트: 릴리스 노트가 빈약할수록 플릿 운영 계약이 중요해진다",
+    "slug": "ios-2673-silent-security-rollout",
+    "keywords": [
+      "ios-26.7.3",
+      "ios",
+      "ipados",
+      "security-update",
+      "mdm",
+      "security-updates",
+      "declarative-device-management",
+      "fleet-operations"
+    ]
   }
 ]
