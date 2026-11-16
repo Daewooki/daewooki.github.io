@@ -9364,5 +9364,39 @@
       "declarative-device-management",
       "fleet-operations"
     ]
+  },
+  {
+    "date": "2026-11-16",
+    "type": "news",
+    "domain": "Tools",
+    "title": "Cursor 마켓플레이스 악성 Claude Code 확장 사고 분석",
+    "slug": "cursor-marketplace-claude-code-supply-chain",
+    "keywords": [
+      "cursor-security-incident",
+      "cursor",
+      "claude-code",
+      "fireworks-ai",
+      "supply-chain",
+      "vscode-extensions",
+      "incident-response",
+      "ssh"
+    ]
+  },
+  {
+    "date": "2026-11-16",
+    "type": "tech",
+    "domain": "Frontend",
+    "title": "Vite 초고빈도 릴리스 대응: minor 고정과 릴리스 링",
+    "slug": "vite-release-rings-minor-pinning",
+    "keywords": [
+      "vite-8.3.8",
+      "vite",
+      "types-node",
+      "release-policy",
+      "frontend-build",
+      "semver",
+      "monorepo",
+      "ci"
+    ]
   }
 ]
