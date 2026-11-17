@@ -9398,5 +9398,39 @@
       "monorepo",
       "ci"
     ]
+  },
+  {
+    "date": "2026-11-17",
+    "type": "tech",
+    "domain": "DevOps",
+    "title": "Kubernetes Code Freeze로 배우는 릴리스 컷오프 운영법",
+    "slug": "kubernetes-release-cutoff-freeze-ops",
+    "keywords": [
+      "kubernetes-1.38-code-freeze",
+      "kubernetes",
+      "sig-release",
+      "cherry-pick",
+      "release-engineering",
+      "code-freeze",
+      "test-freeze",
+      "version-skew"
+    ]
+  },
+  {
+    "date": "2026-11-17",
+    "type": "news",
+    "domain": "Database",
+    "title": "PostgreSQL 마이너 업그레이드: 확장·REINDEX·플랜 회귀 체크리스트",
+    "slug": "postgres-minor-upgrade-extension-reindex-window",
+    "keywords": [
+      "postgresql-18.7",
+      "postgresql",
+      "cve-2026-103484",
+      "minor-release",
+      "upgrade-checklist",
+      "minor-upgrade",
+      "extensions",
+      "reindex"
+    ]
   }
 ]
