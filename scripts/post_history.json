@@ -9432,5 +9432,38 @@
       "extensions",
       "reindex"
     ]
+  },
+  {
+    "date": "2026-11-18",
+    "type": "news",
+    "domain": "Cloud",
+    "title": "Microsoft 365 장애가 드러낸 네트워킹 게이트웨이 SPOF",
+    "slug": "m365-gateway-outage-bcp-checklist",
+    "keywords": [
+      "microsoft-365-outage-2026-11",
+      "microsoft-365",
+      "exchange-online",
+      "outlook",
+      "incident-response",
+      "outage",
+      "bcp",
+      "retry-storm"
+    ]
+  },
+  {
+    "date": "2026-11-18",
+    "type": "tech",
+    "domain": "Testing",
+    "title": "Playwright 1.57 업그레이드 체크리스트: 테스트 러너 계약 점검",
+    "slug": "playwright-157-test-runner-contract",
+    "keywords": [
+      "playwright-1.57.0",
+      "playwright",
+      "e2e-testing",
+      "ci",
+      "flaky-tests",
+      "sharding",
+      "test-artifacts"
+    ]
   }
 ]
