@@ -9465,5 +9465,39 @@
       "sharding",
       "test-artifacts"
     ]
+  },
+  {
+    "date": "2026-11-19",
+    "type": "tech",
+    "domain": "AI",
+    "title": "Perplexity Decider v1.3로 모델 라우팅을 프로토콜로 고정하기",
+    "slug": "perplexity-decider-protocol-routing",
+    "keywords": [
+      "pplx-decider-v1.3",
+      "perplexity",
+      "huggingface",
+      "model-routing",
+      "guardrails",
+      "decision-models",
+      "protocol-contract",
+      "regression-testing"
+    ]
+  },
+  {
+    "date": "2026-11-19",
+    "type": "news",
+    "domain": "Tools",
+    "title": "Copilot MAI Code 2 Flash 장애와 업스트림 전파",
+    "slug": "copilot-upstream-model-provider-propagation",
+    "keywords": [
+      "github-copilot-mai-code-2-flash-2026-11-18",
+      "github-copilot",
+      "statuspage",
+      "model-provider",
+      "fallback",
+      "incident-response",
+      "model-routing",
+      "governance"
+    ]
   }
 ]
