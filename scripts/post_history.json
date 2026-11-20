@@ -9499,5 +9499,39 @@
       "model-routing",
       "governance"
     ]
+  },
+  {
+    "date": "2026-11-20",
+    "type": "news",
+    "domain": "Security",
+    "title": "Java4Shell 대응 체크리스트: 런타임·CPU·이미지 전파까지",
+    "slug": "java4shell-runtime-version-cpu-image-runbook",
+    "keywords": [
+      "cve-2026-114938",
+      "java4shell",
+      "openjdk",
+      "oracle-cpu",
+      "patching",
+      "runtime-patching",
+      "containers",
+      "buildpacks"
+    ]
+  },
+  {
+    "date": "2026-11-20",
+    "type": "tech",
+    "domain": "Data",
+    "title": "OpenTelemetry Collector 업그레이드를 계약 테스트로 바꾸기",
+    "slug": "otel-collector-upgrade-contract-tests",
+    "keywords": [
+      "otelcol-0.165.0",
+      "opentelemetry-collector",
+      "otlp",
+      "semantic-conventions",
+      "upgrade-testing",
+      "opentelemetry",
+      "otel-collector",
+      "contract-testing"
+    ]
   }
 ]
