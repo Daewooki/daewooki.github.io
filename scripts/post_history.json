@@ -9533,5 +9533,38 @@
       "otel-collector",
       "contract-testing"
     ]
+  },
+  {
+    "date": "2026-11-21",
+    "type": "tech",
+    "domain": "Performance",
+    "title": "Meta TLX: Triton 생산성과 하드웨어 네이티브 커널 제어 사이 메우기",
+    "slug": "meta-tlx-triton-kernel-control",
+    "keywords": [
+      "tlx",
+      "triton",
+      "gpu",
+      "compiler",
+      "performance",
+      "gpu-kernel",
+      "profiling",
+      "benchmarking"
+    ]
+  },
+  {
+    "date": "2026-11-21",
+    "type": "news",
+    "domain": "AI",
+    "title": "Spring AI 2.1.0: Session과 MCP, Responses가 바꾸는 운영 계약",
+    "slug": "spring-ai-session-mcp-responses-ops",
+    "keywords": [
+      "spring-ai-2.1.0",
+      "spring-ai",
+      "mcp",
+      "session-api",
+      "openai-responses",
+      "tool-calling",
+      "regression-testing"
+    ]
   }
 ]
