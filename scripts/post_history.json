@@ -9566,5 +9566,39 @@
       "tool-calling",
       "regression-testing"
     ]
+  },
+  {
+    "date": "2026-11-22",
+    "type": "news",
+    "domain": "Security",
+    "title": "Splunk SOAR 59건 취약점 패치: 업그레이드 이벤트로 다루기",
+    "slug": "splunk-soar-svd-2026-1108-upgrade",
+    "keywords": [
+      "splunk-soar-svd-2026-1108",
+      "cve-2026-131253",
+      "splunk-soar",
+      "rce",
+      "patch-management",
+      "svd-2026-1108",
+      "vulnerability-management",
+      "patch-runbook"
+    ]
+  },
+  {
+    "date": "2026-11-22",
+    "type": "tech",
+    "domain": "Networking",
+    "title": "RFC 10069 멀티패스 QUIC 구현 체크리스트와 운영 설계",
+    "slug": "rfc10069-multipath-quic-checklist",
+    "keywords": [
+      "rfc-10069",
+      "multipath-quic",
+      "quic",
+      "quic-lb",
+      "load-balancing",
+      "multipath",
+      "rfc10069",
+      "observability"
+    ]
   }
 ]
