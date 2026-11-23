@@ -9600,5 +9600,39 @@
       "rfc10069",
       "observability"
     ]
+  },
+  {
+    "date": "2026-11-23",
+    "type": "tech",
+    "domain": "Backend",
+    "title": "TrailBase CVE에서 배우는 user-controlled key 권한 붕괴",
+    "slug": "user-controlled-key-authorization-patterns",
+    "keywords": [
+      "cve-2026-119759",
+      "trailbase",
+      "authorization",
+      "rbac",
+      "security-testing",
+      "api-security",
+      "cve-triage",
+      "negative-testing"
+    ]
+  },
+  {
+    "date": "2026-11-23",
+    "type": "news",
+    "domain": "Infrastructure",
+    "title": "NSA 기밀 통신망 장애가 남긴 과제: 내부망 SLO와 복구 체계",
+    "slug": "internal-network-slo-incident-design",
+    "keywords": [
+      "nsa-outage-2026-11-17",
+      "internal-network",
+      "resilience",
+      "bcp",
+      "incident-management",
+      "infrastructure",
+      "slo",
+      "ics"
+    ]
   }
 ]
