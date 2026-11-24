@@ -9634,5 +9634,38 @@
       "slo",
       "ics"
     ]
+  },
+  {
+    "date": "2026-11-24",
+    "type": "news",
+    "domain": "Web",
+    "title": "NGINX HTTP/2 치명 결함 공지 이후, 영향이 갈리는 지점들",
+    "slug": "nginx-http2-cve-inventory-mitigation",
+    "keywords": [
+      "cve-2026-123007",
+      "nginx",
+      "http2",
+      "f5",
+      "patch-management",
+      "cve",
+      "kubernetes-ingress",
+      "incident-response"
+    ]
+  },
+  {
+    "date": "2026-11-24",
+    "type": "tech",
+    "domain": "Data",
+    "title": "BigQuery 비용 가드레일: reservation_override_mode·disable_on_demand_billing",
+    "slug": "bigquery-reservation-billing-guardrails",
+    "keywords": [
+      "bigquery-reservation-controls",
+      "bigquery",
+      "finops",
+      "reservations",
+      "cost-guardrails",
+      "terraform",
+      "governance"
+    ]
   }
 ]
