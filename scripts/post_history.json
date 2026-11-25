@@ -9667,5 +9667,39 @@
       "terraform",
       "governance"
     ]
+  },
+  {
+    "date": "2026-11-25",
+    "type": "tech",
+    "domain": "Database",
+    "title": "Redis 8.0 STS EOL: 버전 수명이 운영 보안 계약이 되는 순간",
+    "slug": "redis-sts-lts-eol-ops-policy",
+    "keywords": [
+      "redis-8.0-eol",
+      "redis",
+      "sts",
+      "upgrade-policy",
+      "security-patches",
+      "redis-software",
+      "sts-lts",
+      "eol"
+    ]
+  },
+  {
+    "date": "2026-11-25",
+    "type": "news",
+    "domain": "Security",
+    "title": "vCenter Directory Service 인증 우회 대응 런북: 노출 식별부터 HA/롤백까지",
+    "slug": "vcenter-directory-service-bypass-runbook",
+    "keywords": [
+      "cve-2026-123890",
+      "vmware-vcenter",
+      "vmsa-2026-0009",
+      "auth-bypass",
+      "patch-management",
+      "vmware",
+      "vcenter",
+      "incident-response"
+    ]
   }
 ]
