@@ -9701,5 +9701,39 @@
       "vcenter",
       "incident-response"
     ]
+  },
+  {
+    "date": "2026-11-26",
+    "type": "news",
+    "domain": "Systems",
+    "title": "Linux 7.4-rc4 공개가 배포 조직의 회귀 테스트 일정을 앞당겨야 하는 이유",
+    "slug": "linux-7-4-rc4-regression-rollout",
+    "keywords": [
+      "linux-7.4-rc4",
+      "linux-kernel",
+      "release-candidate",
+      "regression-testing",
+      "kernel-ci",
+      "ci",
+      "canary-rollout",
+      "kexec"
+    ]
+  },
+  {
+    "date": "2026-11-26",
+    "type": "tech",
+    "domain": "Languages",
+    "title": "Rust 1.100 채택 전략: 빌드·린트·포매팅 계약 고정",
+    "slug": "rust-1100-toolchain-contract",
+    "keywords": [
+      "rust-1.100.0",
+      "rust",
+      "cargo",
+      "msrv",
+      "toolchain",
+      "toolchain-pinning",
+      "monorepo",
+      "ci-cache"
+    ]
   }
 ]
