@@ -9735,5 +9735,39 @@
       "monorepo",
       "ci-cache"
     ]
+  },
+  {
+    "date": "2026-11-27",
+    "type": "tech",
+    "domain": "Cloud",
+    "title": "BigQuery borderless Lakehouse cross-cloud caching 설계",
+    "slug": "bigquery-cross-cloud-caching-design",
+    "keywords": [
+      "bigquery-cross-cloud-caching",
+      "bigquery",
+      "lakehouse",
+      "egress-cost",
+      "performance",
+      "cross-cloud",
+      "caching",
+      "data-residency"
+    ]
+  },
+  {
+    "date": "2026-11-27",
+    "type": "news",
+    "domain": "Infrastructure",
+    "title": "Spotify 로그인 장애에서 본 인증·세션 실패의 클라이언트 방어 패턴",
+    "slug": "spotify-auth-session-outage-ux-defense",
+    "keywords": [
+      "spotify-outage-2026-11-24",
+      "spotify",
+      "incident",
+      "auth",
+      "resilience",
+      "incident-analysis",
+      "sre",
+      "session"
+    ]
   }
 ]
