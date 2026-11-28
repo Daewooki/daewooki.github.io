@@ -9769,5 +9769,39 @@
       "sre",
       "session"
     ]
+  },
+  {
+    "date": "2026-11-28",
+    "type": "news",
+    "domain": "DevOps",
+    "title": "Kubernetes 1.35.11·1.36.7·1.37.3: 패치일을 배포 리허설로",
+    "slug": "kubernetes-patch-day-deployment-rehearsal",
+    "keywords": [
+      "kubernetes-1.37.3-patch-2026-11-25",
+      "kubernetes",
+      "patch-release",
+      "version-skew",
+      "upgrade-checklist",
+      "release-engineering",
+      "upgrade",
+      "sre"
+    ]
+  },
+  {
+    "date": "2026-11-28",
+    "type": "tech",
+    "domain": "Languages",
+    "title": "Go 1.28 composite literal 타입 생략이 팀에 미치는 영향",
+    "slug": "go-1-28-composite-literal-type-elision",
+    "keywords": [
+      "go-1.28-composite-literals",
+      "golang",
+      "type-inference",
+      "composite-literals",
+      "gofmt",
+      "go",
+      "go1-28",
+      "composite-literal"
+    ]
   }
 ]
